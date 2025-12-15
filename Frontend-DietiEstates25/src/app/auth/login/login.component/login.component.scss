@@ -1,0 +1,336 @@
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  background: #f4f7f6;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'SF Pro', sans-serif;
+}
+
+.hero {
+  flex: 1;
+  background: linear-gradient(135deg, #0f7a4b, #145c3c);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+}
+
+.hero-content {
+  max-width: 420px;
+}
+
+.logo-row {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-bottom: 2.5rem;
+}
+
+.logo-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background-color: rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+}
+
+.logo-text {
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.hero h1 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.subtitle {
+  font-size: 1rem;
+  opacity: 0.9;
+  line-height: 1.5;
+  margin-bottom: 3rem;
+}
+
+.copyright {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.form-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.card {
+  width: 100%;
+  max-width: 420px;
+  background-color: #ffffff;
+  border-radius: 24px;
+  box-shadow: 0 18px 40px rgba(15, 31, 53, 0.12);
+  padding: 2.2rem 2.4rem;
+}
+
+.card h2 {
+  font-size: 1.6rem;
+  margin-bottom: 0.4rem;
+}
+
+.card-subtitle {
+  font-size: 0.95rem;
+  color: #6b7280;
+  margin-bottom: 1.2rem;
+}
+
+.demo-box {
+  background-color: #e3f3ea;
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+  font-size: 0.85rem;
+  color: #145c3c;
+  margin-bottom: 1.5rem;
+
+  ul {
+    margin: 0.3rem 0 0;
+    padding-left: 1.1rem;
+  }
+}
+
+/* --- Form fields --- */
+
+.field {
+  display: block;
+  margin-bottom: 1.1rem;
+}
+
+.field-label {
+  display: block;
+  font-size: 0.85rem;
+  color: #4b5563;
+  margin-bottom: 0.3rem;
+}
+
+.field-input {
+  display: flex;
+  align-items: center;
+  border-radius: 999px;
+  background-color: #f3f4f6;
+  padding: 0.45rem 0.9rem;
+}
+
+.field-icon {
+  font-size: 1rem;
+  margin-right: 0.4rem;
+  color: #6b7280;
+}
+
+.field-input input {
+  border: none;
+  outline: none;
+  background: transparent;
+  width: 100%;
+  font-size: 0.95rem;
+}
+
+.field-error {
+  margin-top: 0.25rem;
+  font-size: 0.78rem;
+  color: #b91c1c;
+}
+
+.primary-btn {
+  width: 100%;
+  border: none;
+  border-radius: 999px;
+  padding: 0.7rem 1rem;
+  margin-top: 0.4rem;
+  background: #15803d;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.primary-btn:disabled {
+  opacity: 0.8;
+  cursor: default;
+}
+
+.primary-btn:not(:disabled):hover {
+  background: #166534;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin: 1.4rem 0 0.9rem;
+  color: #9ca3af;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  justify-content: center;
+  width: 100%;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  height: 1px;
+  background-color: #e5e7eb; 
+  flex: 1 1 auto;
+  min-width: 20px;
+}
+
+.divider span {
+  white-space: nowrap;
+  padding: 0 0.6rem;
+  display: inline-block;
+}
+
+.social-row {
+  display: flex;
+  gap: 0.6rem;
+  margin-bottom: 1.2rem;
+
+  button {
+    flex: 1;
+    border-radius: 999px;
+    border: 1px solid #e5e7eb;
+    padding: 0.55rem 0;
+    font-size: 1.1rem;
+    background-color: #ffffff;
+    cursor: pointer;
+    transition: background 0.15s ease, box-shadow 0.15s ease;
+
+    &:hover {
+      background-color: #f9fafb;
+      box-shadow: 0 3px 8px rgba(15, 31, 53, 0.08);
+    }
+  }
+}
+
+.register {
+  font-size: 0.85rem;
+  color: #6b7280;
+  text-align: center;
+
+  a {
+    color: #15803d;
+    font-weight: 500;
+    text-decoration: none;
+  }
+}
+
+.error-msg {
+  margin-top: 0.6rem;
+  color: #b91c1c;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 900px) {
+  .login-page {
+    flex-direction: column;
+  }
+
+  .hero {
+    padding: 2rem;
+    min-height: 40vh;
+  }
+
+  .form-wrapper {
+    padding: 1.5rem 1.2rem 2rem;
+  }
+}
+
+
+.hero-content {
+  max-width: 420px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 70vh;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-top: 0.25rem;
+  margin-bottom: 2.2rem;
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+}
+
+.brand-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background-color: rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
+.brand-text {
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.hero-copy {
+  margin-top: 2.2rem;
+}
+
+.hero h1 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.social-row {
+  display: flex;
+  gap: 0.6rem;
+  margin-bottom: 1.2rem;
+}
+
+.social-btn {
+  flex: 1;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  padding: 0.55rem 0;
+  background: #ffffff;
+  cursor: pointer;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.social-btn:hover {
+  background: #f9fafb;
+  box-shadow: 0 3px 8px rgba(15, 31, 53, 0.08);
+}
+
+.social-btn .social-icon {
+  width: 20px;
+  height: 20px;
+  display: block;
+  object-fit: contain;
+}
+
+.card {
+  border-radius: 24px;
+  box-shadow: 0 18px 40px rgba(15, 31, 53, 0.12);
+}
