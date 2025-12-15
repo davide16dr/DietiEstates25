@@ -1,0 +1,87 @@
+<div class="login-page">
+  <section class="hero">
+    <div class="hero-content">
+      <button type="button" class="brand" (click)="goHome()" aria-label="Vai alla Home">
+        <div class="brand-icon">
+          <span>🏠</span>
+        </div>
+        <span class="brand-text">DietiEstates25</span>
+      </button>
+
+      <div class="hero-copy">
+        <h1>Trova la casa dei tuoi sogni</h1>
+        <p class="subtitle">
+          La piattaforma immobiliare più completa d'Italia.<br />
+          Vendita, affitto e molto altro.
+        </p>
+      </div>
+
+      <p class="copyright">© 2025 DietiEstates25</p>
+    </div>
+  </section>
+
+  <section class="form-wrapper">
+    <div class="card">
+      <h2>Bentornato</h2>
+      <p class="card-subtitle">Accedi al tuo account per continuare</p>
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+        <label class="field">
+          <span class="field-label">Email</span>
+          <div class="field-input">
+            <span class="field-icon">📧</span>
+            <input type="email" formControlName="email" placeholder="nome@esempio.it" />
+          </div>
+          @if (form.get('email')?.invalid && form.get('email')?.touched) {
+            <div class="field-error">
+              Inserisci un indirizzo email valido.
+            </div>
+          }
+        </label>
+
+        <label class="field">
+          <span class="field-label">Password</span>
+          <div class="field-input">
+            <span class="field-icon">🔒</span>
+            <input type="password" formControlName="password" placeholder="••••••••" />
+          </div>
+          @if (form.get('password')?.invalid && form.get('password')?.touched) {
+            <div class="field-error">
+              Inserisci una password di almeno 6 caratteri.
+            </div>
+          }
+        </label>
+
+        <button class="primary-btn" type="submit" [disabled]="isSubmitting">
+          {{ isSubmitting ? 'Accesso in corso...' : 'Accedi' }}
+        </button>
+
+        <div class="divider" aria-hidden="true">
+          <span>OPPURE CONTINUA CON</span>
+        </div>
+        <div class="social-row">
+          <button type="button" class="social-btn" (click)="onSocialLogin('google')" aria-label="Continua con Google">
+            <img src="assets/google_logo.png" alt="Continua con Google" class="social-icon" loading="lazy" />
+          </button>
+
+          <button type="button" class="social-btn" (click)="onSocialLogin('facebook')" aria-label="Continua con Facebook">
+            <img src="assets/facebook_logo.png" alt="Continua con Facebook" class="social-icon" loading="lazy" />
+          </button>
+
+          <button type="button" class="social-btn" (click)="onSocialLogin('github')" aria-label="Continua con GitHub">
+            <img src="assets/github_logo.png" alt="Continua con GitHub" class="social-icon" loading="lazy" />
+          </button>
+        </div>
+
+        <p class="register">
+          Non hai un account?
+          <a routerLink="/auth/register">Registrati</a>
+        </p>
+
+        @if (errorMessage) {
+          <p class="error-msg">{{ errorMessage }}</p>
+        }
+      </form>
+    </div>
+  </section>
+</div>
