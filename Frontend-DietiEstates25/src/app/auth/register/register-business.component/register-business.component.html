@@ -1,0 +1,153 @@
+<div class="register-page">
+    <section class="hero">
+      <div class="hero-content">
+        <button type="button" class="brand" (click)="goHome()" aria-label="Vai alla Home">
+          <div class="brand-icon"><span>🏢</span></div>
+          <span class="brand-text">DietiEstates25</span>
+        </button>
+  
+        <div class="hero-copy">
+          <h1>Registrazione Aziende</h1>
+          <p class="subtitle">
+            Registra la tua agenzia e inizia a pubblicare e gestire annunci immobiliari.
+          </p>
+  
+          <div class="bullets">
+            <span>• Gestione agenti</span>
+            <span>• Pubblicazione annunci</span>
+            <span>• Visite e offerte</span>
+          </div>
+        </div>
+  
+        <p class="copyright">© 2025 DietiEstates25</p>
+      </div>
+    </section>
+  
+    <section class="form-wrapper">
+      <div class="card">
+        <h2>Crea profilo aziendale</h2>
+        <p class="card-subtitle">Inserisci i dati richiesti per la registrazione</p>
+  
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+          <div class="row-2">
+            <label class="field">
+              <span class="field-label">Nome</span>
+              <div class="field-input">
+                <input type="text" formControlName="firstName" placeholder="Mario" />
+              </div>
+              @if (form.get('firstName')?.touched && form.get('firstName')?.invalid) {
+                <div class="field-error">Inserisci un nome valido.</div>
+              }
+            </label>
+  
+            <label class="field">
+              <span class="field-label">Cognome</span>
+              <div class="field-input">
+                <input type="text" formControlName="lastName" placeholder="Rossi" />
+              </div>
+              @if (form.get('lastName')?.touched && form.get('lastName')?.invalid) {
+                <div class="field-error">Inserisci un cognome valido.</div>
+              }
+            </label>
+          </div>
+  
+          <label class="field">
+            <span class="field-label">Nome Azienda</span>
+            <div class="field-input">
+              <input type="text" formControlName="companyName" placeholder="Agenzia Immobiliare XYZ" />
+            </div>
+            @if (form.get('companyName')?.touched && form.get('companyName')?.invalid) {
+              <div class="field-error">Inserisci il nome dell'azienda.</div>
+            }
+          </label>
+  
+          <label class="field">
+            <span class="field-label">Partita IVA</span>
+            <div class="field-input">
+              <input
+                type="text"
+                formControlName="vatNumber"
+                placeholder="11 cifre"
+                inputmode="numeric"
+              />
+            </div>
+            <div class="field-hint">Formato italiano: 11 cifre</div>
+            @if (form.get('vatNumber')?.touched && form.get('vatNumber')?.invalid) {
+              <div class="field-error">Inserisci una Partita IVA valida (11 cifre).</div>
+            }
+          </label>
+  
+          <label class="field">
+            <span class="field-label">Email</span>
+            <div class="field-input">
+              <input type="email" formControlName="email" placeholder="azienda@esempio.it" />
+            </div>
+            @if (form.get('email')?.touched && form.get('email')?.invalid) {
+              <div class="field-error">Inserisci un indirizzo email valido.</div>
+            }
+          </label>
+  
+          <label class="field">
+            <span class="field-label">Comune</span>
+            <div class="field-input">
+              <input type="text" formControlName="comune" placeholder="Milano" />
+            </div>
+            @if (form.get('comune')?.touched && form.get('comune')?.invalid) {
+              <div class="field-error">Inserisci il comune.</div>
+            }
+          </label>
+  
+          <div class="row-phone">
+            <label class="field prefix">
+              <span class="field-label">Prefisso</span>
+              <div class="field-input">
+                <select formControlName="phonePrefix">
+                  @for (c of countryCodes; track c.value) {
+                    <option [value]="c.value">{{ c.label }}</option>
+                  }
+                </select>
+              </div>
+            </label>
+  
+            <label class="field number">
+              <span class="field-label">Telefono</span>
+              <div class="field-input">
+                <input
+                  type="tel"
+                  formControlName="phoneNumber"
+                  placeholder="3123456789"
+                  inputmode="numeric"
+                />
+              </div>
+              @if (form.get('phoneNumber')?.touched && form.get('phoneNumber')?.invalid) {
+                <div class="field-error">Inserisci un numero valido.</div>
+              }
+            </label>
+          </div>
+  
+          <div class="checks">
+            <label class="check">
+              <input type="checkbox" formControlName="acceptAll" />
+              <span>Dichiaro di essere maggiorenne e di aver letto e accettato i Termini e Condizioni e l'Informativa Privacy.</span>
+            </label>
+            <div class="check-error" [class.visible]="form.get('acceptAll')?.touched && form.get('acceptAll')?.invalid">
+              Obbligatorio.
+            </div>
+          </div>
+  
+          <button class="primary-btn" type="submit" [disabled]="isSubmitting">
+            {{ isSubmitting ? 'Invio...' : 'Crea account aziendale' }}
+          </button>
+  
+          @if (errorMessage) {
+            <p class="error-msg">{{ errorMessage }}</p>
+          }
+  
+          <p class="login-link">
+            Hai già un account?
+            <a routerLink="/auth/login">Accedi</a>
+          </p>
+        </form>
+      </div>
+    </section>
+  </div>

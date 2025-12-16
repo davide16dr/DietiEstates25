@@ -1,0 +1,136 @@
+<div class="register-page">
+    <section class="hero">
+      <div class="hero-content">
+        <button type="button" class="brand" (click)="goHome()" aria-label="Vai alla Home">
+          <div class="brand-icon"><span>🏠</span></div>
+          <span class="brand-text">DietiEstates25</span>
+        </button>
+  
+        <div class="hero-copy">
+          <h1>Unisciti a noi</h1>
+          <p class="subtitle">
+            Crea il tuo account e inizia a esplorare migliaia di immobili in tutta Italia.
+          </p>
+  
+          <div class="bullets">
+            <span>• Ricerca avanzata</span>
+            <span>• Notifiche personalizzate</span>
+            <span>• Ricerche salvate</span>
+          </div>
+        </div>
+  
+        <p class="copyright">© 2025 DietiEstates25</p>
+      </div>
+    </section>
+  
+    <section class="form-wrapper">
+      <div class="card">
+        <h2>Crea un account</h2>
+        <p class="card-subtitle">Inserisci i tuoi dati per registrarti</p>
+  
+        <div class="business-box">
+          <div class="business-text">
+            <div class="business-title">Sei un’azienda?</div>
+            <div class="business-subtitle">Agenzia immobiliare o professionista: registra il tuo profilo dedicato.</div>
+          </div>
+          <button type="button" class="business-btn" (click)="goBusinessRegister()">
+            Registrati qui!
+          </button>
+        </div>
+  
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+          <div class="row-2">
+            <label class="field">
+              <span class="field-label">Nome</span>
+              <div class="field-input">
+                <input type="text" formControlName="firstName" placeholder="Mario" />
+              </div>
+              @if (form.get('firstName')?.invalid && form.get('firstName')?.touched) {
+                <div class="field-error">
+                  Inserisci un nome valido.
+                </div>
+              }
+            </label>
+  
+            <label class="field">
+              <span class="field-label">Cognome</span>
+              <div class="field-input">
+                <input type="text" formControlName="lastName" placeholder="Rossi" />
+              </div>
+              @if (form.get('lastName')?.invalid && form.get('lastName')?.touched) {
+                <div class="field-error">
+                  Inserisci un cognome valido.
+                </div>
+              }
+            </label>
+          </div>
+  
+          <label class="field">
+            <span class="field-label">Email</span>
+            <div class="field-input">
+              <input type="email" formControlName="email" placeholder="nome@esempio.it" />
+            </div>
+            @if (form.get('email')?.invalid && form.get('email')?.touched) {
+              <div class="field-error">
+                Inserisci un indirizzo email valido.
+              </div>
+            }
+          </label>
+  
+          <label class="field">
+            <span class="field-label">Telefono (opzionale)</span>
+            <div class="field-input">
+              <input type="tel" formControlName="phone" placeholder="+39 123 456 7890" />
+            </div>
+          </label>
+  
+          <div class="row-2">
+            <label class="field">
+              <span class="field-label">Password</span>
+              <div class="field-input">
+                <input type="password" formControlName="password" placeholder="••••••••" />
+              </div>
+            </label>
+  
+            <label class="field">
+              <span class="field-label">Conferma</span>
+              <div class="field-input">
+                <input type="password" formControlName="confirmPassword" placeholder="••••••••" />
+              </div>
+            </label>
+          </div>
+  
+          <button class="primary-btn" type="submit" [disabled]="isSubmitting">
+            {{ isSubmitting ? 'Registrazione...' : 'Registrati' }}
+          </button>
+  
+          <div class="divider" aria-hidden="true">
+            <span>OPPURE CONTINUA CON</span>
+          </div>
+  
+          <div class="social-row">
+            <button type="button" class="social-btn" (click)="onSocialRegister('google')" aria-label="Google">
+              <img src="assets/google_logo.png" class="social-icon" alt="Google" />
+            </button>
+  
+            <button type="button" class="social-btn" (click)="onSocialRegister('facebook')" aria-label="Facebook">
+              <img src="assets/facebook_logo.png" class="social-icon" alt="Facebook" />
+            </button>
+  
+            <button type="button" class="social-btn" (click)="onSocialRegister('github')" aria-label="GitHub">
+              <img src="assets/github_logo.png" class="social-icon" alt="GitHub" />
+            </button>
+          </div>
+  
+          <p class="login-link">
+            Hai già un account?
+            <a routerLink="/auth/login">Accedi</a>
+          </p>
+
+          @if (errorMessage) {
+            <p class="error-msg">{{ errorMessage }}</p>
+          }
+        </form>
+      </div>
+    </section>
+  </div>
