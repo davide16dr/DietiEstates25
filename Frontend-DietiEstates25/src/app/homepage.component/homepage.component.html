@@ -1,0 +1,34 @@
+<div class="page">
+  <main>
+    <section class="hero">
+      <div class="hero-inner">
+        <div class="hero-badge">
+          ⭐ La piattaforma immobiliare #1 in Italia
+        </div>
+
+        <h1>
+          Trova la <span class="highlight">casa dei tuoi sogni</span>
+        </h1>
+
+        <p class="hero-subtitle">
+          Esplora migliaia di immobili in vendita e affitto in tutta Italia.
+        </p>
+
+        <form class="search-bar" (ngSubmit)="onSearch()">
+          <input
+            type="text"
+            [(ngModel)]="searchQuery"
+            placeholder="Cerca per città, zona o indirizzo"
+            name="searchQuery"
+          />
+          <button class="btn primary" type="submit">Cerca</button>
+        </form>
+
+        <div class="hero-filters">
+          <button class="chip active">Vendita</button>
+          <button class="chip">Affitto</button>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
