@@ -29,7 +29,6 @@
         <label class="field">
           <span class="field-label">Email</span>
           <div class="field-input">
-            <span class="field-icon">📧</span>
             <input type="email" formControlName="email" placeholder="nome@esempio.it" />
           </div>
           @if (form.get('email')?.invalid && form.get('email')?.touched) {
@@ -42,7 +41,6 @@
         <label class="field">
           <span class="field-label">Password</span>
           <div class="field-input">
-            <span class="field-icon">🔒</span>
             <input type="password" formControlName="password" placeholder="••••••••" />
           </div>
           @if (form.get('password')?.invalid && form.get('password')?.touched) {

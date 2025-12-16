@@ -1,0 +1,266 @@
+.register-page {
+    min-height: 100vh;
+    display: flex;
+    background: #f4f7f6;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'SF Pro', sans-serif;
+  }
+  
+  .hero {
+    flex: 1;
+    background: linear-gradient(135deg, #0f7a4b, #145c3c);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+  }
+  
+  .hero-content {
+    max-width: 460px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    min-height: 70vh;
+  }
+  
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    margin-top: 0.25rem;
+    margin-bottom: 2.2rem;
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    cursor: pointer;
+    padding: 0;
+    text-align: left;
+  }
+  
+  .brand-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background-color: rgba(255, 255, 255, 0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+  }
+  
+  .brand-text {
+    font-weight: 650;
+    font-size: 1.1rem;
+  }
+  
+  .hero-copy {
+    margin-top: 6rem;
+  }
+  
+  .hero h1 {
+    font-size: 2.2rem;
+    font-weight: 750;
+    margin-bottom: 0.8rem;
+  }
+  
+  .subtitle {
+    font-size: 1rem;
+    opacity: 0.9;
+    line-height: 1.5;
+    margin-bottom: 1.2rem;
+  }
+  
+  .bullets {
+    display: flex;
+    gap: 1.2rem;
+    flex-wrap: wrap;
+    font-size: 0.95rem;
+    opacity: 0.95;
+  }
+  
+  .copyright {
+    margin-top: auto;
+    font-size: 0.85rem;
+    opacity: 0.85;
+  }
+  
+  .form-wrapper {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+  
+  .card {
+    width: 100%;
+    max-width: 560px;
+    background-color: #ffffff;
+    border-radius: 24px;
+    box-shadow: 0 18px 40px rgba(15, 31, 53, 0.12);
+    padding: 2.1rem 2.2rem;
+  }
+  
+  .card h2 {
+    font-size: 1.55rem;
+    margin-bottom: 0.35rem;
+  }
+  
+  .card-subtitle {
+    font-size: 0.95rem;
+    color: #6b7280;
+    margin-bottom: 1.1rem;
+  }
+  
+  .row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.9rem;
+  }
+  
+  .row-phone {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 0.9rem;
+  }
+  
+  .field {
+    display: block;
+    margin-bottom: 1rem;
+  }
+  
+  .field-label {
+    display: block;
+    font-size: 0.85rem;
+    color: #4b5563;
+    margin-bottom: 0.3rem;
+  }
+  
+  .field-input {
+    display: flex;
+    align-items: center;
+    border-radius: 999px;
+    background-color: #f3f4f6;
+    padding: 0.45rem 0.9rem;
+  }
+  
+  .field-icon {
+    font-size: 1rem;
+    margin-right: 0.45rem;
+    color: #6b7280;
+  }
+  
+  .field-input input,
+  .field-input select {
+    border: none;
+    outline: none;
+    background: transparent;
+    width: 100%;
+    font-size: 0.95rem;
+  }
+  
+  .field-hint {
+    margin-top: 0.25rem;
+    font-size: 0.78rem;
+    color: #9ca3af;
+  }
+  
+  .field-error {
+    margin-top: 0.25rem;
+    font-size: 0.78rem;
+    color: #b91c1c;
+  }
+  
+  .checks {
+    margin: 0.6rem 0 1.1rem;
+  }
+  
+  .check {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    font-size: 0.9rem;
+    color: #374151;
+    margin-bottom: 0.35rem;
+  }
+  
+  .check input {
+    margin-top: 0.2rem;
+  }
+  
+  .check-error {
+    margin-top: 0.25rem;
+    font-size: 0.78rem;
+    color: #b91c1c;
+    display: none;
+  
+    &.visible {
+      display: block;
+    }
+  }
+  
+  .primary-btn {
+    width: 100%;
+    border: none;
+    border-radius: 999px;
+    padding: 0.75rem 1rem;
+    background: linear-gradient(90deg, #0f7a4b, #15803d, #22c55e);
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 0.95rem;
+    cursor: pointer;
+  }
+  
+  .primary-btn:disabled {
+    opacity: 0.8;
+    cursor: default;
+  }
+  
+  .error-msg {
+    margin-top: 0.6rem;
+    color: #b91c1c;
+    font-size: 0.85rem;
+    text-align: center;
+  }
+  
+  .login-link {
+    font-size: 0.85rem;
+    color: #6b7280;
+    text-align: center;
+    margin-top: 0.9rem;
+  
+    a {
+      color: #15803d;
+      font-weight: 700;
+      text-decoration: none;
+    }
+  }
+  
+  @media (max-width: 900px) {
+    .register-page {
+      flex-direction: column;
+    }
+  
+    .hero {
+      padding: 2rem;
+      min-height: 40vh;
+    }
+  
+    .hero-copy {
+      margin-top: 2.5rem;
+    }
+  
+    .form-wrapper {
+      padding: 1.5rem 1.2rem 2rem;
+    }
+  }
+  
+  @media (max-width: 560px) {
+    .row-2 {
+      grid-template-columns: 1fr;
+    }
+  
+    .row-phone {
+      grid-template-columns: 1fr;
+    }
+  }
