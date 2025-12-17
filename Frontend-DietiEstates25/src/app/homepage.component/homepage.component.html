@@ -1,9 +1,12 @@
 <div class="page">
+  <nav class="navbar" style="background-color:#15803d; height: 50px;"></nav>
+  
   <main>
     <section class="hero">
       <div class="hero-inner">
+
         <div class="hero-badge">
-          ⭐ La piattaforma immobiliare #1 in Italia
+          <span>⭐ La piattaforma immobiliare #1 in Italia</span>
         </div>
 
         <h1>
@@ -11,24 +14,88 @@
         </h1>
 
         <p class="hero-subtitle">
-          Esplora migliaia di immobili in vendita e affitto in tutta Italia.
+          Esplora migliaia di immobili in vendita e affitto. DietiEstates25 ti accompagna
+          in ogni passo verso la tua nuova casa.
         </p>
 
         <form class="search-bar" (ngSubmit)="onSearch()">
-          <input
-            type="text"
-            [(ngModel)]="searchQuery"
-            placeholder="Cerca per città, zona o indirizzo"
-            name="searchQuery"
-          />
-          <button class="btn primary" type="submit">Cerca</button>
+          <div class="search-input">
+            <span class="search-icon">📍</span>
+            <input type="text" [(ngModel)]="searchQuery" name="searchQuery"
+              placeholder="Cerca per città, zona o indirizzo..." />
+          </div>
+
+          <div class="search-filters">
+            <button type="button" class="chip" [class.active]="contractType === 'sale'" (click)="selectType('sale')">
+              Vendita
+            </button>
+
+            <button type="button" class="chip" [class.active]="contractType === 'rent'" (click)="selectType('rent')">
+              Affitto
+            </button>
+          </div>
+
+          <button class="btn primary" type="submit">
+            Cerca
+          </button>
         </form>
 
         <div class="hero-filters">
-          <button class="chip active">Vendita</button>
-          <button class="chip">Affitto</button>
+          <button type="button" class="chip cta" routerLink="/auth/register">
+            Inizia Gratis
+          </button>
+        </div>
+      </div>
+
+    </section>
+
+    <section class="stats-section">
+      <div class="stats-inner">
+        <div class="stat" *ngFor="let s of stats">
+          <div class="stat-value">{{ s.value }}</div>
+          <div class="stat-label">{{ s.label }}</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="features-section">
+      <div class="features-inner">
+        <div class="section-tag">Perché sceglierci</div>
+        <h2>Tutto ciò di cui hai bisogno</h2>
+        <p class="features-subtitle">
+          Una piattaforma completa per comprare, vendere o affittare il tuo immobile ideale.
+        </p>
+
+        <div class="features-grid">
+          <article class="feature-card" *ngFor="let f of features">
+            <div class="feature-icon"><span>{{ f.icon }}</span></div>
+            <h3>{{ f.title }}</h3>
+            <p>{{ f.description }}</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta-section">
+      <div class="cta-inner">
+        <h2>Pronto a trovare la tua casa?</h2>
+        <p class="cta-subtitle">
+          Unisciti a migliaia di utenti soddisfatti. Registrati gratuitamente e inizia subito.
+        </p>
+
+        <div class="cta-actions">
+          <button class="btn light" type="button">🔍 Esplora Immobili</button>
+          <button class="btn primary-outline" type="button">Registrati Ora →</button>
+        </div>
+
+        <div class="cta-benefits">
+          <div class="benefit"><span>✔</span> Registrazione gratuita</div>
+          <div class="benefit"><span>✔</span> Nessun obbligo</div>
+          <div class="benefit"><span>✔</span> Supporto 24/7</div>
         </div>
       </div>
     </section>
   </main>
+
+  <footer style="background-color: #15803d; height: 50px;"></footer>
 </div>
