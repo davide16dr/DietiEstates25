@@ -2,7 +2,7 @@ import { Routes } from '@angular/router';
 import { LoginComponent } from './auth/login/login.component/login.component';
 import { RegisterUserComponent } from './auth/register/register-user.component/register-user.component';
 import { RegisterBusinessComponent } from './auth/register/register-business.component/register-business.component';
-import { HomepageComponent } from './homepage.component/homepage.component';
+import { HomepageComponent } from './pages/homepage.component/homepage.component';
 export const routes: Routes = [
     {
       path: '',

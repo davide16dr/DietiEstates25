@@ -1,0 +1,26 @@
+<header class="navbar">
+    <div class="navbar-inner">
+      <a class="logo" routerLink="/">
+        <div class="logo-icon">
+            <img src="/assets/dietiEstates25_onlyLogo.png" alt="Dieti Estates Logo" class="logo-image">
+        </div>
+        <span class="logo-text">
+          {{ brandText }}<span>{{ brandSuffix }}</span>
+        </span>
+      </a>
+  
+      @if (showAuthActions) {
+        <div class="nav-actions">
+          <a class="btn ghost" routerLink="/auth/login">Accedi</a>
+          <a class="btn primary" routerLink="/auth/register">Registrati</a>
+        </div>
+      }
+  
+      @if (!showAuthActions) {
+        <div class="nav-actions">
+          <a class="btn ghost" routerLink="/notifications">Notifiche</a>
+          <a class="btn primary" routerLink="/profile">Profilo</a>
+        </div>
+      }
+    </div>
+  </header>
