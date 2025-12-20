@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
@@ -10,8 +10,7 @@ import { RouterModule } from '@angular/router';
   styleUrls: ['./navbar.component.scss'],
 })
 export class NavbarComponent {
-  @Input() showAuthActions = true;
-
-  @Input() brandText = 'DietiEstates';
-  @Input() brandSuffix = '25';
+  showAuthActions = input<boolean>(true);
+  brandText = input<string>('DietiEstates');
+  brandSuffix = input<string>('25');
 }
