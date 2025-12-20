@@ -1,0 +1,35 @@
+.card{
+    background:#fff; border:1px solid #eee7de; border-radius:18px; overflow:hidden;
+    box-shadow:0 10px 24px rgba(17,24,39,.06);
+    cursor:pointer; transition: transform 120ms ease, box-shadow 120ms ease;
+  }
+  .card:hover{ transform: translateY(-2px); box-shadow:0 16px 34px rgba(17,24,39,.10); }
+  
+  .img{ height:210px; background:#ededed; position:relative; }
+  .img-ph{ width:100%; height:100%; display:grid; place-items:center; color:#9ca3af; opacity:.85; }
+  .ph-ico{ font-size:1.8rem; }
+  
+  .chips{ position:absolute; top:12px; left:12px; display:flex; gap:.6rem; z-index:2; }
+  .chip{ padding:.35rem .85rem; border-radius:999px; font-weight:800; font-size:.85rem; border:1px solid rgba(0,0,0,.05); }
+  .chip.ok{ background:#2f7a52; color:#fff; }
+  .chip.soft{ background:#f3f4f6; color:#374151; }
+  
+  .energy{
+    position:absolute; right:12px; bottom:12px;
+    background:rgba(255,255,255,.92); border:1px solid #e5e7eb; border-radius:999px;
+    padding:.35rem .7rem; font-weight:800; color:#111827; font-size:.85rem;
+  }
+  
+  .body{ padding:1.1rem 1.15rem 1.2rem; }
+  .price{ font-size:1.7rem; font-weight:900; color:#2f7a52; margin-bottom:.5rem; }
+  .title2{ font-size:1.2rem; font-weight:900; color:#111827; margin-bottom:.6rem; }
+  
+  .addr{
+    display:flex; align-items:center; gap:.55rem; color:#667085;
+    padding-bottom:.85rem; border-bottom:1px solid #efe8de; margin-bottom:.85rem;
+  }
+  
+  .meta{ display:flex; gap:1rem; color:#4b5563; flex-wrap:wrap; }
+  .m{ display:inline-flex; align-items:center; gap:.45rem; font-weight:700; }
+  .m-ico{ opacity:.85; }
+  
