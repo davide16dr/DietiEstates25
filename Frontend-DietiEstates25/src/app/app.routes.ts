@@ -3,6 +3,8 @@ import { LoginComponent } from './auth/login/login.component/login.component';
 import { RegisterUserComponent } from './auth/register/register-user.component/register-user.component';
 import { RegisterBusinessComponent } from './auth/register/register-business.component/register-business.component';
 import { HomepageComponent } from './pages/homepage.component/homepage.component';
+import { PropertiesPageComponent } from './pages/properties-page.component/properties-page.component';
+
 export const routes: Routes = [
     {
       path: '',
@@ -25,5 +27,10 @@ export const routes: Routes = [
         path: 'auth/register-business',
         title: 'Register Business',
         component: RegisterBusinessComponent
+    },
+    {
+        path: 'pages/properties-page',
+        title: 'Properties',
+        component: PropertiesPageComponent
     }
   ]
