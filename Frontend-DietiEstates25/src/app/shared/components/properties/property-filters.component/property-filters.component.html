@@ -1,0 +1,71 @@
+<aside class="filters-card">
+    <div class="filters-title">
+      <img src="assets/icons/search.png" alt="Icona cerca"/>
+      <h2>Filtri di Ricerca</h2>
+    </div>
+  
+    <form class="filters" [formGroup]="form" (ngSubmit)="onSearch()">
+      <div class="field">
+        <label>Tipo</label>
+        <select formControlName="type">
+          @for (t of types; track t) { <option [value]="t">{{ t }}</option> }
+        </select>
+      </div>
+  
+      <div class="field">
+        <label>Città</label>
+        <input type="text" placeholder="Es. Milano" formControlName="city" />
+      </div>
+  
+      <div class="field">
+        <label>Prezzo</label>
+        <div class="two">
+          <input type="number" placeholder="Min" formControlName="priceMin" />
+          <input type="number" placeholder="Max" formControlName="priceMax" />
+        </div>
+      </div>
+  
+      <div class="field">
+        <label>Locali (min)</label>
+        <select formControlName="roomsMin">
+          @for (r of rooms; track r) { <option [ngValue]="r">{{ r }}</option> }
+        </select>
+      </div>
+  
+      <div class="field">
+        <label>Superficie (m²)</label>
+        <div class="two">
+          <input type="number" placeholder="Min" formControlName="areaMin" />
+          <input type="number" placeholder="Max" formControlName="areaMax" />
+        </div>
+      </div>
+  
+      <div class="field">
+        <label>Classe Energetica</label>
+        <select formControlName="energy">
+          @for (e of energies; track e) { <option [value]="e">{{ e }}</option> }
+        </select>
+      </div>
+  
+      <label class="checkbox">
+        <div class="checkbox-inner">
+          <div>
+            <input type="checkbox" formControlName="elevator" />
+          </div>
+          <div>
+            <span>Con ascensore</span>
+          </div>
+        </div>
+        
+      </label>
+  
+      <div class="actions">
+        <button type="submit" class="btn-primary">
+          <img src="assets/icons/search.png" alt="Icona cerca" />
+          Cerca
+        </button>
+        <button type="button" class="btn-reset" (click)="onReset()" aria-label="Reset filtri">↺</button>
+      </div>
+    </form>
+  </aside>
+  

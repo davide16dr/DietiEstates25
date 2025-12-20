@@ -16,7 +16,7 @@
           in ogni passo verso la tua nuova casa.
         </p>
 
-        <form class="search-bar" (ngSubmit)="onSearch()">
+        <form class="search-bar">
           <div class="search-input">
             <span class="search-icon">📍</span>
             <input type="text" [(ngModel)]="searchQuery" name="searchQuery"
@@ -33,7 +33,7 @@
             </button>
           </div>
 
-          <button class="btn primary" type="submit">
+          <button class="btn primary" type="submit" routerLink="/pages/properties-page">
             Cerca
           </button>
         </form>
