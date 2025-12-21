@@ -4,6 +4,8 @@
         <h1>Immobili</h1>
         <p class="subtitle">{{ countLabel() }}</p>
       </div>
+
+      <app-view-toggle [value]="viewMode()" (valueChange)="onChangeView($event)"></app-view-toggle>
       </header>
   
     <div class="layout">
@@ -15,7 +17,10 @@
   
       <section class="content">
         @if (viewMode() === 'map') {
-  
+          <app-property-map
+            [markers]="markers()"
+            (markerClick)="onOpenProperty($event)">
+          </app-property-map>
         } @else {
           <div class="cards" [class.list]="viewMode() === 'list'">
             @for (p of filtered(); track p.id) {

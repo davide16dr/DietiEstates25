@@ -1,0 +1,22 @@
+<div class="map-card">
+  <google-map
+    height="560px"
+    width="100%"
+    [center]="center()"
+    [zoom]="zoom()"
+    [options]="mapOptions"
+    (mapInitialized)="onMapReady($event)">
+    @for (m of markers(); track m.id) {
+      <map-marker
+        [position]="{ lat: m.lat, lng: m.lng }"
+        [options]="toGMarkerOptions(m.label)"
+        (mapClick)="markerClick.emit(m.id)">
+      </map-marker>
+    }
+  </google-map>
+
+  <div class="map-controls">
+    <button type="button" class="mc-btn" (click)="onZoomIn()" aria-label="Zoom in">＋</button>
+    <button type="button" class="mc-btn" (click)="onZoomOut()" aria-label="Zoom out">－</button>
+  </div>
+</div>

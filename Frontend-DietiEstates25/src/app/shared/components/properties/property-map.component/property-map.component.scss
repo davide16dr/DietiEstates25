@@ -1,0 +1,20 @@
+.map-card{
+  position: relative;
+  background:#fff; border:1px solid #eee7de; border-radius:18px;
+  box-shadow:0 10px 24px rgba(17,24,39,.06);
+  overflow:hidden;
+}
+
+.map-controls{
+  position:absolute; right:14px; top:14px;
+  display:flex; flex-direction:column; gap:10px;
+  z-index: 5;
+}
+.mc-btn{
+  width:44px; height:44px; border-radius:12px;
+  border:1px solid #e5e7eb;
+  background:rgba(255,255,255,.92);
+  box-shadow:0 14px 28px rgba(17,24,39,.10);
+  cursor:pointer;
+  font-size:1.1rem;
+}
