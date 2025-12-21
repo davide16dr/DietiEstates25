@@ -1,0 +1,11 @@
+<div class="view-toggle" role="tablist" aria-label="Cambia vista">
+    <button class="vt-btn" [class.active]="value() === 'grid'" (click)="valueChange.emit('grid')" aria-label="Vista griglia">
+      <img src="assets/icons/grid_view.png" alt="Griglia" />
+    </button>
+    <button class="vt-btn" [class.active]="value() === 'list'" (click)="valueChange.emit('list')" aria-label="Vista lista">
+      <img src="assets/icons/list_view.png" alt="Lista" />
+    </button>
+    <button class="vt-btn" [class.active]="value() === 'map'" (click)="valueChange.emit('map')" aria-label="Vista mappa">
+      <img src="assets/icons/map_view.png" alt="Mappa" />
+    </button>
+  </div>

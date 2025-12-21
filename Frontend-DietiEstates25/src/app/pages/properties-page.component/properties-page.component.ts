@@ -1,11 +1,13 @@
 import { Component, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
 import { PropertyFiltersComponent } from '../../shared/components/properties/property-filters.component/property-filters.component.js';
 import { PropertyFiltersValue } from '../../shared/models/Property.js';
 import { PropertyCardComponent } from "../../shared/components/properties/property-card.component/property-card.component";
 import { PropertyCard } from '../../shared/models/Property.js';
 import { RouterLink } from '@angular/router';
+import { ViewToggleComponent } from '../../shared/components/view-toggle.component/view-toggle.component.js';
+import { MapMarkerData, PropertyMapComponent } from '../../shared/components/properties/property-map.component/property-map.component.js';
 
 export type ViewMode = 'grid' | 'list' | 'map';
 
@@ -16,16 +18,18 @@ export type ViewMode = 'grid' | 'list' | 'map';
     CommonModule,
     ReactiveFormsModule,
     RouterLink,
+    ViewToggleComponent,
     PropertyFiltersComponent,
-    PropertyCardComponent
+    PropertyCardComponent,
+    PropertyMapComponent
   ],
   templateUrl: './properties-page.component.html',
   styleUrls: ['./properties-page.component.scss'],
 })
+
 export class PropertiesPageComponent {
   viewMode = signal<ViewMode>('grid');
 
-  // Filtri (ReactiveForms) gestiti nel child component, qui riceviamo value + azioni
   filtersValue = signal<PropertyFiltersValue>({
     type: 'Tutti',
     city: '',
@@ -170,7 +174,6 @@ export class PropertiesPageComponent {
 
       if (f.energy !== 'Qualsiasi' && p.energy !== f.energy) return false;
 
-      // mock ascensore: se richiesto, solo piani > 1
       if (f.elevator && p.floor <= 1) return false;
 
       return true;
@@ -179,12 +182,20 @@ export class PropertiesPageComponent {
 
   countLabel = computed(() => `${this.filtered().length} risultati trovati`);
 
+  markers = computed<MapMarkerData[]>(() =>
+    this.filtered().map((p) => ({
+      id: p.id,
+      label: this.mapLabelFromPrice(p.priceLabel),
+      lat: p.lat,
+      lng: p.lng,
+    }))
+  );
+
   onChangeView(mode: ViewMode) {
     this.viewMode.set(mode);
   }
 
   onFiltersSearch(value: PropertyFiltersValue) {
-    // UI: pulsante "Cerca" come screenshot
     this.filtersValue.set(value);
   }
 
@@ -193,13 +204,17 @@ export class PropertiesPageComponent {
   }
 
   onOpenProperty(id: string) {
-    // qui farai navigate(/immobili/:id)
     console.log('Open property:', id);
   }
 
   private extractPriceNumber(priceLabel: string): number {
-    // "450.000 €" -> 450000 ; "1200 €/mese" -> 1200
     const digits = priceLabel.replace(/[^\d]/g, '');
     return digits ? Number(digits) : 0;
+  }
+
+  private mapLabelFromPrice(priceLabel: string): string {
+    const n = this.extractPriceNumber(priceLabel);
+    if (n >= 100000) return `€${Math.round(n / 1000)}K`;
+    return `€${n}`;
   }
 }
