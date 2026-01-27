@@ -5,8 +5,8 @@ import java.util.UUID;
 import it.unina.dietiestates25.backend.entities.enums.UserRole;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.EnumType;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
@@ -20,7 +20,7 @@ public class User extends Auditable {
     private UUID id;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, columnDefinition = "user_role")
+    @Column(nullable = false, length = 50)
     private UserRole role;
 
     @Column(name = "first_name", nullable = false, length = 80)
