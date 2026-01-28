@@ -75,4 +75,8 @@ export class ListingService {
 
     return this.http.get<ListingResponse[]>(`${this.API}/search`, { params });
   }
+
+  getById(id: string): Observable<ListingResponse> {
+    return this.http.get<ListingResponse>(`${this.API}/${id}`);
+  }
 }
