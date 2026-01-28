@@ -1,6 +1,6 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 
 export interface LoginRequest {
   email: string;
@@ -26,19 +26,56 @@ export interface AuthResponse {
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private http = inject(HttpClient);
-  private readonly API = 'http://localhost:8080/auth'; // URL diretto per puntare al backend sulla porta 8080
+  private readonly API = 'http://localhost:8080/auth';
 
-  private currentUserSubject = new BehaviorSubject<AuthResponse | null>(null);
-  currentUser$ = this.currentUserSubject.asObservable();
+  // Uso signals invece di BehaviorSubject
+  private currentUserSignal = signal<AuthResponse | null>(null);
+  currentUser = this.currentUserSignal.asReadonly();
+  
+  // Computed signal per verificare l'autenticazione
+  isAuthenticated = computed(() => {
+    const user = this.currentUserSignal();
+    const token = this.getToken();
+    
+    // Controlla se esiste il token e se non è scaduto
+    if (!token || !user) {
+      return false;
+    }
+    
+    // Verifica se il token è scaduto (decodifica il JWT)
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const isExpired = payload.exp * 1000 < Date.now();
+      
+      if (isExpired) {
+        // Token scaduto, fai logout automatico
+        this.logout();
+        return false;
+      }
+      
+      return true;
+    } catch {
+      // Token malformato
+      this.logout();
+      return false;
+    }
+  });
 
   constructor() {
     // Ripristina utente dal localStorage se esiste
     const stored = localStorage.getItem('currentUser');
     if (stored) {
       try {
-        this.currentUserSubject.next(JSON.parse(stored));
+        const user = JSON.parse(stored);
+        this.currentUserSignal.set(user);
+        
+        // Verifica immediatamente se il token è valido
+        if (!this.isAuthenticated()) {
+          this.logout();
+        }
       } catch {
         localStorage.removeItem('currentUser');
+        localStorage.removeItem('token');
       }
     }
   }
@@ -48,7 +85,7 @@ export class AuthService {
       tap((res) => {
         localStorage.setItem('token', res.token);
         localStorage.setItem('currentUser', JSON.stringify(res));
-        this.currentUserSubject.next(res);
+        this.currentUserSignal.set(res);
       })
     );
   }
@@ -58,7 +95,7 @@ export class AuthService {
       tap((res) => {
         localStorage.setItem('token', res.token);
         localStorage.setItem('currentUser', JSON.stringify(res));
-        this.currentUserSubject.next(res);
+        this.currentUserSignal.set(res);
       })
     );
   }
@@ -66,11 +103,7 @@ export class AuthService {
   logout(): void {
     localStorage.removeItem('token');
     localStorage.removeItem('currentUser');
-    this.currentUserSubject.next(null);
-  }
-
-  isAuthenticated(): boolean {
-    return !!localStorage.getItem('token');
+    this.currentUserSignal.set(null);
   }
 
   getToken(): string | null {

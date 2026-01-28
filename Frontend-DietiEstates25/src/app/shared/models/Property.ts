@@ -2,6 +2,7 @@ export type PropertyType = 'Tutti' | 'Appartamento' | 'Attico' | 'Bilocale' | 'V
 export type EnergyClass = 'Qualsiasi' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G';
 
 export interface PropertyFiltersValue {
+    mode: ListingMode | null;
     type: PropertyType;
     city: string;
     priceMin: number | null;

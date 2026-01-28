@@ -1,9 +1,10 @@
 import { Component, input, output, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, FormControl } from '@angular/forms';
-import { PropertyType, EnergyClass, PropertyFiltersValue } from '../../../models/Property';
+import { PropertyType, EnergyClass, PropertyFiltersValue, ListingMode } from '../../../models/Property';
 
 type FiltersForm = FormGroup<{
+  mode: FormControl<ListingMode | null>;
   type: FormControl<PropertyType>;
   city: FormControl<string>;
   priceMin: FormControl<number | null>;
@@ -28,6 +29,7 @@ export class PropertyFiltersComponent implements OnInit {
   search = output<PropertyFiltersValue>();
   reset = output<PropertyFiltersValue>();
 
+  modes: Array<ListingMode | 'Tutti'> = ['Tutti', 'Vendita', 'Affitto'];
   types: PropertyType[] = ['Tutti', 'Appartamento', 'Attico', 'Bilocale', 'Villa', 'Ufficio'];
   rooms: Array<number | 'Qualsiasi'> = ['Qualsiasi', 1, 2, 3, 4, 5, 6];
   energies: EnergyClass[] = ['Qualsiasi', 'A', 'B', 'C', 'D', 'E', 'F', 'G'];
@@ -36,6 +38,7 @@ export class PropertyFiltersComponent implements OnInit {
 
   constructor(private fb: FormBuilder) {
     this.form = this.fb.group({
+      mode: this.fb.control<ListingMode | null>(null),
       type: this.fb.control<PropertyType>('Tutti', { nonNullable: true }),
       city: this.fb.control<string>('', { nonNullable: true }),
       priceMin: this.fb.control<number | null>(null),
@@ -58,6 +61,7 @@ export class PropertyFiltersComponent implements OnInit {
 
   onReset(): void {
     const v: PropertyFiltersValue = {
+      mode: null,
       type: 'Tutti',
       city: '',
       priceMin: null,

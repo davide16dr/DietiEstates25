@@ -25,6 +25,16 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     }
 
     @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        // Salta il filtro JWT per le rotte pubbliche
+        return path.startsWith("/auth/") || 
+               path.startsWith("/api/listings/") ||
+               path.startsWith("/v3/api-docs/") ||
+               path.startsWith("/swagger-ui/");
+    }
+
+    @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
 

@@ -6,6 +6,15 @@
   
     <form class="filters" [formGroup]="form" (ngSubmit)="onSearch()">
       <div class="field">
+        <label>Modalità</label>
+        <select formControlName="mode">
+          <option [ngValue]="null">Tutti</option>
+          <option value="Vendita">Vendita</option>
+          <option value="Affitto">Affitto</option>
+        </select>
+      </div>
+
+      <div class="field">
         <label>Tipo</label>
         <select formControlName="type">
           @for (t of types; track t) { <option [value]="t">{{ t }}</option> }
@@ -68,4 +77,3 @@
       </div>
     </form>
   </aside>
-  
