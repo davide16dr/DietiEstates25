@@ -4,6 +4,7 @@ import { RegisterUserComponent } from './auth/register/register-user.component/r
 import { RegisterBusinessComponent } from './auth/register/register-business.component/register-business.component';
 import { HomepageComponent } from './pages/homepage.component/homepage.component';
 import { PropertiesPageComponent } from './pages/properties-page.component/properties-page.component';
+import { guestGuard } from './shared/guards/guest.guard';
 
 export const routes: Routes = [
     {
@@ -14,19 +15,20 @@ export const routes: Routes = [
     {
         path: 'auth/login', 
         title: 'Login',
-        component: LoginComponent
+        component: LoginComponent,
+        canActivate: [guestGuard]
     },
-
     {
         path: 'auth/register', 
         title: 'Register',
-        component: RegisterUserComponent
+        component: RegisterUserComponent,
+        canActivate: [guestGuard]
     },
-
     {
         path: 'auth/register-business',
         title: 'Register Business',
-        component: RegisterBusinessComponent
+        component: RegisterBusinessComponent,
+        canActivate: [guestGuard]
     },
     {
         path: 'pages/properties-page',

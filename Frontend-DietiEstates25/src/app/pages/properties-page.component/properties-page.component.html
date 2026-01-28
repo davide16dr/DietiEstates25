@@ -17,21 +17,52 @@
   
       <section class="content">
         @if (viewMode() === 'map') {
+          <!--
           <app-property-map
             [markers]="markers()"
             (markerClick)="onOpenProperty($event)">
           </app-property-map>
+          -->
         } @else {
           <div class="cards" [class.list]="viewMode() === 'list'">
-            @for (p of filtered(); track p.id) {
+            @for (p of paginatedListings(); track p.id) {
               <app-property-card
                 [data]="p"
                 [routerLink]="['/pages/property-detail', p.id]">
               </app-property-card>
             }
           </div>
+
+          <!-- Paginazione -->
+          @if (totalPages() > 1) {
+            <nav class="pagination">
+              <button 
+                class="pagination-btn prev" 
+                [disabled]="currentPage() === 1"
+                (click)="previousPage()">
+                ← Precedente
+              </button>
+
+              <div class="pagination-pages">
+                @for (page of pages(); track page) {
+                  <button 
+                    class="pagination-page"
+                    [class.active]="page === currentPage()"
+                    (click)="goToPage(page)">
+                    {{ page }}
+                  </button>
+                }
+              </div>
+
+              <button 
+                class="pagination-btn next" 
+                [disabled]="currentPage() === totalPages()"
+                (click)="nextPage()">
+                Successiva →
+              </button>
+            </nav>
+          }
         }
       </section>
     </div>
   </div>
-  

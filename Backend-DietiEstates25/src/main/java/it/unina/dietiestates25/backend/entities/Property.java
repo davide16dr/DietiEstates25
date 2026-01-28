@@ -66,7 +66,7 @@ public class Property extends Auditable {
     private String description;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, columnDefinition = "property_status")
+    @Column(nullable = false, length = 50)
     private PropertyStatus status = PropertyStatus.AVAILABLE;
 
     public Property() {}

@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 import { finalize } from 'rxjs/operators';
-import { AuthService } from '../../auth.service';
+import { AuthService } from '../../../shared/services/auth.service';
 type SocialProvider = 'google' | 'facebook' | 'github';
 
 @Component({

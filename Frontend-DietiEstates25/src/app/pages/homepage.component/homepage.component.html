@@ -33,7 +33,9 @@
             </button>
           </div>
 
-          <button class="btn primary" type="submit" routerLink="/pages/properties-page">
+          <button class="btn primary" type="submit" 
+            [routerLink]="['/pages/properties-page']"
+            [queryParams]="{ search: searchQuery, type: contractType }">
             Cerca
           </button>
         </form>
