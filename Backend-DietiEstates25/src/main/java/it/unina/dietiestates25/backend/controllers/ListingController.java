@@ -68,4 +68,11 @@ public class ListingController {
         List<ListingResponse> listings = listingService.getFilteredListings(filters);
         return ResponseEntity.ok(listings);
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ListingResponse> getListingById(@PathVariable("id") java.util.UUID id) {
+        ListingResponse dto = listingService.getById(id);
+        if (dto == null) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(dto);
+    }
 }

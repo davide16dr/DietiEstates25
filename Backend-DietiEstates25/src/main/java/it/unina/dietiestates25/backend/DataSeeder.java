@@ -29,9 +29,9 @@ public class DataSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        // Evita di inserire dati se già esistono
-        if (listingRepository.count() > 0) {
-            System.out.println("✅ Database già popolato, skip seeding");
+        // Evita di inserire dati se già esistono più di 15 annunci
+        if (listingRepository.count() >= 15) {
+            System.out.println("✅ Database già popolato con abbastanza dati, skip seeding");
             return;
         }
 
