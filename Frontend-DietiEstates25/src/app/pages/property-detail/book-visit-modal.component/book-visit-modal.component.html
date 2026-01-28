@@ -1,0 +1,36 @@
+@if (open()) {
+  <div class="backdrop" (click)="onBackdropClick($event)" role="dialog" aria-modal="true">
+    <div class="modal">
+      <div class="header">
+        <h3>Prenota una visita</h3>
+        <button type="button" class="icon-btn" (click)="close()" aria-label="Chiudi">✕</button>
+      </div>
+
+      <form class="body" [formGroup]="form" (ngSubmit)="submit()">
+        <label class="label">Data preferita</label>
+        <div class="input-wrap">
+          <input type="date" formControlName="date" />
+        </div>
+        @if (form.controls.date.touched && form.controls.date.invalid) {
+          <p class="error">Seleziona una data.</p>
+        }
+
+        <label class="label">Orario preferito</label>
+        <div class="time-wrap">
+          <input type="time" formControlName="time" placeholder="--:--" />
+        </div>
+
+        <label class="label">Note (opzionale)</label>
+        <textarea
+          rows="4"
+          formControlName="notes"
+          placeholder="Informazioni aggiuntive..."
+        ></textarea>
+
+        <button class="primary" type="submit" [disabled]="!canSubmit()">
+          Invia richiesta
+        </button>
+      </form>
+    </div>
+  </div>
+}

@@ -53,6 +53,11 @@ public class ListingService {
             .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public ListingResponse getById(java.util.UUID id) {
+        return listingRepository.findById(id).map(this::mapToResponse).orElse(null);
+    }
+
     private ListingResponse mapToResponse(Listing listing) {
         ListingResponse response = new ListingResponse();
         Property property = listing.getProperty();

@@ -1,0 +1,43 @@
+@if (open()) {
+  <div class="backdrop" (click)="onBackdropClick($event)" role="dialog" aria-modal="true">
+    <div class="modal">
+      <div class="header">
+        <h3>Fai un'offerta</h3>
+        <button type="button" class="icon-btn" (click)="close()" aria-label="Chiudi">
+          ✕
+        </button>
+      </div>
+
+      <form class="body" [formGroup]="form" (ngSubmit)="submit()">
+        <label class="label">{{ amountLabel() }}</label>
+
+        <div class="input-wrap">
+          <input
+            type="number"
+            inputmode="numeric"
+            formControlName="amount"
+            placeholder="1200"
+            min="1"
+          />
+        </div>
+
+        @if (form.controls.amount.touched && form.controls.amount.invalid) {
+          <p class="error">
+            Inserisci un importo valido (&gt; 0).
+          </p>
+        }
+
+        <label class="label">Note (opzionale)</label>
+        <textarea
+          rows="4"
+          formControlName="notes"
+          placeholder="Dettagli della tua offerta..."
+        ></textarea>
+
+        <button class="primary" type="submit" [disabled]="!canSubmit()">
+          Invia offerta
+        </button>
+      </form>
+    </div>
+  </div>
+}

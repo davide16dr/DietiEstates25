@@ -1,0 +1,145 @@
+<div class="page">
+  <div class="top-strip">
+    <button class="back-btn" type="button" (click)="onBack()">
+      <span class="back-ic">←</span>
+      <span>Torna ai risultati</span>
+    </button>
+  </div>
+
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-badges">
+        <span class="pill pill-muted">{{ property().dealType }}</span>
+        <span class="pill pill-green">{{ property().availability }}</span>
+      </div>
+
+      <div class="hero-actions">
+        <button class="icon-btn" type="button" (click)="onToggleFavorite()" aria-label="Aggiungi ai preferiti">
+          ♥
+        </button>
+        <button class="icon-btn" type="button" (click)="onShare()" aria-label="Condividi">
+          ⤴
+        </button>
+      </div>
+
+      <div class="hero-image">
+        <div class="img-placeholder">
+          <span class="img-ic">🖼️</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="content">
+    <div class="content-grid">
+      <main class="left">
+        <h1 class="title">{{ property().title }}</h1>
+
+        <div class="address">
+          <span class="pin">📍</span>
+          <span>{{ property().address }}, {{ property().city }}</span>
+        </div>
+
+        <div class="price">{{ priceLabel() }}</div>
+
+        <div class="stats">
+          <div class="stat-card">
+            <div class="stat-ic">🛏️</div>
+            <div class="stat-val">{{ property().rooms }}</div>
+            <div class="stat-lbl">Locali</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-ic">↔️</div>
+            <div class="stat-val">{{ property().areaMq }} m²</div>
+            <div class="stat-lbl">Superficie</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-ic">🏢</div>
+            <div class="stat-val">{{ property().floorLabel }}</div>
+            <div class="stat-lbl">Livello</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-ic">⚡</div>
+            <div class="stat-val">{{ property().energyClass }}</div>
+            <div class="stat-lbl">Classe Energ.</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title">Descrizione</h2>
+          <p class="card-text">{{ property().description }}</p>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title">Caratteristiche</h2>
+
+          <div class="features">
+            @for (f of property().features; track f) {
+              <div class="feature">
+                <span class="feature-ic">✅</span>
+                <span class="feature-text">{{ f }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      </main>
+
+      <aside class="right">
+        <div class="card agent-card">
+          <h2 class="card-title">Contatta l'agente</h2>
+
+          <div class="agent-box">
+            <div class="avatar">{{ property().agent.initials }}</div>
+            <div class="agent-meta">
+              <div class="agent-name">{{ property().agent.name }}</div>
+              <div class="agent-role">{{ property().agent.roleLabel }}</div>
+            </div>
+          </div>
+
+          <div class="agent-actions">
+            <button class="action-btn action-outline" type="button">
+              <span class="action-ic">📞</span>
+              <span>{{ property().agent.phone }}</span>
+            </button>
+
+            <button class="action-btn action-outline" type="button" (click)="onEmailAgent()">
+              <span class="action-ic">✉️</span>
+              <span>Invia email</span>
+            </button>
+          </div>
+
+          <div class="divider"></div>
+
+          <button class="cta cta-primary" type="button" (click)="onBookVisit()">
+            <span class="cta-ic">📅</span>
+            <span>Prenota una visita</span>
+          </button>
+
+          <button class="cta cta-ghost" type="button" (click)="onMakeOffer()">
+            <span class="cta-ic">€</span>
+            <span>Fai un'offerta</span>
+          </button>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  @if (showMakeOfferModal()) {
+    <div class="modal-overlay" (click)="closeMakeOfferModal()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <app-make-offer-modal [open]="showMakeOfferModal()" (closed)="closeMakeOfferModal()"></app-make-offer-modal>
+      </div>
+    </div>
+  }
+
+  @if (showBookVisitModal()) {
+    <div class="modal-overlay" (click)="closeBookVisitModal()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <app-book-visit-modal [open]="showBookVisitModal()" (closed)="closeBookVisitModal()"></app-book-visit-modal>
+      </div>
+    </div>
+  }
+</div>

@@ -5,6 +5,7 @@ import { RegisterBusinessComponent } from './auth/register/register-business.com
 import { HomepageComponent } from './pages/homepage.component/homepage.component';
 import { PropertiesPageComponent } from './pages/properties-page.component/properties-page.component';
 import { guestGuard } from './shared/guards/guest.guard';
+import { PropertyDetailPage } from './pages/property-detail/property-detail.page/property-detail.page';
 
 export const routes: Routes = [
     {
@@ -34,5 +35,10 @@ export const routes: Routes = [
         path: 'pages/properties-page',
         title: 'Properties',
         component: PropertiesPageComponent
+    },
+    {
+        path: 'pages/property-detail/:id',
+        title: 'Property Detail',
+        component: PropertyDetailPage
     }
   ]

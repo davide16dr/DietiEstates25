@@ -1,30 +1,32 @@
-<article class="card" (click)="open.emit(data().id)" tabindex="0">
-    <div class="img">
-      <div class="chips">
-        <span class="chip ok">{{ data().availability }}</span>
-        <span class="chip soft">{{ data().mode }}</span>
+<a [routerLink]="['/pages/property-detail', data().id]" [state]="{ listing: data() }" class="property-card-link">
+  <article class="card" (click)="open.emit(data().id)" tabindex="0">
+      <div class="img">
+        <div class="chips">
+          <span class="chip ok">{{ data().availability }}</span>
+          <span class="chip soft">{{ data().mode }}</span>
+        </div>
+    
+        <div class="img-ph">
+          <span class="ph-ico">🖼️</span>
+        </div>
+    
+        <span class="energy">⚡ {{ data().energy }}</span>
       </div>
-  
-      <div class="img-ph">
-        <span class="ph-ico">🖼️</span>
+    
+      <div class="body">
+        <div class="price">{{ data().priceLabel }}</div>
+        <div class="title2">{{ data().title }}</div>
+    
+        <div class="addr">
+          <span class="addr-ico">📍</span>
+          <span>{{ data().address }}</span>
+        </div>
+    
+        <div class="meta">
+          <span class="m"><span class="m-ico">🛏️</span>{{ data().rooms }} locali</span>
+          <span class="m"><span class="m-ico">📐</span>{{ data().area }} m²</span>
+          <span class="m"><span class="m-ico">🏢</span>Piano {{ data().floor }}</span>
+        </div>
       </div>
-  
-      <span class="energy">⚡ {{ data().energy }}</span>
-    </div>
-  
-    <div class="body">
-      <div class="price">{{ data().priceLabel }}</div>
-      <div class="title2">{{ data().title }}</div>
-  
-      <div class="addr">
-        <span class="addr-ico">📍</span>
-        <span>{{ data().address }}</span>
-      </div>
-  
-      <div class="meta">
-        <span class="m"><span class="m-ico">🛏️</span>{{ data().rooms }} locali</span>
-        <span class="m"><span class="m-ico">📐</span>{{ data().area }} m²</span>
-        <span class="m"><span class="m-ico">🏢</span>Piano {{ data().floor }}</span>
-      </div>
-    </div>
-  </article>
+    </article>
+</a>
