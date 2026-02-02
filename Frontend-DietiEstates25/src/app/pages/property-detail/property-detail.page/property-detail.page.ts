@@ -131,16 +131,16 @@ export class PropertyDetailPage implements OnInit {
     if (!id) return;
 
     // Richiesta tramite service
-      this.listingService.getById(id).subscribe({
-        next: (l) => {
-          if (!l) return;
-          const dto = this.mapListingToPropertyDetail(l);
-          this.property.set(dto);
-        },
-        error: (err) => {
-          console.error('Impossibile caricare dettaglio proprietà', err);
-        }
-      });
+    this.listingService.getById(id).subscribe({
+      next: (l: any) => {
+        if (!l) return;
+        const dto = this.mapListingToPropertyDetail(l);
+        this.property.set(dto);
+      },
+      error: (err: any) => {
+        console.error('Impossibile caricare dettaglio proprietà', err);
+      }
+    });
   }
 
   private mapListingToPropertyDetail(l: any): PropertyDetail {

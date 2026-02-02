@@ -6,6 +6,12 @@ import { HomepageComponent } from './pages/homepage.component/homepage.component
 import { PropertiesPageComponent } from './pages/properties-page.component/properties-page.component';
 import { guestGuard } from './shared/guards/guest.guard';
 import { PropertyDetailPage } from './pages/property-detail/property-detail.page/property-detail.page';
+import { DashboardComponent } from './pages/dashboard/dashboard.component/dashboard.component';
+import { DashboardHomeComponent } from './pages/dashboard/dashboard-home.component/dashboard-home.component';
+import { SavedSearchesComponent } from './pages/dashboard/saved-searches.component/saved-searches.component';
+import { MyVisitsComponent } from './pages/dashboard/my-visits.component/my-visits.component';
+import { MyOffersComponent } from './pages/dashboard/my-offers.component/my-offers.component';
+import { NotificationsComponent } from './pages/dashboard/notifications.component/notifications.component';
 
 export const routes: Routes = [
     {
@@ -40,5 +46,17 @@ export const routes: Routes = [
         path: 'pages/property-detail/:id',
         title: 'Property Detail',
         component: PropertyDetailPage
+    },
+    {
+        path: 'dashboard',
+        component: DashboardComponent,
+        children: [
+            { path: '', pathMatch: 'full', redirectTo: 'home' },
+            { path: 'home', title: 'Dashboard', component: DashboardHomeComponent },
+            { path: 'saved-searches', title: 'Ricerche Salvate', component: SavedSearchesComponent },
+            { path: 'visits', title: 'Le Mie Visite', component: MyVisitsComponent },
+            { path: 'offers', title: 'Le Mie Offerte', component: MyOffersComponent },
+            { path: 'notifications', title: 'Notifiche', component: NotificationsComponent },
+        ]
     }
-  ]
+]
