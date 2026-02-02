@@ -1,0 +1,12 @@
+<div class="dashboard-shell">
+    <app-dashboard-sidebar
+      [collapsed]="sidebarCollapsed()"
+      (toggle)="toggleSidebar()"
+    />
+  
+    <main class="dashboard-main" [class.main-expanded]="sidebarCollapsed()">
+      <div class="page">
+        <router-outlet />
+      </div>
+    </main>
+  </div>

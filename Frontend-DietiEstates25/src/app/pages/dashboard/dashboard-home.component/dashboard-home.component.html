@@ -1,0 +1,64 @@
+<section class="header">
+    <div>
+      <h1>Benvenuto, {{ userName }}!</h1>
+      <p>Gestisci le tue ricerche, visite e offerte immobiliari</p>
+    </div>
+  
+    <a class="primary" [routerLink]="['/dashboard/search']">
+      <span class="ico">⌂</span>
+      Cerca Immobili
+    </a>
+  </section>
+  
+  <section class="stats">
+    <div class="stat-card" *ngFor="let s of stats">
+      <div class="stat-top">
+        <div class="stat-label">{{ s.label }}</div>
+        <div class="pill" [style.background]="s.pillBg" [style.color]="s.pillColor">
+          {{ s.pillIcon }}
+        </div>
+      </div>
+      <div class="stat-value">{{ s.value }}</div>
+    </div>
+  </section>
+  
+  <section class="grid">
+    <div class="panel">
+      <div class="panel-title">
+        <span class="panel-ico">📈</span>
+        <span>Azioni Rapide</span>
+      </div>
+  
+      <div class="quick">
+        <a class="quick-item" [routerLink]="['/dashboard/search']">
+          Cerca nuovi immobili <span class="chev">›</span>
+        </a>
+        <a class="quick-item" [routerLink]="['/dashboard/saved-searches']">
+          Gestisci ricerche salvate <span class="chev">›</span>
+        </a>
+        <a class="quick-item" [routerLink]="['/dashboard/visits']">
+          Visualizza le tue visite <span class="chev">›</span>
+        </a>
+        <a class="quick-item" [routerLink]="['/dashboard/offers']">
+          Controlla le tue offerte <span class="chev">›</span>
+        </a>
+      </div>
+    </div>
+  
+    <div class="panel">
+      <div class="panel-title">
+        <span class="panel-ico">🔔</span>
+        <span>Centro Notifiche</span>
+      </div>
+  
+      <div class="notif-center">
+        <div class="notif-number">2</div>
+        <div class="notif-text">notifiche non lette</div>
+  
+        <a class="primary" [routerLink]="['/dashboard/notifications']">
+          Visualizza Notifiche
+        </a>
+      </div>
+    </div>
+  </section>
+  

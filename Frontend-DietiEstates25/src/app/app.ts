@@ -15,7 +15,7 @@ export class App {
   protected readonly title = signal('Frontend-DietiEstates25');
 
   private hideNavbarRoutes = ['/auth/login', '/auth/register', '/auth/register-business'];
-  private hideFooterRoutes = ['/auth/login', '/auth/register', '/auth/register-business'];
+  private hideFooterRoutes = ['/auth/login', '/auth/register', '/auth/register-business', '/dashboard'];
   
   showNavbar = signal(true);
   showFooter = signal(true);
@@ -24,11 +24,15 @@ export class App {
     this.router.events
       .pipe(filter(e => e instanceof NavigationEnd))
       .subscribe((event: NavigationEnd) => {
+        const url = event.urlAfterRedirects;
+        
         this.showNavbar.set(
-          !this.hideNavbarRoutes.includes(event.urlAfterRedirects)
+          !this.hideNavbarRoutes.includes(url)
         );
+        
+        // Nascondi il footer se l'URL è nelle rotte specifiche O se inizia con /dashboard
         this.showFooter.set(
-          !this.hideFooterRoutes.includes(event.urlAfterRedirects)
+          !this.hideFooterRoutes.some(route => url === route || url.startsWith(route))
         );
       });
   }

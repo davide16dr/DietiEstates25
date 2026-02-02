@@ -1,0 +1,35 @@
+<aside class="sidebar" [class.collapsed]="collapsed">
+    <div class="profile">
+      <div class="profile-avatar">AN</div>
+      <div class="profile-meta" *ngIf="!collapsed">
+        <div class="profile-name">{{ userName }}</div>
+        <div class="profile-role">{{ userRole }}</div>
+      </div>
+    </div>
+  
+    <nav class="menu">
+      <a
+        *ngFor="let item of menu"
+        class="menu-item"
+        [routerLink]="item.route"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+      >
+        <span class="ico">{{ item.icon }}</span>
+        <span class="lbl" *ngIf="!collapsed">{{ item.label }}</span>
+        <span class="chev" *ngIf="!collapsed">›</span>
+      </a>
+    </nav>
+  
+    <div class="sidebar-footer">
+      <button class="footer-btn" type="button" (click)="goBackToSite()">
+        <span class="ico">⌂</span>
+        <span class="lbl" *ngIf="!collapsed">Torna al sito</span>
+      </button>
+  
+      <button class="footer-btn danger" type="button" (click)="logout()">
+        <span class="ico">⎋</span>
+        <span class="lbl" *ngIf="!collapsed">Esci</span>
+      </button>
+    </div>
+  </aside>
