@@ -8,14 +8,18 @@ public class AuthResponse {
     private UUID userId;
     private String email;
     private String role;
+    private String firstName;
+    private String lastName;
 
     public AuthResponse() {}
 
-    public AuthResponse(String accessToken, UUID userId, String email, String role) {
+    public AuthResponse(String accessToken, UUID userId, String email, String role, String firstName, String lastName) {
         this.accessToken = accessToken;
         this.userId = userId;
         this.email = email;
         this.role = role;
+        this.firstName = firstName;
+        this.lastName = lastName;
     }
 
     public String getAccessToken() { return accessToken; }
@@ -32,4 +36,10 @@ public class AuthResponse {
 
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
+
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
+
+    public String getLastName() { return lastName; }
+    public void setLastName(String lastName) { this.lastName = lastName; }
 }

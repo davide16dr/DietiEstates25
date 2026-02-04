@@ -17,10 +17,13 @@ export interface RegisterRequest {
 }
 
 export interface AuthResponse {
-  token: string;
+  accessToken: string;
+  tokenType: string;
   userId: string;
   email: string;
   role: string;
+  firstName?: string;  // firstName opzionale
+  lastName?: string;   // lastName opzionale
 }
 
 @Injectable({ providedIn: 'root' })
@@ -37,7 +40,7 @@ export class AuthService {
     const user = this.currentUserSignal();
     const token = this.getToken();
     
-    // Controlla se esiste il token e se non è scaduto
+    // Controlla se esiste il token e l'utente
     if (!token || !user) {
       return false;
     }
@@ -47,16 +50,14 @@ export class AuthService {
       const payload = JSON.parse(atob(token.split('.')[1]));
       const isExpired = payload.exp * 1000 < Date.now();
       
+      // Se scaduto, ritorna false
       if (isExpired) {
-        // Token scaduto, fai logout automatico
-        this.logout();
         return false;
       }
       
       return true;
     } catch {
       // Token malformato
-      this.logout();
       return false;
     }
   });
@@ -64,14 +65,29 @@ export class AuthService {
   constructor() {
     // Ripristina utente dal localStorage se esiste
     const stored = localStorage.getItem('currentUser');
-    if (stored) {
+    const token = localStorage.getItem('token');
+    
+    if (stored && token) {
       try {
         const user = JSON.parse(stored);
-        this.currentUserSignal.set(user);
         
-        // Verifica immediatamente se il token è valido
-        if (!this.isAuthenticated()) {
-          this.logout();
+        // Verifica se il token è valido PRIMA di settare il signal
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          const isExpired = payload.exp * 1000 < Date.now();
+          
+          if (!isExpired) {
+            // Token valido, imposta l'utente
+            this.currentUserSignal.set(user);
+          } else {
+            // Token scaduto, pulisco localStorage
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('token');
+          }
+        } catch {
+          // Token malformato, pulisco localStorage
+          localStorage.removeItem('currentUser');
+          localStorage.removeItem('token');
         }
       } catch {
         localStorage.removeItem('currentUser');
@@ -83,9 +99,12 @@ export class AuthService {
   login(req: LoginRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.API}/login`, req).pipe(
       tap((res) => {
-        localStorage.setItem('token', res.token);
+        console.log('🎯 Login response:', res); // DEBUG
+        localStorage.setItem('token', res.accessToken); // Usa accessToken
         localStorage.setItem('currentUser', JSON.stringify(res));
         this.currentUserSignal.set(res);
+        console.log('✅ User signal set to:', this.currentUserSignal()); // DEBUG
+        console.log('🔐 Is authenticated after login:', this.isAuthenticated()); // DEBUG
       })
     );
   }
@@ -93,7 +112,7 @@ export class AuthService {
   register(req: RegisterRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.API}/register`, req).pipe(
       tap((res) => {
-        localStorage.setItem('token', res.token);
+        localStorage.setItem('token', res.accessToken); // Usa accessToken
         localStorage.setItem('currentUser', JSON.stringify(res));
         this.currentUserSignal.set(res);
       })
