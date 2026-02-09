@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { AuthService } from '../../../shared/services/auth.service';
 
 @Component({
   selector: 'app-dashboard-home',
@@ -10,7 +11,27 @@ import { RouterModule } from '@angular/router';
   styleUrl: './dashboard-home.component.scss',
 })
 export class DashboardHomeComponent {
-  userName = 'Anna';
+  private authService = inject(AuthService);  
+  currentUser = this.authService.currentUser;
+
+  get userName(): string {
+    const user = this.currentUser();
+    if (!user) return 'Utente';
+    
+    // Usa firstName e lastName se disponibili
+    if (user.firstName && user.lastName) {
+      return `${user.firstName} ${user.lastName}`;
+    }
+    
+    // usa l'email
+    const email = user.email || '';
+    const namePart = email.split('@')[0];
+    
+    return namePart
+      .split('.')
+      .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+      .join('.');
+  }
 
   stats = [
     { label: 'Ricerche Salvate', value: 3, pillIcon: '🔍', pillBg: '#e9f7ef', pillColor: '#0f7a55' },

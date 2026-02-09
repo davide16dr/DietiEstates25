@@ -1,61 +1,40 @@
-/* Layout generale: altezza fissa, niente scroll sul body */
-.dashboard-shell{
-    height:100vh;
-    display:flex;
-    background:#f6f7f8;
-    overflow:hidden; /* importantissimo: evita scroll "globale" */
+
+.dashboard-shell {
+  height: 100vh;
+  display: flex;
+  background: #f3f4f6;
+  overflow: hidden;
+}
+
+.sidebar-host {
+  height: 100vh;
+  flex: 0 0 auto;
+  overflow: hidden;
+}
+
+.dashboard-main {
+  flex: 1;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #f3f4f6;
+}
+
+.content-scroll {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 32px 40px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.main-expanded .content-scroll {
+  padding: 32px 48px;
+}
+
+@media (max-width: 768px) {
+  .content-scroll {
+    padding: 20px 16px;
   }
-  
-  /* SIDEBAR: mai scroll */
-  .sidebar-host{
-    height:100vh;
-    flex:0 0 auto;
-    overflow:hidden;
-  }
-  
-  /* MAIN: non scrolla lui; scrolla solo .content-scroll */
-  .dashboard-main{
-    flex:1;
-    height:100vh;
-    display:flex;
-    flex-direction:column;
-    overflow:hidden;
-    padding:18px 22px;
-  }
-  
-  /* topbar NON scrolla */
-  .topbar{
-    height:44px;
-    flex:0 0 auto;
-    display:flex;
-    align-items:center;
-    gap:12px;
-  }
-  
-  .spacer{ flex:1; }
-  
-  .avatar{
-    width:36px;
-    height:36px;
-    border-radius:999px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-weight:800;
-    font-size:12px;
-    background:#f0a314;
-    color:#fff;
-  }
-  
-  /* l’unico scroll della pagina dashboard */
-  .content-scroll{
-    flex:1 1 auto;
-    overflow:auto;             /* scroll solo qui */
-    padding-top:6px;
-  }
-  
-  /* (opzionale) migliora esperienza su mac trackpad */
-  .content-scroll{
-    -webkit-overflow-scrolling: touch;
-  }
-  
+}

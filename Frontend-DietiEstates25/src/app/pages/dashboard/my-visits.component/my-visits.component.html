@@ -1,1 +1,86 @@
-<p>my-visits.component works!</p>
+<div class="visits-page">
+  <div class="page-header">
+    <div class="header-left">
+      <h1>Le Mie Visite</h1>
+      <p class="subtitle">Gestisci le tue visite programmate</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-primary" (click)="goToSearch()">
+        <span class="material-icons">search</span>
+        Cerca Immobili
+      </button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button 
+      class="tab" 
+      [class.active]="activeTab === 'upcoming'"
+      (click)="activeTab = 'upcoming'"
+    >
+      In Programma ({{ upcomingVisits.length }})
+    </button>
+    <button 
+      class="tab" 
+      [class.active]="activeTab === 'past'"
+      (click)="activeTab = 'past'"
+    >
+      Passate ({{ pastVisits.length }})
+    </button>
+  </div>
+
+  <div class="visits-list" *ngIf="!loading">
+    <div *ngFor="let visit of displayedVisits" class="visit-card">
+      <div class="visit-date-block">
+        <span class="day-name">{{ getDayOfWeek(visit.scheduledDate) }}</span>
+        <span class="day-number">{{ getDayNumber(visit.scheduledDate) }}</span>
+        <span class="time">{{ visit.scheduledTime }}</span>
+      </div>
+
+      <div class="visit-content">
+        <div class="visit-header">
+          <h3 (click)="goToProperty(visit.propertyId)">{{ visit.propertyTitle }}</h3>
+          <span class="status-badge" [ngClass]="getStatusClass(visit.status)">
+            {{ getStatusLabel(visit.status) }}
+          </span>
+        </div>
+
+        <div class="visit-details">
+          <div class="detail-item">
+            <span class="material-icons">location_on</span>
+            <span>{{ visit.propertyAddress }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="material-icons">person</span>
+            <span>Agente: {{ visit.agentName }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="material-icons">event</span>
+            <span>{{ formatDate(visit.scheduledDate) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="visit-actions" *ngIf="visit.status === 'CONFIRMED' || visit.status === 'PENDING'">
+        <button class="btn-cancel" (click)="cancelVisit(visit)">
+          <span class="material-icons">close</span>
+          Annulla Visita
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="displayedVisits.length === 0" class="empty-state">
+      <span class="material-icons">calendar_today</span>
+      <h3>Nessuna visita {{ activeTab === 'upcoming' ? 'in programma' : 'passata' }}</h3>
+      <p>{{ activeTab === 'upcoming' ? 'Non hai visite programmate al momento.' : 'Non hai ancora effettuato visite.' }}</p>
+      <button *ngIf="activeTab === 'upcoming'" class="btn-primary" (click)="goToSearch()">
+        Cerca Immobili
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Caricamento visite...</p>
+  </div>
+</div>

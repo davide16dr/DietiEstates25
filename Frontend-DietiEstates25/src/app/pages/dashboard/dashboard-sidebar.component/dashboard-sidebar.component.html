@@ -1,6 +1,6 @@
 <aside class="sidebar" [class.collapsed]="collapsed">
     <div class="profile">
-      <div class="profile-avatar">AN</div>
+      <div class="profile-avatar">{{ userInitials }}</div>
       <div class="profile-meta" *ngIf="!collapsed">
         <div class="profile-name">{{ userName }}</div>
         <div class="profile-role">{{ userRole }}</div>
