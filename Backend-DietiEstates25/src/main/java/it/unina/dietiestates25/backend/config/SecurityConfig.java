@@ -62,6 +62,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
                     "/api/listings/**",
+                    "/api/auth/**",
                     "/auth/**",
                     "/error",
                     "/v3/api-docs/**",

@@ -1,1 +1,76 @@
-<p>saved-searches.component works!</p>
+<div class="saved-searches-page">
+  <div class="page-header">
+    <div class="header-left">
+      <h1>Ricerche Salvate</h1>
+      <p class="subtitle">Gestisci le tue ricerche e ricevi notifiche per nuovi immobili</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-primary" (click)="goToSearch()">
+        <span class="material-icons">add</span>
+        Nuova Ricerca
+      </button>
+    </div>
+  </div>
+
+  <div class="searches-list" *ngIf="!loading">
+    <div *ngFor="let search of savedSearches" class="search-card">
+      <div class="search-header">
+        <div class="search-title">
+          <span class="material-icons icon">bookmark</span>
+          <h3>{{ search.name }}</h3>
+        </div>
+        <div class="results-count" *ngIf="search.resultsCount">
+          <span class="material-icons">home</span>
+          {{ search.resultsCount }} risultati
+        </div>
+      </div>
+
+      <div class="search-filters">
+        <span *ngFor="let chip of getFilterChips(search)" class="filter-chip">
+          {{ chip }}
+        </span>
+      </div>
+
+      <div class="search-footer">
+        <div class="notification-toggle">
+          <label class="toggle-container">
+            <input 
+              type="checkbox" 
+              [checked]="search.notificationsEnabled"
+              (change)="toggleNotifications(search)"
+            >
+            <span class="toggle-slider"></span>
+          </label>
+          <span class="toggle-label">
+            <span class="material-icons">{{ search.notificationsEnabled ? 'notifications_active' : 'notifications_off' }}</span>
+            {{ search.notificationsEnabled ? 'Notifiche attive' : 'Notifiche disattivate' }}
+          </span>
+        </div>
+
+        <div class="search-actions">
+          <button class="btn-execute" (click)="executeSearch(search)">
+            <span class="material-icons">search</span>
+            Esegui Ricerca
+          </button>
+          <button class="btn-delete" (click)="deleteSearch(search)">
+            <span class="material-icons">delete</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="savedSearches.length === 0" class="empty-state">
+      <span class="material-icons">bookmark_border</span>
+      <h3>Nessuna ricerca salvata</h3>
+      <p>Salva le tue ricerche per ricevere notifiche quando nuovi immobili corrispondono ai tuoi criteri.</p>
+      <button class="btn-primary" (click)="goToSearch()">
+        Inizia a cercare
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Caricamento ricerche salvate...</p>
+  </div>
+</div>

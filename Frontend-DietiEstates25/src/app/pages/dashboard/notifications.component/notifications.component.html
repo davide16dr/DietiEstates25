@@ -1,4 +1,58 @@
-<div class="page-card">
-  <h2>Notifiche</h2>
-  <p class="subtitle">Le tue notifiche appariranno qui.</p>
+<div class="notifications-page">
+  <div class="page-header">
+    <div class="header-left">
+      <h1>Notifiche</h1>
+      <p class="subtitle">{{ unreadCount }} notifiche non lette</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-secondary" (click)="openSettings()">
+        <span class="material-icons">settings</span>
+        Impostazioni
+      </button>
+      <button class="btn-primary" (click)="markAllAsRead()" [disabled]="unreadCount === 0">
+        <span class="material-icons">done_all</span>
+        Segna tutte come lette
+      </button>
+    </div>
+  </div>
+
+  <div class="notifications-list" *ngIf="!loading">
+    <div 
+      *ngFor="let notification of notifications" 
+      class="notification-card"
+      [class.unread]="!notification.isRead"
+      (click)="openNotification(notification)"
+    >
+      <div class="notification-icon" [ngClass]="getNotificationIconClass(notification.type)">
+        <span class="material-icons">{{ getNotificationIcon(notification.type) }}</span>
+      </div>
+      
+      <div class="notification-content">
+        <h3 class="notification-title">{{ notification.title }}</h3>
+        <p class="notification-message">{{ notification.message }}</p>
+        <span class="notification-time">{{ formatTimeAgo(notification.createdAt) }}</span>
+      </div>
+
+      <div class="notification-actions">
+        <span *ngIf="!notification.isRead" class="badge-new">Nuovo</span>
+        <button class="btn-icon" title="Apri" (click)="openNotification(notification); $event.stopPropagation()">
+          <span class="material-icons">open_in_new</span>
+        </button>
+        <button class="btn-icon btn-delete" title="Elimina" (click)="deleteNotification(notification, $event)">
+          <span class="material-icons">delete</span>
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="notifications.length === 0" class="empty-state">
+      <span class="material-icons">notifications_none</span>
+      <h3>Nessuna notifica</h3>
+      <p>Non hai notifiche al momento.</p>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Caricamento notifiche...</p>
+  </div>
 </div>
