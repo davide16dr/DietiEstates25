@@ -4,7 +4,7 @@
     <p>Gestisci tutti i tuoi annunci immobiliari</p>
   </div>
 
-  <button class="primary">
+  <button class="primary" (click)="openAddPropertyModal()">
     <span class="ico">+</span>
     Aggiungi Immobile
   </button>
@@ -84,3 +84,10 @@
     </div>
   </div>
 </section>
+
+<!-- Modal per aggiungere immobile -->
+<app-add-property-modal 
+  *ngIf="showModal"
+  (close)="closeModal()"
+  (save)="saveProperty($event)"
+></app-add-property-modal>

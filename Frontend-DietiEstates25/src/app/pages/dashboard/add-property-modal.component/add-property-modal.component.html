@@ -1,0 +1,277 @@
+<div class="modal-overlay" (click)="onClose()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Nuovo Immobile</h2>
+      <button class="close-btn" (click)="onClose()">×</button>
+    </div>
+
+    <form [formGroup]="propertyForm" (ngSubmit)="onSubmit()" class="modal-body">
+      
+      <!-- SEZIONE LISTING -->
+      <!-- Titolo Annuncio -->
+      <div class="form-group full-width">
+        <label for="title">Titolo Annuncio *</label>
+        <input
+          type="text"
+          id="title"
+          formControlName="title"
+          placeholder="Es: Elegante appartamento in centro con vista panoramica"
+          [class.error]="hasError('title')"
+        />
+        @if (hasError('title')) {
+          <span class="error-message">
+            {{ getErrorMessage('title') }}
+          </span>
+        }
+      </div>
+
+      <div class="form-row">
+        <!-- Tipo Annuncio -->
+        <div class="form-group">
+          <label for="listing_type">Tipo Annuncio *</label>
+          <select id="listing_type" formControlName="listing_type">
+            <option value="SALE">Vendita</option>
+            <option value="RENT">Affitto</option>
+          </select>
+        </div>
+
+        <!-- Prezzo -->
+        <div class="form-group">
+          <label for="price_amount">Prezzo (€) *</label>
+          <input
+            type="number"
+            id="price_amount"
+            formControlName="price_amount"
+            placeholder="0"
+            [class.error]="hasError('price_amount')"
+          />
+          @if (hasError('price_amount')) {
+            <span class="error-message">
+              {{ getErrorMessage('price_amount') }}
+            </span>
+          }
+        </div>
+
+        <!-- Valuta -->
+        <div class="form-group">
+          <label for="currency">Valuta</label>
+          <select id="currency" formControlName="currency" [disabled]="true">
+            <option value="EUR">EUR (€)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- SEZIONE PROPERTY -->
+      <div class="form-row">
+        <!-- Tipo Immobile -->
+        <div class="form-group">
+          <label for="property_type">Tipo Immobile *</label>
+          <select id="property_type" formControlName="property_type">
+            <option value="APPARTAMENTO">Appartamento</option>
+            <option value="VILLA">Villa</option>
+            <option value="ATTICO">Attico</option>
+            <option value="LOFT">Loft</option>
+            <option value="CASA_INDIPENDENTE">Casa Indipendente</option>
+            <option value="MONOLOCALE">Monolocale</option>
+            <option value="BILOCALE">Bilocale</option>
+            <option value="UFFICIO">Ufficio</option>
+            <option value="NEGOZIO">Negozio</option>
+          </select>
+        </div>
+
+        <!-- Locali -->
+        <div class="form-group">
+          <label for="rooms">Locali *</label>
+          <input
+            type="number"
+            id="rooms"
+            formControlName="rooms"
+            placeholder="0"
+            [class.error]="hasError('rooms')"
+          />
+          @if (hasError('rooms')) {
+            <span class="error-message">
+              {{ getErrorMessage('rooms') }}
+            </span>
+          }
+        </div>
+
+        <!-- Bagni -->
+        <div class="form-group">
+          <label for="bathrooms">Bagni</label>
+          <input
+            type="number"
+            id="bathrooms"
+            formControlName="bathrooms"
+            placeholder="0"
+          />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <!-- Mq -->
+        <div class="form-group">
+          <label for="area_m2">Superficie (m²) *</label>
+          <input
+            type="number"
+            id="area_m2"
+            formControlName="area_m2"
+            placeholder="0"
+            [class.error]="hasError('area_m2')"
+          />
+          @if (hasError('area_m2')) {
+            <span class="error-message">
+              {{ getErrorMessage('area_m2') }}
+            </span>
+          }
+        </div>
+
+        <!-- Piano -->
+        <div class="form-group">
+          <label for="floor">Piano</label>
+          <input
+            type="number"
+            id="floor"
+            formControlName="floor"
+            placeholder="Es: 2"
+          />
+        </div>
+
+        <!-- Classe Energetica -->
+        <div class="form-group">
+          <label for="energy_class">Classe Energetica</label>
+          <select id="energy_class" formControlName="energy_class">
+            <option value="A+">A+</option>
+            <option value="A">A</option>
+            <option value="B">B</option>
+            <option value="C">C</option>
+            <option value="D">D</option>
+            <option value="E">E</option>
+            <option value="F">F</option>
+            <option value="G">G</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <!-- Città -->
+        <div class="form-group">
+          <label for="city">Città *</label>
+          <input
+            type="text"
+            id="city"
+            formControlName="city"
+            placeholder="Es: Milano"
+            [class.error]="hasError('city')"
+          />
+          @if (hasError('city')) {
+            <span class="error-message">
+              {{ getErrorMessage('city') }}
+            </span>
+          }
+        </div>
+
+        <!-- Indirizzo -->
+        <div class="form-group" style="grid-column: span 2;">
+          <label for="address">Indirizzo Completo *</label>
+          <input
+            type="text"
+            id="address"
+            formControlName="address"
+            placeholder="Via, numero civico"
+            [class.error]="hasError('address')"
+          />
+          @if (hasError('address')) {
+            <span class="error-message">
+              {{ getErrorMessage('address') }}
+            </span>
+          }
+        </div>
+      </div>
+
+      <!-- Descrizione Property -->
+      <div class="form-group full-width">
+        <label for="description">Descrizione Immobile *</label>
+        <textarea
+          id="description"
+          formControlName="description"
+          rows="3"
+          placeholder="Descrivi le caratteristiche dell'immobile..."
+          [class.error]="hasError('description')"
+        ></textarea>
+        @if (hasError('description')) {
+          <span class="error-message">
+            {{ getErrorMessage('description') }}
+          </span>
+        }
+      </div>
+
+      <!-- Ascensore -->
+      <div class="form-group checkbox-group">
+        <label class="checkbox-label">
+          <input type="checkbox" formControlName="elevator" />
+          <span>Ascensore</span>
+        </label>
+      </div>
+
+      <!-- SEZIONE UPLOAD IMMAGINI -->
+      <div class="form-group full-width">
+        <label>Immagini (max 10)</label>
+        
+        <!-- Drop Zone -->
+        <div 
+          class="upload-zone"
+          [class.dragging]="isDragging()"
+          (dragover)="onDragOver($event)"
+          (dragleave)="onDragLeave($event)"
+          (drop)="onDrop($event)"
+        >
+          <img src="assets/icons/upload_image.png" alt="Upload" class="upload-icon" />
+          <p class="upload-text">
+            Trascina le immagini qui o 
+            <label class="upload-link">
+              clicca per selezionare
+              <input 
+                type="file" 
+                multiple 
+                accept="image/*"
+                (change)="onFileSelected($event)"
+                style="display: none;"
+              />
+            </label>
+          </p>
+          <small class="upload-hint">PNG, JPG, JPEG - Max 10 immagini</small>
+        </div>
+
+        <!-- Preview Immagini -->
+        @if (imagePreviews().length > 0) {
+          <div class="images-preview">
+            @for (preview of imagePreviews(); track $index) {
+              <div class="preview-item">
+                <img [src]="preview" [alt]="'Anteprima ' + ($index + 1)" />
+                <button 
+                  type="button" 
+                  class="remove-image-btn" 
+                  (click)="removeImage($index)"
+                  title="Rimuovi immagine"
+                >
+                  ×
+                </button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Pulsanti -->
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="onClose()">
+          Annulla
+        </button>
+        <button type="submit" class="btn-primary">
+          Crea Annuncio
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
