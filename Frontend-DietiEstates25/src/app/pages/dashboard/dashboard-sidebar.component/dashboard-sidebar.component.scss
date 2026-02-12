@@ -102,6 +102,15 @@
     text-align:center;
     opacity:.85;
   }
+  .menu-item .badge{
+    margin-left:auto;
+    background:#e9f7ef;
+    color:#0f7a55;
+    border-radius:8px;
+    padding:2px 8px;
+    font-size:12px;
+    font-weight:700;
+  }
   .menu-item .chev{
     margin-left:auto;
     color:#9ca3af;
@@ -115,6 +124,10 @@
   .menu-item.active{
     background:#0f7a55;
     color:#fff;
+  }
+  .menu-item.active .badge{
+    background:#fff;
+    color:#0f7a55;
   }
   .menu-item.active .chev{ color:#d1fae5; }
   .menu-item.active .ico{ opacity:1; }

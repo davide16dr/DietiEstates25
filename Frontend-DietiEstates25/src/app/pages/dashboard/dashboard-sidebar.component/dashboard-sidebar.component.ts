@@ -8,6 +8,7 @@ type MenuItem = {
   label: string;
   icon: string;
   route: string;
+  badge?: number;
 };
 
 @Component({
@@ -67,13 +68,29 @@ export class DashboardSidebarComponent {
     return email.substring(0, 2).toUpperCase();
   }
 
-  menu: MenuItem[] = [
-    { label: 'Dashboard', icon: '▦', route: '/dashboard/home' },
-    { label: 'Ricerche Salvate', icon: '🔖', route: '/dashboard/saved-searches' },
-    { label: 'Le Mie Visite', icon: '📅', route: '/dashboard/visits' },
-    { label: 'Le Mie Offerte', icon: '🤝', route: '/dashboard/offers' },
-    { label: 'Notifiche', icon: '🔔', route: '/dashboard/notifications' },
-  ];
+  get isAgent(): boolean {
+    const user = this.currentUser();
+    return user?.role?.toLowerCase() === 'agent';
+  }
+
+  get menu(): MenuItem[] {
+    if (this.isAgent) {
+      return [
+        { label: 'Dashboard', icon: '▦', route: '/dashboard/home' },
+        { label: 'I Miei Immobili', icon: '🏠', route: '/dashboard/agent-properties', badge: 6 },
+        { label: 'Visite', icon: '📅', route: '/dashboard/agent-visits', badge: 2 },
+        { label: 'Offerte', icon: '🤝', route: '/dashboard/agent-offers', badge: 2 },
+      ];
+    }
+    
+    return [
+      { label: 'Dashboard', icon: '▦', route: '/dashboard/home' },
+      { label: 'Ricerche Salvate', icon: '🔖', route: '/dashboard/saved-searches' },
+      { label: 'Le Mie Visite', icon: '📅', route: '/dashboard/visits' },
+      { label: 'Le Mie Offerte', icon: '🤝', route: '/dashboard/offers' },
+      { label: 'Notifiche', icon: '🔔', route: '/dashboard/notifications' },
+    ];
+  }
 
   goBackToSite() {
     window.location.href = '/';

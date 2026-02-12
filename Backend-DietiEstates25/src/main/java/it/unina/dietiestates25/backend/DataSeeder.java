@@ -4,6 +4,7 @@ import it.unina.dietiestates25.backend.entities.*;
 import it.unina.dietiestates25.backend.entities.enums.*;
 import it.unina.dietiestates25.backend.repositories.*;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -16,15 +17,21 @@ public class DataSeeder implements CommandLineRunner {
     private final PropertyRepository propertyRepository;
     private final ListingRepository listingRepository;
     private final ListingImageRepository listingImageRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public DataSeeder(AgencyRepository agencyRepository,
                       PropertyRepository propertyRepository,
                       ListingRepository listingRepository,
-                      ListingImageRepository listingImageRepository) {
+                      ListingImageRepository listingImageRepository,
+                      UserRepository userRepository,
+                      PasswordEncoder passwordEncoder) {
         this.agencyRepository = agencyRepository;
         this.propertyRepository = propertyRepository;
         this.listingRepository = listingRepository;
         this.listingImageRepository = listingImageRepository;
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -36,6 +43,9 @@ public class DataSeeder implements CommandLineRunner {
         }
 
         System.out.println("🌱 Inizio popolamento database...");
+
+        // ========== CREAZIONE UTENTI DI TEST ==========
+        createTestUsers();
 
         // Crea agenzia
         Agency agency = new Agency();
@@ -243,7 +253,53 @@ public class DataSeeder implements CommandLineRunner {
         
         createImage(listing15, "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=800", 0);
 
-        System.out.println("✅ Database popolato con successo! 15 annunci inseriti.");
+        System.out.println("✅ Database popolato con successo! 15 annunci e 3 utenti di test inseriti.");
+    }
+
+    private void createTestUsers() {
+        // Crea Admin se non esiste
+        if (!userRepository.existsByEmail("admin@dietiestates.it")) {
+            User admin = new User();
+            admin.setId(UUID.randomUUID());
+            admin.setEmail("admin@dietiestates.it");
+            admin.setPasswordHash(passwordEncoder.encode("Admin123!"));
+            admin.setFirstName("Admin");
+            admin.setLastName("Sistema");
+            admin.setRole(UserRole.ADMIN);
+            admin.setActive(true);
+            userRepository.save(admin);
+            System.out.println("👤 Admin creato: admin@dietiestates.it / Admin123!");
+        }
+
+        // Crea Agente se non esiste
+        if (!userRepository.existsByEmail("agente@dietiestates.it")) {
+            User agent = new User();
+            agent.setId(UUID.randomUUID());
+            agent.setEmail("agente@dietiestates.it");
+            agent.setPasswordHash(passwordEncoder.encode("Agente123!"));
+            agent.setFirstName("Marco");
+            agent.setLastName("Rossi");
+            agent.setRole(UserRole.AGENT);
+            agent.setActive(true);
+            agent.setPhoneE164("+393331234567");
+            userRepository.save(agent);
+            System.out.println("👤 Agente creato: agente@dietiestates.it / Agente123!");
+        }
+
+        // Crea Cliente se non esiste
+        if (!userRepository.existsByEmail("cliente@dietiestates.it")) {
+            User client = new User();
+            client.setId(UUID.randomUUID());
+            client.setEmail("cliente@dietiestates.it");
+            client.setPasswordHash(passwordEncoder.encode("Cliente123!"));
+            client.setFirstName("Laura");
+            client.setLastName("Bianchi");
+            client.setRole(UserRole.CLIENT);
+            client.setActive(true);
+            client.setPhoneE164("+393337654321");
+            userRepository.save(client);
+            System.out.println("👤 Cliente creato: cliente@dietiestates.it / Cliente123!");
+        }
     }
 
     private Property createProperty(Agency agency, String city, String address,

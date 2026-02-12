@@ -12,6 +12,9 @@ import { SavedSearchesComponent } from './pages/dashboard/saved-searches.compone
 import { MyVisitsComponent } from './pages/dashboard/my-visits.component/my-visits.component';
 import { MyOffersComponent } from './pages/dashboard/my-offers.component/my-offers.component';
 import { NotificationsComponent } from './pages/dashboard/notifications.component/notifications.component';
+import { AgentPropertiesComponent } from './pages/dashboard/agent-properties.component/agent-properties.component';
+import { AgentVisitsComponent } from './pages/dashboard/agent-visits.component/agent-visits.component';
+import { AgentOffersComponent } from './pages/dashboard/agent-offers.component/agent-offers.component';
 
 export const routes: Routes = [
     {
@@ -57,6 +60,9 @@ export const routes: Routes = [
             { path: 'visits', title: 'Le Mie Visite', component: MyVisitsComponent },
             { path: 'offers', title: 'Le Mie Offerte', component: MyOffersComponent },
             { path: 'notifications', title: 'Notifiche', component: NotificationsComponent },
+            { path: 'agent-properties', title: 'I Miei Immobili', component: AgentPropertiesComponent },
+            { path: 'agent-visits', title: 'Visite', component: AgentVisitsComponent },
+            { path: 'agent-offers', title: 'Offerte', component: AgentOffersComponent },
         ]
     }
 ]

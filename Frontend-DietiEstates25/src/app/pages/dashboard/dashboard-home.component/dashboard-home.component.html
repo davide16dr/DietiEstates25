@@ -1,12 +1,13 @@
 <section class="header">
     <div>
       <h1>Benvenuto, {{ userName }}!</h1>
-      <p>Gestisci le tue ricerche, visite e offerte immobiliari</p>
+      <p *ngIf="!isAgent">Gestisci le tue ricerche, visite e offerte immobiliari</p>
+      <p *ngIf="isAgent">Gestisci i tuoi immobili, visite e offerte dei clienti</p>
     </div>
   
-    <a class="primary" [routerLink]="['/dashboard/search']">
-      <span class="ico">⌂</span>
-      Cerca Immobili
+    <a class="primary" [routerLink]="isAgent ? ['/dashboard/agent-properties'] : ['/dashboard/search']">
+      <span class="ico">{{ isAgent ? '+' : '⌂' }}</span>
+      {{ isAgent ? 'Aggiungi Immobile' : 'Cerca Immobili' }}
     </a>
   </section>
   
@@ -22,7 +23,8 @@
     </div>
   </section>
   
-  <section class="grid">
+  <!-- Sezione per clienti -->
+  <section class="grid" *ngIf="!isAgent">
     <div class="panel">
       <div class="panel-title">
         <span class="panel-ico">📈</span>
@@ -61,4 +63,45 @@
       </div>
     </div>
   </section>
+
+  <!-- Sezione per agenti -->
+  <section class="grid" *ngIf="isAgent">
+    <div class="panel">
+      <div class="panel-title">
+        <span class="panel-ico">🏠</span>
+        <span>Gestione Immobili</span>
+      </div>
   
+      <div class="quick">
+        <a class="quick-item" [routerLink]="['/dashboard/agent-properties']">
+          Visualizza tutti gli immobili <span class="chev">›</span>
+        </a>
+        <a class="quick-item" [routerLink]="['/dashboard/agent-properties']">
+          Aggiungi nuovo immobile <span class="chev">›</span>
+        </a>
+        <a class="quick-item" [routerLink]="['/dashboard/agent-visits']">
+          Gestisci richieste di visita <span class="chev">›</span>
+        </a>
+        <a class="quick-item" [routerLink]="['/dashboard/agent-offers']">
+          Controlla le offerte <span class="chev">›</span>
+        </a>
+      </div>
+    </div>
+  
+    <div class="panel">
+      <div class="panel-title">
+        <span class="panel-ico">📊</span>
+        <span>Attività Recenti</span>
+      </div>
+  
+      <div class="notif-center">
+        <div class="notif-number">3</div>
+        <div class="notif-text">attività in sospeso</div>
+        <div class="activity-list">
+          <div class="activity-item">1 visita da confermare</div>
+          <div class="activity-item">1 offerta da valutare</div>
+          <div class="activity-item">1 controproposta in attesa</div>
+        </div>
+      </div>
+    </div>
+  </section>
