@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { AddPropertyModalComponent } from '../add-property-modal.component/add-property-modal.component';
 
 interface Property {
   id: number;
@@ -17,11 +18,13 @@ interface Property {
 @Component({
   selector: 'app-agent-properties',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, AddPropertyModalComponent],
   templateUrl: './agent-properties.component.html',
   styleUrl: './agent-properties.component.scss',
 })
 export class AgentPropertiesComponent {
+  showModal = false;
+
   properties: Property[] = [
     {
       id: 1,
@@ -98,6 +101,38 @@ export class AgentPropertiesComponent {
     const affittati = this.properties.filter(p => p.status === 'affittato').length;
     
     return { totale, disponibili, venduti, affittati };
+  }
+
+  openAddPropertyModal(): void {
+    this.showModal = true;
+  }
+
+  closeModal(): void {
+    this.showModal = false;
+  }
+
+  saveProperty(propertyData: any): void {
+    // Crea un nuovo immobile con i dati dal form
+    const newProperty: Property = {
+      id: this.properties.length + 1,
+      title: propertyData.titolo,
+      location: `${propertyData.citta}, ${propertyData.zona}`,
+      price: propertyData.prezzo,
+      type: propertyData.categoria.toLowerCase() as 'vendita' | 'affitto',
+      status: 'disponibile',
+      rooms: propertyData.locali,
+      size: propertyData.mq,
+      image: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400'
+    };
+
+    // Aggiunge l'immobile alla lista
+    this.properties.unshift(newProperty);
+    
+    // Chiude il modal
+    this.closeModal();
+    
+    console.log('Nuovo immobile aggiunto:', newProperty);
+    // TODO: Inviare i dati al backend
   }
 
   getStatusClass(status: string): string {
