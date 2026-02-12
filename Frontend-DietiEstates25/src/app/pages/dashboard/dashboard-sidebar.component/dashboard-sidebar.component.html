@@ -17,7 +17,8 @@
       >
         <span class="ico">{{ item.icon }}</span>
         <span class="lbl" *ngIf="!collapsed">{{ item.label }}</span>
-        <span class="chev" *ngIf="!collapsed">›</span>
+        <span class="badge" *ngIf="!collapsed && item.badge">{{ item.badge }}</span>
+        <span class="chev" *ngIf="!collapsed && !item.badge">›</span>
       </a>
     </nav>
   

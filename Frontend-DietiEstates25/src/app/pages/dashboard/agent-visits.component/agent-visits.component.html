@@ -1,0 +1,95 @@
+<section class="header">
+  <div>
+    <h1>Visite</h1>
+    <p>Gestisci le richieste di visita per i tuoi immobili</p>
+  </div>
+</section>
+
+<section class="stats">
+  <div class="stat-card">
+    <div class="stat-top">
+      <div class="stat-label">In Attesa</div>
+      <div class="pill" style="background: #fff4e5; color: #b45309;">⏱️</div>
+    </div>
+    <div class="stat-value">{{ stats.inAttesa }}</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-top">
+      <div class="stat-label">Confermate</div>
+      <div class="pill" style="background: #e9f7ef; color: #0f7a55;">✓</div>
+    </div>
+    <div class="stat-value">{{ stats.confermate }}</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-top">
+      <div class="stat-label">Completate</div>
+      <div class="pill" style="background: #eaf2ff; color: #2563eb;">🏁</div>
+    </div>
+    <div class="stat-value">{{ stats.completate }}</div>
+  </div>
+</section>
+
+<section class="visits-list">
+  <div class="visit-card" *ngFor="let visit of visits">
+    <div class="visit-header">
+      <div>
+        <h3 class="visit-property">{{ visit.propertyTitle }}</h3>
+        <div class="visit-location">📍 {{ visit.propertyLocation }}</div>
+      </div>
+      <span class="status-badge" [ngClass]="getStatusClass(visit.status)">
+        {{ getStatusLabel(visit.status) }}
+      </span>
+    </div>
+
+    <div class="visit-details">
+      <div class="detail-row">
+        <span class="detail-label">Cliente:</span>
+        <span class="detail-value">{{ visit.clientName }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Email:</span>
+        <span class="detail-value">{{ visit.clientEmail }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Data:</span>
+        <span class="detail-value">📅 {{ visit.date }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Ora:</span>
+        <span class="detail-value">⏰ {{ visit.time }}</span>
+      </div>
+      <div class="detail-row" *ngIf="visit.notes">
+        <span class="detail-label">Note:</span>
+        <span class="detail-value notes">{{ visit.notes }}</span>
+      </div>
+    </div>
+
+    <div class="visit-actions">
+      <button 
+        *ngIf="visit.status === 'in-attesa'" 
+        class="action-btn success"
+        (click)="confirmVisit(visit.id)">
+        ✓ Conferma
+      </button>
+      <button 
+        *ngIf="visit.status === 'confermata'" 
+        class="action-btn primary"
+        (click)="completeVisit(visit.id)">
+        ✓ Segna Completata
+      </button>
+      <button 
+        class="action-btn secondary"
+        (click)="rejectVisit(visit.id)">
+        ✕ Rifiuta
+      </button>
+    </div>
+  </div>
+
+  <div class="empty-state" *ngIf="visits.length === 0">
+    <div class="empty-icon">📅</div>
+    <div class="empty-title">Nessuna visita programmata</div>
+    <div class="empty-text">Le richieste di visita appariranno qui</div>
+  </div>
+</section>

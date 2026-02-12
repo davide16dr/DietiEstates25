@@ -1,0 +1,106 @@
+<section class="header">
+  <div>
+    <h1>Offerte</h1>
+    <p>Gestisci le offerte ricevute per i tuoi immobili</p>
+  </div>
+</section>
+
+<section class="stats">
+  <div class="stat-card">
+    <div class="stat-top">
+      <div class="stat-label">In Attesa</div>
+      <div class="pill" style="background: #fff4e5; color: #b45309;">⏱️</div>
+    </div>
+    <div class="stat-value">{{ stats.inAttesa }}</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-top">
+      <div class="stat-label">Accettate</div>
+      <div class="pill" style="background: #e9f7ef; color: #0f7a55;">✓</div>
+    </div>
+    <div class="stat-value">{{ stats.accettate }}</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-top">
+      <div class="stat-label">Controproposte</div>
+      <div class="pill" style="background: #dbeafe; color: #1d4ed8;">↔️</div>
+    </div>
+    <div class="stat-value">{{ stats.controproposte }}</div>
+  </div>
+</section>
+
+<section class="offers-list">
+  <div class="offer-card" *ngFor="let offer of offers">
+    <div class="offer-header">
+      <div>
+        <h3 class="offer-property">{{ offer.propertyTitle }}</h3>
+        <div class="offer-location">📍 {{ offer.propertyLocation }}</div>
+      </div>
+      <span class="status-badge" [ngClass]="getStatusClass(offer.status)">
+        {{ getStatusLabel(offer.status) }}
+      </span>
+    </div>
+
+    <div class="offer-prices">
+      <div class="price-box">
+        <div class="price-label">Prezzo Richiesto</div>
+        <div class="price-value">{{ formatPrice(offer.propertyPrice) }}</div>
+      </div>
+      <div class="price-arrow">→</div>
+      <div class="price-box highlight">
+        <div class="price-label">Offerta Cliente</div>
+        <div class="price-value">{{ formatPrice(offer.offerAmount) }}</div>
+      </div>
+      <div class="price-diff" *ngIf="getDifference(offer.propertyPrice, offer.offerAmount) !== 0">
+        <span class="diff-badge">
+          -{{ formatPrice(getDifference(offer.propertyPrice, offer.offerAmount)) }}
+          ({{ getDifferencePercent(offer.propertyPrice, offer.offerAmount).toFixed(1) }}%)
+        </span>
+      </div>
+    </div>
+
+    <div class="counter-offer-box" *ngIf="offer.counterOffer">
+      <div class="counter-label">💼 Tua Controproposta:</div>
+      <div class="counter-value">{{ formatPrice(offer.counterOffer) }}</div>
+    </div>
+
+    <div class="offer-details">
+      <div class="detail-row">
+        <span class="detail-label">Cliente:</span>
+        <span class="detail-value">{{ offer.clientName }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Email:</span>
+        <span class="detail-value">{{ offer.clientEmail }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Data:</span>
+        <span class="detail-value">📅 {{ offer.date }}</span>
+      </div>
+      <div class="detail-row" *ngIf="offer.notes">
+        <span class="detail-label">Note:</span>
+        <span class="detail-value notes">{{ offer.notes }}</span>
+      </div>
+    </div>
+
+    <div class="offer-actions" *ngIf="offer.status === 'in-attesa'">
+      <button class="action-btn success" (click)="acceptOffer(offer.id)">
+        ✓ Accetta
+      </button>
+      <button class="action-btn primary" (click)="makeCounterOffer(offer.id)">
+        ↔️ Controproposta
+      </button>
+      <button class="action-btn secondary" (click)="rejectOffer(offer.id)">
+        ✕ Rifiuta
+      </button>
+    </div>
+  </div>
+
+  <div class="empty-state" *ngIf="offers.length === 0">
+    <div class="empty-icon">🤝</div>
+    <div class="empty-title">Nessuna offerta ricevuta</div>
+    <div class="empty-text">Le offerte per i tuoi immobili appariranno qui</div>
+  </div>
+</section>
