@@ -1,0 +1,153 @@
+<div class="modal-overlay" (click)="onClose()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Dettagli Immobile</h2>
+      <button class="close-btn" (click)="onClose()">×</button>
+    </div>
+
+    <div class="modal-body">
+      <!-- Immagine Principale -->
+      <div class="property-image" [style.background-image]="'url(' + property().image + ')'">
+        <span class="status-badge" [ngClass]="getStatusClass(property().status)">
+          {{ getStatusLabel(property().status) }}
+        </span>
+      </div>
+
+      <!-- Titolo e Prezzo -->
+      <div class="property-header">
+        <div>
+          <h3 class="property-title">{{ property().title }}</h3>
+          <div class="property-location">📍 {{ property().location }}</div>
+        </div>
+        <div class="property-price">{{ formatPrice(property().price, property().type) }}</div>
+      </div>
+
+      <!-- Caratteristiche Principali -->
+      <div class="property-features">
+        <div class="feature-item">
+          <span class="feature-icon">🏠</span>
+          <div class="feature-info">
+            <span class="feature-label">Tipo</span>
+            <span class="feature-value">{{ property().propertyType }}</span>
+          </div>
+        </div>
+
+        <div class="feature-item">
+          <span class="feature-icon">🛏️</span>
+          <div class="feature-info">
+            <span class="feature-label">Locali</span>
+            <span class="feature-value">{{ property().rooms }}</span>
+          </div>
+        </div>
+
+        @if (property().bathrooms) {
+          <div class="feature-item">
+            <span class="feature-icon">🚿</span>
+            <div class="feature-info">
+              <span class="feature-label">Bagni</span>
+              <span class="feature-value">{{ property().bathrooms }}</span>
+            </div>
+          </div>
+        }
+
+        <div class="feature-item">
+          <span class="feature-icon">📏</span>
+          <div class="feature-info">
+            <span class="feature-label">Superficie</span>
+            <span class="feature-value">{{ property().size }} m²</span>
+          </div>
+        </div>
+
+        @if (property().floor !== undefined) {
+          <div class="feature-item">
+            <span class="feature-icon">🏢</span>
+            <div class="feature-info">
+              <span class="feature-label">Piano</span>
+              <span class="feature-value">{{ property().floor }}</span>
+            </div>
+          </div>
+        }
+
+        <div class="feature-item">
+          <span class="feature-icon">{{ property().elevator ? '✅' : '❌' }}</span>
+          <div class="feature-info">
+            <span class="feature-label">Ascensore</span>
+            <span class="feature-value">{{ property().elevator ? 'Sì' : 'No' }}</span>
+          </div>
+        </div>
+
+        @if (property().energyClass) {
+          <div class="feature-item">
+            <span class="feature-icon">⚡</span>
+            <div class="feature-info">
+              <span class="feature-label">Classe Energetica</span>
+              <span class="feature-value">{{ property().energyClass }}</span>
+            </div>
+          </div>
+        }
+
+        <div class="feature-item">
+          <span class="feature-icon">🏷️</span>
+          <div class="feature-info">
+            <span class="feature-label">Categoria</span>
+            <span class="feature-value">{{ property().type === 'vendita' ? 'Vendita' : 'Affitto' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Descrizione -->
+      <div class="property-section">
+        <h4 class="section-title">Descrizione</h4>
+        <p class="property-description">{{ property().description }}</p>
+      </div>
+
+      <!-- Indirizzo Completo -->
+      <div class="property-section">
+        <h4 class="section-title">Posizione</h4>
+        <div class="address-info">
+          <div class="address-item">
+            <span class="address-label">Indirizzo:</span>
+            <span class="address-value">{{ property().address }}</span>
+          </div>
+          <div class="address-item">
+            <span class="address-label">Città:</span>
+            <span class="address-value">{{ property().city }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Statistiche (se disponibili) -->
+      @if (property().views || property().favorites) {
+        <div class="property-section">
+          <h4 class="section-title">Statistiche</h4>
+          <div class="stats-grid">
+            @if (property().views) {
+              <div class="stat-item">
+                <span class="stat-icon">👁️</span>
+                <span class="stat-label">Visualizzazioni</span>
+                <span class="stat-value">{{ property().views }}</span>
+              </div>
+            }
+            @if (property().favorites) {
+              <div class="stat-item">
+                <span class="stat-icon">❤️</span>
+                <span class="stat-label">Preferiti</span>
+                <span class="stat-value">{{ property().favorites }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Footer con Pulsanti -->
+    <div class="modal-footer">
+      <button type="button" class="btn-secondary" (click)="onClose()">
+        Chiudi
+      </button>
+      <button type="button" class="btn-primary" (click)="onEdit()">
+        Modifica Immobile
+      </button>
+    </div>
+  </div>
+</div>
