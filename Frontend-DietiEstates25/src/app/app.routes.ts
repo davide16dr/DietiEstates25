@@ -15,6 +15,9 @@ import { NotificationsComponent } from './pages/dashboard/notifications.componen
 import { AgentPropertiesComponent } from './pages/dashboard/agent-properties.component/agent-properties.component';
 import { AgentVisitsComponent } from './pages/dashboard/agent-visits.component/agent-visits.component';
 import { AgentOffersComponent } from './pages/dashboard/agent-offers.component/agent-offers.component';
+import { ManagerDashboardComponent } from './pages/dashboard/manager-dashboard.component/manager-dashboard.component';
+import { ManagerAgentsComponent } from './pages/dashboard/manager-agents.component/manager-agents.component';
+import { ManagerPropertiesComponent } from './pages/dashboard/manager-properties.component/manager-properties.component';
 
 export const routes: Routes = [
     {
@@ -63,6 +66,9 @@ export const routes: Routes = [
             { path: 'agent-properties', title: 'I Miei Immobili', component: AgentPropertiesComponent },
             { path: 'agent-visits', title: 'Visite', component: AgentVisitsComponent },
             { path: 'agent-offers', title: 'Offerte', component: AgentOffersComponent },
+            { path: 'manager-home', title: 'Dashboard Manager', component: ManagerDashboardComponent },
+            { path: 'manager-agents', title: 'Gestione Agenti', component: ManagerAgentsComponent },
+            { path: 'manager-properties', title: 'Gestione Immobili', component: ManagerPropertiesComponent },
         ]
     }
 ]

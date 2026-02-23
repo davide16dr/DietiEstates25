@@ -41,6 +41,12 @@ public class User extends Auditable {
     @Column(name = "is_active", nullable = false)
     private boolean active = true;
 
+    @Column(name = "created_by", columnDefinition = "uuid")
+    private UUID createdBy;
+
+    @Column(name = "agency_id", columnDefinition = "uuid")
+    private UUID agencyId;
+
     public User() {}
 
     @PrePersist
@@ -71,4 +77,10 @@ public class User extends Auditable {
 
     public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
+
+    public UUID getCreatedBy() { return createdBy; }
+    public void setCreatedBy(UUID createdBy) { this.createdBy = createdBy; }
+
+    public UUID getAgencyId() { return agencyId; }
+    public void setAgencyId(UUID agencyId) { this.agencyId = agencyId; }
 }

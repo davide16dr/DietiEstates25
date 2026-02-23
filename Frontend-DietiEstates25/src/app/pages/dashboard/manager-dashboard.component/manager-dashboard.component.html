@@ -1,0 +1,115 @@
+<div class="manager-dashboard">
+  <!-- Header -->
+  <section class="header">
+    <div>
+      <h1>Dashboard Gestore</h1>
+      <p>Panoramica completa della tua agenzia immobiliare</p>
+    </div>
+  </section>
+
+  <!-- Statistiche Principali -->
+  <section class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon" style="background: #eef2ff;">
+          <span style="font-size: 24px;">👥</span>
+        </div>
+        <div class="stat-badge">Agenti</div>
+      </div>
+      <div class="stat-content">
+        <div class="stat-value">{{ stats.agenti.attivi }}</div>
+        <div class="stat-label">Attivi su {{ stats.agenti.totali }} totali</div>
+      </div>
+      <button class="stat-action" (click)="navigateToAgents()">
+        Gestisci Agenti →
+      </button>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon" style="background: #f0fdf4;">
+          <span style="font-size: 24px;">🏠</span>
+        </div>
+        <div class="stat-badge">Immobili</div>
+      </div>
+      <div class="stat-content">
+        <div class="stat-value">{{ stats.immobili.totali }}</div>
+        <div class="stat-label">{{ stats.immobili.disponibili }} disponibili</div>
+      </div>
+      <button class="stat-action" (click)="navigateToProperties()">
+        Vedi Immobili →
+      </button>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon" style="background: #fef3c7;">
+          <span style="font-size: 24px;">👁️</span>
+        </div>
+        <div class="stat-badge">Visite</div>
+      </div>
+      <div class="stat-content">
+        <div class="stat-value">{{ stats.visite.totali }}</div>
+        <div class="stat-label">{{ stats.visite.variazione }}</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon" style="background: #fce7f3;">
+          <span style="font-size: 24px;">💼</span>
+        </div>
+        <div class="stat-badge">Offerte</div>
+      </div>
+      <div class="stat-content">
+        <div class="stat-value">{{ stats.offerte.totali }}</div>
+        <div class="stat-label">{{ stats.offerte.periodo }}</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Grid Contenuto -->
+  <div class="content-grid">
+    <!-- Stato Immobili -->
+    <section class="card">
+      <div class="card-header">
+        <h3>Stato Immobili</h3>
+      </div>
+      <div class="card-body">
+        @for (status of propertyStatus; track status.label) {
+          <div class="status-item">
+            <div class="status-info">
+              <div class="status-dot" [style.background]="status.color"></div>
+              <span class="status-label">{{ status.label }}</span>
+            </div>
+            <div class="status-count">{{ status.count }}</div>
+          </div>
+        }
+      </div>
+    </section>
+
+    <!-- Attività Recenti -->
+    <section class="card">
+      <div class="card-header">
+        <h3>Immobili Recenti</h3>
+        <a routerLink="/dashboard/manager/properties" class="card-link">Vedi tutti</a>
+      </div>
+      <div class="card-body">
+        @for (property of recentProperties; track property.title) {
+          <div class="recent-item">
+            <div class="recent-info">
+              <div class="recent-title">{{ property.title }}</div>
+              <div class="recent-subtitle">Agente: {{ property.agent }}</div>
+            </div>
+            <div class="recent-meta">
+              <span class="recent-status" [style.color]="property.statusColor">
+                {{ property.status }}
+              </span>
+              <span class="recent-price">{{ property.price }}</span>
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+  </div>
+</div>
