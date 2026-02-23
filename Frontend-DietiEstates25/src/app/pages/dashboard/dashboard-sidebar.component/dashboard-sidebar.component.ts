@@ -73,7 +73,20 @@ export class DashboardSidebarComponent {
     return user?.role?.toLowerCase() === 'agent';
   }
 
+  get isManager(): boolean {
+    const user = this.currentUser();
+    return user?.role?.toLowerCase() === 'agency_manager';
+  }
+
   get menu(): MenuItem[] {
+    if (this.isManager) {
+      return [
+        { label: 'Dashboard', icon: '▦', route: '/dashboard/manager-home' },
+        { label: 'Gestione Agenti', icon: '👥', route: '/dashboard/manager-agents' },
+        { label: 'Tutti gli Immobili', icon: '🏠', route: '/dashboard/manager-properties' },
+      ];
+    }
+    
     if (this.isAgent) {
       return [
         { label: 'Dashboard', icon: '▦', route: '/dashboard/home' },
