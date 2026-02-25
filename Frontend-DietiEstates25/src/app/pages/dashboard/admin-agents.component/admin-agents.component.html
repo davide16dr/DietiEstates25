@@ -1,0 +1,129 @@
+<div class="admin-agents">
+  <!-- Header -->
+  <section class="header">
+    <div>
+      <h1>Agenti Agenzia</h1>
+      <p>Visualizza e gestisci gli agenti della tua agenzia</p>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <section class="stats">
+    <div class="stat-card">
+      <div class="stat-icon" style="background: #eef2ff;">👥</div>
+      <div class="stat-info">
+        <div class="stat-value">{{ stats.totali }}</div>
+        <div class="stat-label">Agenti Totali</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon" style="background: #d1fae5;">✓</div>
+      <div class="stat-info">
+        <div class="stat-value">{{ stats.attivi }}</div>
+        <div class="stat-label">Agenti Attivi</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon" style="background: #fef3c7;">🏠</div>
+      <div class="stat-info">
+        <div class="stat-value">65</div>
+        <div class="stat-label">Immobili Gestiti</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon" style="background: #fce7f3;">💰</div>
+      <div class="stat-info">
+        <div class="stat-value">40</div>
+        <div class="stat-label">Vendite Totali</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Filters -->
+  <section class="filters">
+    <div class="search-box">
+      <img src="assets/icons/search.png" alt="Search" class="search-icon" />
+      <input
+        type="text"
+        placeholder="Cerca per nome, email o telefono..."
+        [value]="searchQuery()"
+        (input)="onSearch($event)"
+      />
+    </div>
+
+    <select class="filter-select">
+      <option value="tutti">Tutti gli agenti</option>
+      <option value="attivi">Solo attivi</option>
+      <option value="inattivi">Solo inattivi</option>
+    </select>
+
+    <select class="filter-select">
+      <option value="tutti">Tutti gli stati</option>
+      <option value="attivo">Solo attivi</option>
+      <option value="disattivato">Solo disattivati</option>
+    </select>
+  </section>
+
+  <!-- Agents List -->
+  <section class="agents-list">
+    @for (agent of filteredAgents; track agent.id) {
+      <div class="agent-card">
+        <div class="agent-avatar">
+          <img [src]="'https://ui-avatars.com/api/?name=' + agent.name + '&background=0f7a55&color=fff'" [alt]="agent.name" />
+        </div>
+
+        <div class="agent-info">
+          <div class="agent-header">
+            <h3 class="agent-name">{{ agent.name }}</h3>
+            <span class="status-badge" [ngClass]="getStatusClass(agent.status)">
+              {{ getStatusLabel(agent.status) }}
+            </span>
+          </div>
+
+          <div class="agent-contacts">
+            <div class="contact-item">
+              <span class="contact-icon">📧</span>
+              <span>{{ agent.email }}</span>
+            </div>
+            <div class="contact-item">
+              <span class="contact-icon">📱</span>
+              <span>{{ agent.phone }}</span>
+            </div>
+          </div>
+
+          <div class="agent-stats">
+            <div class="stat-item">
+              <span class="stat-number">12</span>
+              <span class="stat-text">Immobili</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+              <span class="stat-number">8</span>
+              <span class="stat-text">Vendite</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="agent-actions">
+          <button class="action-btn secondary" (click)="viewAgentDetails(agent)">
+            Dettagli
+          </button>
+          <button class="action-btn primary" (click)="editAgent(agent)">
+            Modifica
+          </button>
+        </div>
+      </div>
+    }
+
+    @if (filteredAgents.length === 0) {
+      <div class="empty-state">
+        <span class="empty-icon">🔍</span>
+        <h3>Nessun agente trovato</h3>
+        <p>Prova a modificare i filtri di ricerca</p>
+      </div>
+    }
+  </section>
+</div>

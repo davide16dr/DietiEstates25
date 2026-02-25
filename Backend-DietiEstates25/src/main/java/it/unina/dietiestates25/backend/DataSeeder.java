@@ -1,14 +1,26 @@
 package it.unina.dietiestates25.backend;
 
-import it.unina.dietiestates25.backend.entities.*;
-import it.unina.dietiestates25.backend.entities.enums.*;
-import it.unina.dietiestates25.backend.repositories.*;
+import java.math.BigDecimal;
+import java.util.UUID;
+
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
-import java.util.UUID;
+import it.unina.dietiestates25.backend.entities.Agency;
+import it.unina.dietiestates25.backend.entities.Listing;
+import it.unina.dietiestates25.backend.entities.ListingImage;
+import it.unina.dietiestates25.backend.entities.Property;
+import it.unina.dietiestates25.backend.entities.User;
+import it.unina.dietiestates25.backend.entities.enums.ListingStatus;
+import it.unina.dietiestates25.backend.entities.enums.ListingType;
+import it.unina.dietiestates25.backend.entities.enums.PropertyStatus;
+import it.unina.dietiestates25.backend.entities.enums.UserRole;
+import it.unina.dietiestates25.backend.repositories.AgencyRepository;
+import it.unina.dietiestates25.backend.repositories.ListingImageRepository;
+import it.unina.dietiestates25.backend.repositories.ListingRepository;
+import it.unina.dietiestates25.backend.repositories.PropertyRepository;
+import it.unina.dietiestates25.backend.repositories.UserRepository;
 
 @Component
 public class DataSeeder implements CommandLineRunner {
@@ -36,16 +48,16 @@ public class DataSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+        // ========== CREAZIONE UTENTI DI TEST (sempre eseguita) ==========
+        createTestUsers();
+
         // Evita di inserire dati se già esistono più di 15 annunci
         if (listingRepository.count() >= 15) {
-            System.out.println("✅ Database già popolato con abbastanza dati, skip seeding");
+            System.out.println("✅ Database già popolato con abbastanza dati, skip seeding properties");
             return;
         }
 
         System.out.println("🌱 Inizio popolamento database...");
-
-        // ========== CREAZIONE UTENTI DI TEST ==========
-        createTestUsers();
 
         // Crea agenzia
         Agency agency = new Agency();
@@ -299,6 +311,21 @@ public class DataSeeder implements CommandLineRunner {
             client.setPhoneE164("+393337654321");
             userRepository.save(client);
             System.out.println("👤 Cliente creato: cliente@dietiestates.it / Cliente123!");
+        }
+
+        // Crea Gestore se non esiste
+        if (!userRepository.existsByEmail("gestore@dietiestates.it")) {
+            User gestore = new User();
+            gestore.setId(UUID.randomUUID());
+            gestore.setEmail("gestore@dietiestates.it");
+            gestore.setPasswordHash(passwordEncoder.encode("Gestore123!"));
+            gestore.setFirstName("Mario");
+            gestore.setLastName("Verdi");
+            gestore.setRole(UserRole.AGENCY_MANAGER);
+            gestore.setActive(true);
+            gestore.setPhoneE164("+393338765432");
+            userRepository.save(gestore);
+            System.out.println("👤 Gestore creato: gestore@dietiestates.it / Gestore123!");
         }
     }
 

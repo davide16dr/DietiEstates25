@@ -18,6 +18,10 @@ import { AgentOffersComponent } from './pages/dashboard/agent-offers.component/a
 import { ManagerDashboardComponent } from './pages/dashboard/manager-dashboard.component/manager-dashboard.component';
 import { ManagerAgentsComponent } from './pages/dashboard/manager-agents.component/manager-agents.component';
 import { ManagerPropertiesComponent } from './pages/dashboard/manager-properties.component/manager-properties.component';
+import { AdminDashboardComponent } from './pages/dashboard/admin-dashboard.component/admin-dashboard.component';
+import { AdminManagersComponent } from './pages/dashboard/admin-managers.component/admin-managers.component';
+import { AdminAgentsComponent } from './pages/dashboard/admin-agents.component/admin-agents.component';
+import { AdminAgencyInfoComponent } from './pages/dashboard/admin-agency-info.component/admin-agency-info.component';
 
 export const routes: Routes = [
     {
@@ -69,6 +73,10 @@ export const routes: Routes = [
             { path: 'manager-home', title: 'Dashboard Manager', component: ManagerDashboardComponent },
             { path: 'manager-agents', title: 'Gestione Agenti', component: ManagerAgentsComponent },
             { path: 'manager-properties', title: 'Gestione Immobili', component: ManagerPropertiesComponent },
+            { path: 'admin-home', title: 'Dashboard Admin', component: AdminDashboardComponent },
+            { path: 'admin-managers', title: 'Gestori Agenzia', component: AdminManagersComponent },
+            { path: 'admin-agents', title: 'Agenti Agenzia', component: AdminAgentsComponent },
+            { path: 'admin-agency-info', title: 'Info Azienda', component: AdminAgencyInfoComponent },
         ]
     }
 ]

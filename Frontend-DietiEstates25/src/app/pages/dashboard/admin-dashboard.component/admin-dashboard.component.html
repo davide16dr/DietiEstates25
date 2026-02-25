@@ -1,0 +1,152 @@
+<div class="admin-dashboard">
+  <!-- Header -->
+  <section class="header">
+    <div>
+      <h1>La Mia Azienda</h1>
+      <p class="agency-name">{{ agencyName }}</p>
+    </div>
+    <button class="btn-info" routerLink="/dashboard/admin-agency-info">
+      <span class="ico">⚙️</span>
+      Info Azienda
+    </button>
+  </section>
+
+  <!-- Stats Grid -->
+  <section class="stats-grid">
+    <!-- Gestori Card -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon" style="background: #dbeafe;">👥</div>
+      </div>
+      <div class="stat-content">
+        <div class="stat-label">Gestori</div>
+        <div class="stat-value">{{ stats.gestori.totali }}</div>
+        <div class="stat-detail">{{ stats.gestori.attivi }} attivi</div>
+      </div>
+      <button class="stat-action" (click)="navigateToManagers()">
+        Gestisci gestori
+      </button>
+    </div>
+
+    <!-- Agenti Card -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon" style="background: #d1fae5;">👥</div>
+      </div>
+      <div class="stat-content">
+        <div class="stat-label">Agenti</div>
+        <div class="stat-value">{{ stats.agenti.totali }}</div>
+        <div class="stat-detail">{{ stats.agenti.attivi }} attivi</div>
+      </div>
+      <button class="stat-action" (click)="navigateToAgents()">
+        Visualizza agenti
+      </button>
+    </div>
+
+    <!-- Città Card -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon" style="background: #e0e7ff;">🏙️</div>
+      </div>
+      <div class="stat-content">
+        <div class="stat-label">Città</div>
+        <div class="stat-value">{{ stats.citta }}</div>
+        <div class="stat-detail">{{ stats.indirizzo }}</div>
+      </div>
+      <button class="stat-action" (click)="navigateToInfo()">
+        Modifica sede
+      </button>
+    </div>
+
+    <!-- Stato Card -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon" style="background: #d1fae5;">📊</div>
+      </div>
+      <div class="stat-content">
+        <div class="stat-label">Stato</div>
+        <div class="stat-value">{{ stats.stato }}</div>
+        <div class="stat-detail">✓ Operativa</div>
+      </div>
+      <button class="stat-action" (click)="navigateToInfo()">
+        Info Azienda
+      </button>
+    </div>
+  </section>
+
+  <!-- Content Grid -->
+  <section class="content-grid">
+    <!-- Gestori Card -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span class="card-icon">👥</span>
+          <h3>Gestori</h3>
+        </div>
+        <a routerLink="/dashboard/admin-managers" class="card-link">Vedi tutti</a>
+      </div>
+      <div class="card-body">
+        @for (manager of recentManagers; track manager.id) {
+          <div class="list-item">
+            <div class="list-info">
+              <div class="list-name">{{ manager.name }}</div>
+              <div class="list-email">{{ manager.email }}</div>
+            </div>
+            <span class="status-badge" [class.status-active]="manager.status === 'attivo'">
+              {{ manager.status === 'attivo' ? 'Attivo' : 'Inattivo' }}
+            </span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Agenti Card -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span class="card-icon">👥</span>
+          <h3>Agenti</h3>
+        </div>
+        <a routerLink="/dashboard/admin-agents" class="card-link">Vedi tutti</a>
+      </div>
+      <div class="card-body">
+        @for (agent of recentAgents; track agent.id) {
+          <div class="list-item">
+            <div class="list-info">
+              <div class="list-name">{{ agent.name }}</div>
+              <div class="list-email">{{ agent.email }}</div>
+            </div>
+            <span class="status-badge" [class.status-active]="agent.status === 'attivo'">
+              {{ agent.status === 'attivo' ? 'Attivo' : 'Disattivato' }}
+            </span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Info Azienda Card -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span class="card-icon">🏢</span>
+          <h3>Info Azienda</h3>
+        </div>
+        <a routerLink="/dashboard/admin-agency-info" class="card-link">Modifica</a>
+      </div>
+      <div class="card-body">
+        <div class="info-item">
+          <span class="info-label">Nome Azienda</span>
+          <span class="info-value">{{ agencyName }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Città</span>
+          <span class="info-value">{{ stats.citta }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Indirizzo</span>
+          <span class="info-value">{{ stats.indirizzo }}</span>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
