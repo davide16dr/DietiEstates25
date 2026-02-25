@@ -78,7 +78,21 @@ export class DashboardSidebarComponent {
     return user?.role?.toLowerCase() === 'agency_manager';
   }
 
+  get isAdmin(): boolean {
+    const user = this.currentUser();
+    return user?.role?.toLowerCase() === 'admin';
+  }
+
   get menu(): MenuItem[] {
+    if (this.isAdmin) {
+      return [
+        { label: 'Dashboard', icon: '▦', route: '/dashboard/admin-home' },
+        { label: 'Gestori', icon: '👥', route: '/dashboard/admin-managers' },
+        { label: 'Agenti', icon: '👥', route: '/dashboard/admin-agents' },
+        { label: 'Info Azienda', icon: '🏢', route: '/dashboard/admin-agency-info' },
+      ];
+    }
+
     if (this.isManager) {
       return [
         { label: 'Dashboard', icon: '▦', route: '/dashboard/manager-home' },

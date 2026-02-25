@@ -1,0 +1,74 @@
+<div class="admin-managers">
+  <!-- Header -->
+  <section class="header">
+    <div>
+      <h1>Gestori Agenzia</h1>
+      <p>Gestisci i gestori della tua agenzia</p>
+    </div>
+    <button class="btn-primary" (click)="addNewManager()">
+      <span class="ico">+</span>
+      Nuovo Gestore
+    </button>
+  </section>
+
+  <!-- Search -->
+  <section class="search-section">
+    <div class="search-box">
+      <img src="assets/icons/search.png" alt="Search" class="search-icon" />
+      <input
+        type="text"
+        placeholder="Cerca per nome, email o telefono..."
+        [value]="searchQuery()"
+        (input)="onSearch($event)"
+      />
+    </div>
+  </section>
+
+  <!-- Managers List -->
+  <section class="managers-list">
+    @for (manager of filteredManagers; track manager.id) {
+      <div class="manager-card">
+        <div class="manager-avatar">
+          <img [src]="'https://ui-avatars.com/api/?name=' + manager.name + '&background=3b82f6&color=fff'" [alt]="manager.name" />
+        </div>
+
+        <div class="manager-info">
+          <div class="manager-header">
+            <h3 class="manager-name">{{ manager.name }}</h3>
+            <span class="status-badge" [ngClass]="getStatusClass(manager.status)">
+              {{ getStatusLabel(manager.status) }}
+            </span>
+          </div>
+
+          <div class="manager-contacts">
+            <div class="contact-item">
+              <span class="contact-icon">📧</span>
+              <span>{{ manager.email }}</span>
+            </div>
+            <div class="contact-item">
+              <span class="contact-icon">📱</span>
+              <span>{{ manager.phone }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="manager-actions">
+          <button class="action-btn secondary" (click)="viewManagerDetails(manager)">
+            Dettagli
+          </button>
+          <button class="action-btn primary" (click)="editManager(manager)">
+            Modifica
+          </button>
+        </div>
+      </div>
+    }
+
+    @if (filteredManagers.length === 0) {
+      <div class="empty-state">
+        <span class="empty-icon">🔍</span>
+        <h3>Nessun gestore trovato</h3>
+        <p>Prova a modificare i criteri di ricerca</p>
+      </div>
+    }
+  </section>
+</div>

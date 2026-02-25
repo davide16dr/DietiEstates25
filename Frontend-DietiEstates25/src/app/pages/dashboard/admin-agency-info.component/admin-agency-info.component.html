@@ -1,0 +1,138 @@
+<div class="admin-agency-info">
+  <!-- Header -->
+  <section class="header">
+    <div>
+      <h1>Informazioni Azienda</h1>
+      <p>Modifica i dati della tua agenzia</p>
+    </div>
+  </section>
+
+  <!-- Info Card -->
+  <section class="info-card">
+    <div class="card-header">
+      <div class="card-title">
+        <span class="card-icon">🏢</span>
+        <h3>Dati Agenzia</h3>
+      </div>
+      <p class="card-subtitle">Le informazioni saranno visibili ai tuoi gestori e agenti</p>
+    </div>
+
+    <div class="card-body">
+      <form (ngSubmit)="saveChanges()">
+        <div class="form-grid">
+          <!-- Nome Agenzia -->
+          <div class="form-group">
+            <label for="name">Nome Agenzia</label>
+            <div class="input-wrapper">
+              <span class="input-icon">🏢</span>
+              <input
+                type="text"
+                id="name"
+                [value]="agencyInfo().name"
+                (input)="updateField('name', $any($event.target).value)"
+                placeholder="Nome della tua agenzia"
+              />
+            </div>
+          </div>
+
+          <!-- Partita IVA -->
+          <div class="form-group">
+            <label for="partitaIVA">Partita IVA</label>
+            <div class="input-wrapper">
+              <span class="input-icon">📄</span>
+              <input
+                type="text"
+                id="partitaIVA"
+                [value]="agencyInfo().partitaIVA"
+                (input)="updateField('partitaIVA', $any($event.target).value)"
+                placeholder="IT12345678901"
+              />
+            </div>
+          </div>
+
+          <!-- Email -->
+          <div class="form-group">
+            <label for="email">Email</label>
+            <div class="input-wrapper">
+              <span class="input-icon">📧</span>
+              <input
+                type="email"
+                id="email"
+                [value]="agencyInfo().email"
+                (input)="updateField('email', $any($event.target).value)"
+                placeholder="email@agenzia.it"
+              />
+            </div>
+          </div>
+
+          <!-- Telefono -->
+          <div class="form-group">
+            <label for="phone">Telefono</label>
+            <div class="input-wrapper">
+              <span class="input-icon">📱</span>
+              <input
+                type="tel"
+                id="phone"
+                [value]="agencyInfo().phone"
+                (input)="updateField('phone', $any($event.target).value)"
+                placeholder="+39 02 1234567"
+              />
+            </div>
+          </div>
+
+          <!-- Indirizzo -->
+          <div class="form-group">
+            <label for="address">Indirizzo</label>
+            <div class="input-wrapper">
+              <span class="input-icon">📍</span>
+              <input
+                type="text"
+                id="address"
+                [value]="agencyInfo().address"
+                (input)="updateField('address', $any($event.target).value)"
+                placeholder="Via, Numero Civico"
+              />
+            </div>
+          </div>
+
+          <!-- Città -->
+          <div class="form-group">
+            <label for="city">Città</label>
+            <div class="input-wrapper">
+              <span class="input-icon">🏙️</span>
+              <input
+                type="text"
+                id="city"
+                [value]="agencyInfo().city"
+                (input)="updateField('city', $any($event.target).value)"
+                placeholder="Milano"
+              />
+            </div>
+          </div>
+
+          <!-- Sito Web (full width) -->
+          <div class="form-group full-width">
+            <label for="website">Sito Web</label>
+            <div class="input-wrapper">
+              <span class="input-icon">🌐</span>
+              <input
+                type="text"
+                id="website"
+                [value]="agencyInfo().website"
+                (input)="updateField('website', $any($event.target).value)"
+                placeholder="www.mia-agenzia.it"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="form-actions">
+          <button type="submit" class="btn-primary">
+            Salva Modifiche
+          </button>
+        </div>
+      </form>
+    </div>
+  </section>
+</div>
