@@ -1,11 +1,15 @@
 <div class="app-shell">
   @if (showNavbar()) {
-    <app-navbar></app-navbar>
+    <header class="navbar-area">
+      <app-navbar></app-navbar>
+    </header>
   }
-  <main>
+  <main class="main-area">
     <router-outlet></router-outlet>
   </main>
   @if (showFooter()) {
-    <app-footer></app-footer>
+    <footer class="footer-area">
+      <app-footer></app-footer>
+    </footer>
   }
 </div>

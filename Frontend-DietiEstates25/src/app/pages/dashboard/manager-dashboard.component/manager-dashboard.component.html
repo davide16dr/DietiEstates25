@@ -20,7 +20,7 @@
         <div class="stat-value">{{ stats.agenti.attivi }}</div>
         <div class="stat-label">Attivi su {{ stats.agenti.totali }} totali</div>
       </div>
-      <button class="stat-action" (click)="navigateToAgents()">
+      <button class="stat-action" routerLink="/dashboard/manager-agents">
         Gestisci Agenti →
       </button>
     </div>
@@ -36,35 +36,9 @@
         <div class="stat-value">{{ stats.immobili.totali }}</div>
         <div class="stat-label">{{ stats.immobili.disponibili }} disponibili</div>
       </div>
-      <button class="stat-action" (click)="navigateToProperties()">
+      <button class="stat-action" routerLink="/dashboard/manager-properties">
         Vedi Immobili →
       </button>
-    </div>
-
-    <div class="stat-card">
-      <div class="stat-header">
-        <div class="stat-icon" style="background: #fef3c7;">
-          <span style="font-size: 24px;">👁️</span>
-        </div>
-        <div class="stat-badge">Visite</div>
-      </div>
-      <div class="stat-content">
-        <div class="stat-value">{{ stats.visite.totali }}</div>
-        <div class="stat-label">{{ stats.visite.variazione }}</div>
-      </div>
-    </div>
-
-    <div class="stat-card">
-      <div class="stat-header">
-        <div class="stat-icon" style="background: #fce7f3;">
-          <span style="font-size: 24px;">💼</span>
-        </div>
-        <div class="stat-badge">Offerte</div>
-      </div>
-      <div class="stat-content">
-        <div class="stat-value">{{ stats.offerte.totali }}</div>
-        <div class="stat-label">{{ stats.offerte.periodo }}</div>
-      </div>
     </div>
   </section>
 

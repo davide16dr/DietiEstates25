@@ -1,6 +1,8 @@
 import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { EditAgentModalComponent, AgentEdit } from '../edit-agent-modal.component/edit-agent-modal.component';
+import { AddAgentModalComponent, NewAgent } from '../add-agent-modal.component/add-agent-modal.component';
 
 interface Agent {
   id: number;
@@ -18,7 +20,7 @@ interface Agent {
 @Component({
   selector: 'app-manager-agents',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, EditAgentModalComponent, AddAgentModalComponent],
   templateUrl: './manager-agents.component.html',
   styleUrl: './manager-agents.component.scss',
 })
@@ -26,6 +28,11 @@ export class ManagerAgentsComponent {
   searchQuery = signal('');
   filterStatus = signal<string>('tutti');
   filterOwnership = signal<string>('tutti'); // Nuovo filtro per proprietà
+  
+  // Modal state
+  showEditModal = signal(false);
+  showAddModal = signal(false);
+  selectedAgent = signal<Agent | null>(null);
 
   // ID del gestore corrente (in un caso reale verrebbe dall'AuthService)
   currentManagerId = 1;
@@ -211,14 +218,55 @@ export class ManagerAgentsComponent {
     this.filterOwnership.set(select.value);
   }
 
-  viewAgentDetails(agent: Agent): void {
-    console.log('View agent details:', agent);
-    // TODO: Navigate to agent details or open modal
+  // Add Agent Modal methods
+  openAddModal(): void {
+    this.showAddModal.set(true);
+  }
+
+  closeAddModal(): void {
+    this.showAddModal.set(false);
+  }
+
+  addNewAgent(newAgent: NewAgent): void {
+    const maxId = Math.max(...this.agents.map(a => a.id), 0);
+    const agent: Agent = {
+      id: maxId + 1,
+      name: newAgent.name,
+      email: newAgent.email,
+      phone: newAgent.phone,
+      status: newAgent.status,
+      properties: 0,
+      sales: 0,
+      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(newAgent.name)}&background=0f7a55&color=fff`,
+      createdBy: this.currentManagerId,
+      agencyId: this.currentAgencyId
+    };
+    this.agents.push(agent);
+    this.closeAddModal();
   }
 
   editAgent(agent: Agent): void {
-    console.log('Edit agent:', agent);
-    // TODO: Open edit modal
+    this.selectedAgent.set(agent);
+    this.showEditModal.set(true);
+  }
+
+  closeEditModal(): void {
+    this.showEditModal.set(false);
+    this.selectedAgent.set(null);
+  }
+
+  saveAgent(updatedAgent: AgentEdit): void {
+    const index = this.agents.findIndex(a => a.id === updatedAgent.id);
+    if (index !== -1) {
+      this.agents[index] = {
+        ...this.agents[index],
+        name: updatedAgent.name,
+        email: updatedAgent.email,
+        phone: updatedAgent.phone,
+        status: updatedAgent.status as 'attivo' | 'inattivo'
+      };
+    }
+    this.closeEditModal();
   }
 
   toggleAgentStatus(agent: Agent): void {

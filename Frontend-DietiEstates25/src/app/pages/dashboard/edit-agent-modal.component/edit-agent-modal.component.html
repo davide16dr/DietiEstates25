@@ -1,0 +1,76 @@
+<div class="modal-overlay" (click)="onClose()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Modifica Agente</h2>
+      <button class="close-btn" (click)="onClose()">×</button>
+    </div>
+
+    <div class="modal-body">
+      <form class="edit-form" (ngSubmit)="onSave()">
+        <!-- Nome -->
+        <div class="form-group">
+          <label for="name">Nome Completo</label>
+          <input
+            type="text"
+            id="name"
+            [value]="editName()"
+            (input)="updateName($event)"
+            placeholder="Inserisci il nome"
+            required
+          />
+        </div>
+
+        <!-- Email -->
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input
+            type="email"
+            id="email"
+            [value]="editEmail()"
+            (input)="updateEmail($event)"
+            placeholder="Inserisci l'email"
+            required
+          />
+        </div>
+
+        <!-- Telefono -->
+        <div class="form-group">
+          <label for="phone">Telefono</label>
+          <input
+            type="tel"
+            id="phone"
+            [value]="editPhone()"
+            (input)="updatePhone($event)"
+            placeholder="Inserisci il telefono"
+            required
+          />
+        </div>
+
+        <!-- Stato -->
+        <div class="form-group">
+          <label for="status">Stato</label>
+          <select
+            id="status"
+            [value]="editStatus()"
+            (change)="updateStatus($event)"
+          >
+            <option value="attivo">Attivo</option>
+            <option [value]="inactiveStatusLabel()">{{ inactiveStatusLabel() === 'inattivo' ? 'Inattivo' : 'Disattivato' }}</option>
+          </select>
+        </div>
+      </form>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-secondary" type="button" (click)="onClose()">Annulla</button>
+      <button 
+        class="btn-primary" 
+        type="submit" 
+        (click)="onSave()"
+        [disabled]="!isFormValid()"
+      >
+        Salva Modifiche
+      </button>
+    </div>
+  </div>
+</div>

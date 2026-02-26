@@ -53,9 +53,6 @@
         </div>
 
         <div class="manager-actions">
-          <button class="action-btn secondary" (click)="viewManagerDetails(manager)">
-            Dettagli
-          </button>
           <button class="action-btn primary" (click)="editManager(manager)">
             Modifica
           </button>
@@ -72,3 +69,20 @@
     }
   </section>
 </div>
+
+<!-- Edit Manager Modal -->
+@if (showEditModal() && selectedManager()) {
+  <app-edit-manager-modal
+    [manager]="selectedManager()!"
+    (close)="closeEditModal()"
+    (save)="saveManager($event)"
+  />
+}
+
+<!-- Add Manager Modal -->
+@if (showAddModal()) {
+  <app-add-manager-modal
+    (close)="closeAddModal()"
+    (save)="saveNewManager($event)"
+  />
+}

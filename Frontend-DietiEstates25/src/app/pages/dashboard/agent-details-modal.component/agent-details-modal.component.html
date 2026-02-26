@@ -1,0 +1,70 @@
+<div class="modal-overlay" (click)="onClose()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Dettagli Agente</h2>
+      <button class="close-btn" (click)="onClose()">×</button>
+    </div>
+
+    <div class="modal-body">
+      <!-- Agent Profile -->
+      <div class="agent-profile">
+        <div class="agent-avatar">
+          <img [src]="getAvatarUrl(agent().name)" [alt]="agent().name" />
+        </div>
+        <div class="agent-main-info">
+          <h3 class="agent-name">{{ agent().name }}</h3>
+          <span class="status-badge" [ngClass]="getStatusClass(agent().status)">
+            {{ getStatusLabel(agent().status) }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Contact Info -->
+      <div class="info-section">
+        <h4 class="section-title">Informazioni di Contatto</h4>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-icon">📧</span>
+            <div class="info-content">
+              <span class="info-label">Email</span>
+              <span class="info-value">{{ agent().email }}</span>
+            </div>
+          </div>
+          <div class="info-item">
+            <span class="info-icon">📱</span>
+            <div class="info-content">
+              <span class="info-label">Telefono</span>
+              <span class="info-value">{{ agent().phone }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Statistics -->
+      <div class="info-section">
+        <h4 class="section-title">Statistiche</h4>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <span class="stat-icon">🏠</span>
+            <div class="stat-content">
+              <span class="stat-value">{{ agent().properties || 12 }}</span>
+              <span class="stat-label">Immobili Gestiti</span>
+            </div>
+          </div>
+          <div class="stat-item">
+            <span class="stat-icon">💰</span>
+            <div class="stat-content">
+              <span class="stat-value">{{ agent().sales || 8 }}</span>
+              <span class="stat-label">Vendite Totali</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="onClose()">Chiudi</button>
+      <button class="btn-primary" (click)="onEdit()">Modifica</button>
+    </div>
+  </div>
+</div>

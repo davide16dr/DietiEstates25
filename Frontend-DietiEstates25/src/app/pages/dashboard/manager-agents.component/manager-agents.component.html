@@ -5,7 +5,7 @@
       <h1>Gestione Agenti</h1>
       <p>Visualizza e gestisci tutti gli agenti della tua agenzia</p>
     </div>
-    <button class="btn-primary">
+    <button class="btn-primary" (click)="openAddModal()">
       <span class="ico">+</span>
       Aggiungi Agente
     </button>
@@ -119,9 +119,6 @@
         </div>
 
         <div class="agent-actions">
-          <button class="action-btn secondary" (click)="viewAgentDetails(agent)">
-            Dettagli
-          </button>
           <button class="action-btn primary" (click)="editAgent(agent)">
             Modifica
           </button>
@@ -138,3 +135,20 @@
     }
   </section>
 </div>
+
+<!-- Edit Agent Modal -->
+@if (showEditModal() && selectedAgent()) {
+  <app-edit-agent-modal
+    [agent]="selectedAgent()!"
+    (close)="closeEditModal()"
+    (save)="saveAgent($event)"
+  />
+}
+
+<!-- Add Agent Modal -->
+@if (showAddModal()) {
+  <app-add-agent-modal
+    (close)="closeAddModal()"
+    (save)="addNewAgent($event)"
+  />
+}

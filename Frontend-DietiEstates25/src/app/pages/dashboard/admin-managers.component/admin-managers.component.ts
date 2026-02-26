@@ -1,6 +1,8 @@
 import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { EditManagerModalComponent, ManagerEdit } from '../edit-manager-modal.component/edit-manager-modal.component';
+import { AddManagerModalComponent, NewManager } from '../add-manager-modal.component/add-manager-modal.component';
 
 interface Manager {
   id: number;
@@ -13,12 +15,17 @@ interface Manager {
 @Component({
   selector: 'app-admin-managers',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, EditManagerModalComponent, AddManagerModalComponent],
   templateUrl: './admin-managers.component.html',
   styleUrl: './admin-managers.component.scss',
 })
 export class AdminManagersComponent {
   searchQuery = signal('');
+  
+  // Modal state
+  showEditModal = signal(false);
+  showAddModal = signal(false);
+  selectedManager = signal<Manager | null>(null);
 
   managers: Manager[] = [
     {
@@ -46,13 +53,22 @@ export class AdminManagersComponent {
     this.searchQuery.set(input.value);
   }
 
-  viewManagerDetails(manager: Manager): void {
-    console.log('View manager details:', manager);
-    // TODO: Navigate to manager details or open modal
+  editManager(manager: Manager): void {
+    this.selectedManager.set(manager);
+    this.showEditModal.set(true);
   }
 
-  editManager(manager: Manager): void {
-    console.log('Edit manager:', manager);
+  closeEditModal(): void {
+    this.showEditModal.set(false);
+    this.selectedManager.set(null);
+  }
+
+  saveManager(updatedManager: ManagerEdit): void {
+    const index = this.managers.findIndex(m => m.id === updatedManager.id);
+    if (index !== -1) {
+      this.managers[index] = updatedManager as Manager;
+    }
+    this.closeEditModal();
   }
 
   toggleManagerStatus(manager: Manager): void {
@@ -61,7 +77,24 @@ export class AdminManagersComponent {
   }
 
   addNewManager(): void {
-    console.log('Add new manager');
+    this.showAddModal.set(true);
+  }
+
+  closeAddModal(): void {
+    this.showAddModal.set(false);
+  }
+
+  saveNewManager(newManager: NewManager): void {
+    const maxId = Math.max(...this.managers.map(m => m.id), 0);
+    const manager: Manager = {
+      id: maxId + 1,
+      name: newManager.name,
+      email: newManager.email,
+      phone: newManager.phone,
+      status: newManager.status
+    };
+    this.managers.push(manager);
+    this.closeAddModal();
   }
 
   getStatusClass(status: string): string {

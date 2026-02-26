@@ -21,8 +21,7 @@ export type ViewMode = 'grid' | 'list' | 'map';
     RouterLink,
     ViewToggleComponent,
     PropertyFiltersComponent,
-    PropertyCardComponent,
-    PropertyMapComponent
+    PropertyCardComponent
   ],
   templateUrl: './properties-page.component.html',
   styleUrls: ['./properties-page.component.scss'],

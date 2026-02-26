@@ -23,7 +23,7 @@
         <div class="stat-value">{{ stats.gestori.totali }}</div>
         <div class="stat-detail">{{ stats.gestori.attivi }} attivi</div>
       </div>
-      <button class="stat-action" (click)="navigateToManagers()">
+      <button class="stat-action" routerLink="/dashboard/admin-managers">
         Gestisci gestori
       </button>
     </div>
@@ -38,7 +38,7 @@
         <div class="stat-value">{{ stats.agenti.totali }}</div>
         <div class="stat-detail">{{ stats.agenti.attivi }} attivi</div>
       </div>
-      <button class="stat-action" (click)="navigateToAgents()">
+      <button class="stat-action" routerLink="/dashboard/admin-agents">
         Visualizza agenti
       </button>
     </div>
@@ -53,7 +53,7 @@
         <div class="stat-value">{{ stats.citta }}</div>
         <div class="stat-detail">{{ stats.indirizzo }}</div>
       </div>
-      <button class="stat-action" (click)="navigateToInfo()">
+      <button class="stat-action" routerLink="/dashboard/admin-agency-info">
         Modifica sede
       </button>
     </div>
@@ -68,7 +68,7 @@
         <div class="stat-value">{{ stats.stato }}</div>
         <div class="stat-detail">✓ Operativa</div>
       </div>
-      <button class="stat-action" (click)="navigateToInfo()">
+      <button class="stat-action" routerLink="/dashboard/admin-agency-info">
         Info Azienda
       </button>
     </div>

@@ -1,6 +1,8 @@
 import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { PropertyDetailsModalComponent } from '../property-details-modal.component/property-details-modal.component';
+import { EditPropertyModalComponent } from '../edit-property-modal.component/edit-property-modal.component';
 
 interface Property {
   id: number;
@@ -17,12 +19,20 @@ interface Property {
   image: string;
   views: number;
   offers: number;
+  // Aggiunti campi per i modal
+  location?: string;
+  propertyType?: string;
+  city?: string;
+  floor?: number;
+  elevator?: boolean;
+  energyClass?: string;
+  description?: string;
 }
 
 @Component({
   selector: 'app-manager-properties',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, PropertyDetailsModalComponent, EditPropertyModalComponent],
   templateUrl: './manager-properties.component.html',
   styleUrl: './manager-properties.component.scss',
 })
@@ -30,6 +40,11 @@ export class ManagerPropertiesComponent {
   searchQuery = signal('');
   filterStatus = signal<string>('tutti');
   filterType = signal<string>('tutti');
+
+  // Signal per gestire i modal
+  showDetailsModal = signal(false);
+  showEditModal = signal(false);
+  selectedProperty = signal<any>(null); // Usa 'any' per evitare problemi di tipo con il mapping
 
   properties: Property[] = [
     {
@@ -181,13 +196,105 @@ export class ManagerPropertiesComponent {
   }
 
   viewPropertyDetails(property: Property): void {
-    console.log('View property details:', property);
-    // TODO: Navigate to property details or open modal
+    // Trasforma la property per il modal details
+    const propertyDetail: any = {
+      id: property.id,
+      title: property.title,
+      location: property.address,
+      price: property.price,
+      type: property.type,
+      status: property.status,
+      rooms: property.rooms,
+      bathrooms: property.bathrooms,
+      size: property.surface, // ✅ surface → size
+      floor: Math.floor(Math.random() * 10),
+      elevator: Math.random() > 0.5,
+      energyClass: ['A', 'B', 'C', 'D'][Math.floor(Math.random() * 4)],
+      description: `${property.category} situato in ${property.address}. ${property.rooms} locali, ${property.bathrooms} bagni, ${property.surface} mq.`,
+      propertyType: property.category,
+      address: property.address,
+      city: property.address.split(',')[1]?.trim() || 'Milano',
+      image: property.image,
+      views: property.views,
+      favorites: property.offers
+    };
+    
+    this.selectedProperty.set(propertyDetail);
+    this.showDetailsModal.set(true);
   }
 
   editProperty(property: Property): void {
-    console.log('Edit property:', property);
-    // TODO: Open edit modal
+    // Trasforma la property per il modal edit
+    const propertyToEdit: any = {
+      id: property.id,
+      title: property.title,
+      location: property.address,
+      price: property.price,
+      type: property.type,
+      status: property.status,
+      rooms: property.rooms,
+      bathrooms: property.bathrooms,
+      size: property.surface, // ✅ surface → size
+      floor: Math.floor(Math.random() * 10),
+      elevator: Math.random() > 0.5,
+      energyClass: ['A', 'B', 'C', 'D'][Math.floor(Math.random() * 4)],
+      description: `${property.category} situato in ${property.address}. ${property.rooms} locali, ${property.bathrooms} bagni, ${property.surface} mq.`,
+      propertyType: property.category,
+      address: property.address,
+      city: property.address.split(',')[1]?.trim() || 'Milano',
+      image: property.image
+    };
+    
+    this.selectedProperty.set(propertyToEdit);
+    this.showEditModal.set(true);
+  }
+
+  onCloseDetailsModal(): void {
+    this.showDetailsModal.set(false);
+    this.selectedProperty.set(null);
+  }
+
+  onCloseEditModal(): void {
+    this.showEditModal.set(false);
+    this.selectedProperty.set(null);
+  }
+
+  onEditFromDetails(property: any): void {
+    this.showDetailsModal.set(false);
+    this.showEditModal.set(true);
+  }
+
+  onSaveProperty(formData: any): void {
+    console.log('Saving property:', formData);
+    // TODO: Chiamata API per salvare le modifiche
+    
+    // Aggiorna la property nella lista locale
+    const index = this.properties.findIndex(p => p.id === formData.id);
+    if (index !== -1) {
+      this.properties[index] = {
+        ...this.properties[index],
+        title: formData.listing.title,
+        price: formData.listing.price_amount,
+        rooms: formData.property.rooms,
+        bathrooms: formData.property.bathrooms,
+        surface: formData.property.area_m2,
+        address: `${formData.property.address}, ${formData.property.city}`,
+        city: formData.property.city,
+        type: formData.listing.type === 'SALE' ? 'vendita' : 'affitto',
+        status: formData.listing.status as any,
+        category: formData.property.property_type,
+        floor: formData.property.floor,
+        elevator: formData.property.elevator,
+        energyClass: formData.property.energy_class,
+        description: formData.property.description
+      };
+    }
+    
+    this.showEditModal.set(false);
+    this.selectedProperty.set(null);
+    
+    // Mostra messaggio di successo
+    alert('Immobile aggiornato con successo!');
   }
 
   getStatusClass(status: string): string {

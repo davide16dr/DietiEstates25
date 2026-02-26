@@ -1,7 +1,8 @@
-import { Component, EventEmitter, inject, Input, Output } from '@angular/core';
+import { Component, EventEmitter, inject, Input, Output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../../shared/services/auth.service';
+import { ChangePasswordModalComponent, PasswordChangeData } from '../change-password-modal.component/change-password-modal.component';
 
 
 type MenuItem = {
@@ -14,7 +15,7 @@ type MenuItem = {
 @Component({
   selector: 'app-dashboard-sidebar',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, ChangePasswordModalComponent],
   templateUrl: './dashboard-sidebar.component.html',
   styleUrl: './dashboard-sidebar.component.scss',
 })
@@ -24,6 +25,9 @@ export class DashboardSidebarComponent {
 
   private authService = inject(AuthService);  
   currentUser = this.authService.currentUser;
+  
+  // Modal state
+  showChangePasswordModal = signal(false);
 
   get userName(): string {
     const user = this.currentUser();
@@ -121,6 +125,22 @@ export class DashboardSidebarComponent {
 
   goBackToSite() {
     window.location.href = '/';
+  }
+
+  openChangePasswordModal(): void {
+    this.showChangePasswordModal.set(true);
+  }
+
+  closeChangePasswordModal(): void {
+    this.showChangePasswordModal.set(false);
+  }
+
+  onPasswordChange(data: PasswordChangeData): void {
+    // TODO: Chiamare il backend per cambiare la password
+    console.log('Password change requested:', data);
+    // Simulazione successo
+    alert('Password cambiata con successo!');
+    this.closeChangePasswordModal();
   }
 
   logout() {
