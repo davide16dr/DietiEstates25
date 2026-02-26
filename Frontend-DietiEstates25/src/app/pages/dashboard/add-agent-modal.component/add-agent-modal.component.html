@@ -1,0 +1,76 @@
+<div class="modal-overlay" (click)="onClose()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Aggiungi Nuovo Agente</h2>
+      <button class="close-btn" (click)="onClose()">×</button>
+    </div>
+
+    <div class="modal-body">
+      <form class="add-form" (ngSubmit)="onSave()">
+        <!-- Nome -->
+        <div class="form-group">
+          <label for="name">Nome Completo *</label>
+          <input
+            type="text"
+            id="name"
+            [value]="name()"
+            (input)="updateName($event)"
+            placeholder="Es. Mario Rossi"
+            required
+          />
+        </div>
+
+        <!-- Email -->
+        <div class="form-group">
+          <label for="email">Email *</label>
+          <input
+            type="email"
+            id="email"
+            [value]="email()"
+            (input)="updateEmail($event)"
+            placeholder="Es. mario.rossi@email.com"
+            required
+          />
+        </div>
+
+        <!-- Telefono -->
+        <div class="form-group">
+          <label for="phone">Telefono *</label>
+          <input
+            type="tel"
+            id="phone"
+            [value]="phone()"
+            (input)="updatePhone($event)"
+            placeholder="Es. +39 345 123 4567"
+            required
+          />
+        </div>
+
+        <!-- Stato -->
+        <div class="form-group">
+          <label for="status">Stato Iniziale</label>
+          <select
+            id="status"
+            [value]="status()"
+            (change)="updateStatus($event)"
+          >
+            <option value="attivo">Attivo</option>
+            <option value="inattivo">Inattivo</option>
+          </select>
+        </div>
+      </form>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-secondary" type="button" (click)="onClose()">Annulla</button>
+      <button 
+        class="btn-primary" 
+        type="submit" 
+        (click)="onSave()"
+        [disabled]="!isFormValid()"
+      >
+        Aggiungi Agente
+      </button>
+    </div>
+  </div>
+</div>

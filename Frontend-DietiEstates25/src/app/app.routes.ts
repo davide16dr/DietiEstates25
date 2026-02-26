@@ -22,6 +22,7 @@ import { AdminDashboardComponent } from './pages/dashboard/admin-dashboard.compo
 import { AdminManagersComponent } from './pages/dashboard/admin-managers.component/admin-managers.component';
 import { AdminAgentsComponent } from './pages/dashboard/admin-agents.component/admin-agents.component';
 import { AdminAgencyInfoComponent } from './pages/dashboard/admin-agency-info.component/admin-agency-info.component';
+import { dashboardRoleGuard } from './shared/guards/dashboard-role.guard';
 
 export const routes: Routes = [
     {
@@ -60,8 +61,8 @@ export const routes: Routes = [
     {
         path: 'dashboard',
         component: DashboardComponent,
+        canActivate: [dashboardRoleGuard],
         children: [
-            { path: '', pathMatch: 'full', redirectTo: 'home' },
             { path: 'home', title: 'Dashboard', component: DashboardHomeComponent },
             { path: 'saved-searches', title: 'Ricerche Salvate', component: SavedSearchesComponent },
             { path: 'visits', title: 'Le Mie Visite', component: MyVisitsComponent },

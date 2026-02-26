@@ -130,4 +130,22 @@
       </div>
     }
   </section>
+
+  <!-- Property Details Modal -->
+  @if (showDetailsModal() && selectedProperty()) {
+    <app-property-details-modal
+      [property]="selectedProperty()!"
+      (close)="onCloseDetailsModal()"
+      (edit)="onEditFromDetails($event)"
+    />
+  }
+
+  <!-- Edit Property Modal -->
+  @if (showEditModal() && selectedProperty()) {
+    <app-edit-property-modal
+      [property]="selectedProperty()!"
+      (close)="onCloseEditModal()"
+      (save)="onSaveProperty($event)"
+    />
+  }
 </div>

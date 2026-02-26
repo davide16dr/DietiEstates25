@@ -5,6 +5,10 @@
       <h1>Agenti Agenzia</h1>
       <p>Visualizza e gestisci gli agenti della tua agenzia</p>
     </div>
+    <button class="btn-primary" (click)="openAddModal()">
+      <span class="ico">+</span>
+      Aggiungi Agente
+    </button>
   </section>
 
   <!-- Stats -->
@@ -59,12 +63,6 @@
       <option value="attivi">Solo attivi</option>
       <option value="inattivi">Solo inattivi</option>
     </select>
-
-    <select class="filter-select">
-      <option value="tutti">Tutti gli stati</option>
-      <option value="attivo">Solo attivi</option>
-      <option value="disattivato">Solo disattivati</option>
-    </select>
   </section>
 
   <!-- Agents List -->
@@ -108,9 +106,6 @@
         </div>
 
         <div class="agent-actions">
-          <button class="action-btn secondary" (click)="viewAgentDetails(agent)">
-            Dettagli
-          </button>
           <button class="action-btn primary" (click)="editAgent(agent)">
             Modifica
           </button>
@@ -127,3 +122,20 @@
     }
   </section>
 </div>
+
+<!-- Edit Agent Modal -->
+@if (showEditModal() && selectedAgent()) {
+  <app-edit-agent-modal
+    [agent]="selectedAgent()!"
+    (close)="closeEditModal()"
+    (save)="saveAgent($event)"
+  />
+}
+
+<!-- Add Agent Modal -->
+@if (showAddModal()) {
+  <app-add-agent-modal
+    (close)="closeAddModal()"
+    (save)="addNewAgent($event)"
+  />
+}

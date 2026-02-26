@@ -1,6 +1,8 @@
 import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { EditAgentModalComponent, AgentEdit } from '../edit-agent-modal.component/edit-agent-modal.component';
+import { AddAgentModalComponent, NewAgent } from '../add-agent-modal.component/add-agent-modal.component';
 
 interface Agent {
   id: number;
@@ -13,12 +15,17 @@ interface Agent {
 @Component({
   selector: 'app-admin-agents',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, EditAgentModalComponent, AddAgentModalComponent],
   templateUrl: './admin-agents.component.html',
   styleUrl: './admin-agents.component.scss',
 })
 export class AdminAgentsComponent {
   searchQuery = signal('');
+  
+  // Modal state
+  showEditModal = signal(false);
+  showAddModal = signal(false);
+  selectedAgent = signal<Agent | null>(null);
 
   agents: Agent[] = [
     {
@@ -67,14 +74,43 @@ export class AdminAgentsComponent {
     this.searchQuery.set(input.value);
   }
 
-  viewAgentDetails(agent: Agent): void {
-    console.log('View agent details:', agent);
-    // TODO: Navigate to agent details or open modal
+  editAgent(agent: Agent): void {
+    this.selectedAgent.set(agent);
+    this.showEditModal.set(true);
   }
 
-  editAgent(agent: Agent): void {
-    console.log('Edit agent:', agent);
-    // TODO: Open edit modal
+  closeEditModal(): void {
+    this.showEditModal.set(false);
+    this.selectedAgent.set(null);
+  }
+
+  openAddModal(): void {
+    this.showAddModal.set(true);
+  }
+
+  closeAddModal(): void {
+    this.showAddModal.set(false);
+  }
+
+  addNewAgent(newAgent: NewAgent): void {
+    const maxId = Math.max(...this.agents.map(a => a.id), 0);
+    const agent: Agent = {
+      id: maxId + 1,
+      name: newAgent.name,
+      email: newAgent.email,
+      phone: newAgent.phone,
+      status: newAgent.status === 'inattivo' ? 'disattivato' : newAgent.status
+    };
+    this.agents.push(agent);
+    this.closeAddModal();
+  }
+
+  saveAgent(updatedAgent: AgentEdit): void {
+    const index = this.agents.findIndex(a => a.id === updatedAgent.id);
+    if (index !== -1) {
+      this.agents[index] = updatedAgent as Agent;
+    }
+    this.closeEditModal();
   }
 
   toggleAgentStatus(agent: Agent): void {

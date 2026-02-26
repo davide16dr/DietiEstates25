@@ -23,6 +23,11 @@
     </nav>
   
     <div class="sidebar-footer">
+      <button class="footer-btn" type="button" (click)="openChangePasswordModal()">
+        <span class="ico">🔒</span>
+        <span class="lbl" *ngIf="!collapsed">Cambia Password</span>
+      </button>
+
       <button class="footer-btn" type="button" (click)="goBackToSite()">
         <span class="ico">⌂</span>
         <span class="lbl" *ngIf="!collapsed">Torna al sito</span>
@@ -34,3 +39,11 @@
       </button>
     </div>
   </aside>
+
+<!-- Change Password Modal -->
+@if (showChangePasswordModal()) {
+  <app-change-password-modal
+    (close)="closeChangePasswordModal()"
+    (save)="onPasswordChange($event)"
+  />
+}

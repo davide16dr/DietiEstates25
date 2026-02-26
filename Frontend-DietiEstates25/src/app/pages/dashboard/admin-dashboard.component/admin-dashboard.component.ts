@@ -73,6 +73,7 @@ export class AdminDashboardComponent {
   ];
 
   navigateToManagers(): void {
+    
     console.log('Navigate to managers');
   }
 

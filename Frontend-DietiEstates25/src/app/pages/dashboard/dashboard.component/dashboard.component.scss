@@ -1,14 +1,16 @@
 
 .dashboard-shell {
   height: 100vh;
+  max-height: 100vh;
   display: flex;
   background: #f3f4f6;
   overflow: hidden;
 }
 
 .sidebar-host {
-  height: 100vh;
   flex: 0 0 auto;
+  height: 100vh;
+  max-height: 100vh;
   overflow: hidden;
 }
 
@@ -17,16 +19,15 @@
   height: 100vh;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
   background: #f3f4f6;
+  overflow: hidden;
 }
 
 .content-scroll {
   flex: 1 1 auto;
+  padding: 32px 40px;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 32px 40px;
-  -webkit-overflow-scrolling: touch;
 }
 
 .main-expanded .content-scroll {
