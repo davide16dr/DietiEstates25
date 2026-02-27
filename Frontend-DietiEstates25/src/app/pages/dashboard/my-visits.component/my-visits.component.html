@@ -4,12 +4,6 @@
       <h1>Le Mie Visite</h1>
       <p class="subtitle">Gestisci le tue visite programmate</p>
     </div>
-    <div class="header-actions">
-      <button class="btn-primary" (click)="goToSearch()">
-        <span class="material-icons">search</span>
-        Cerca Immobili
-      </button>
-    </div>
   </div>
 
   <div class="tabs">
@@ -73,7 +67,7 @@
       <span class="material-icons">calendar_today</span>
       <h3>Nessuna visita {{ activeTab === 'upcoming' ? 'in programma' : 'passata' }}</h3>
       <p>{{ activeTab === 'upcoming' ? 'Non hai visite programmate al momento.' : 'Non hai ancora effettuato visite.' }}</p>
-      <button *ngIf="activeTab === 'upcoming'" class="btn-primary" (click)="goToSearch()">
+      <button *ngIf="activeTab === 'upcoming'" class="btn-primary" routerLink="/pages/properties-page">
         Cerca Immobili
       </button>
     </div>

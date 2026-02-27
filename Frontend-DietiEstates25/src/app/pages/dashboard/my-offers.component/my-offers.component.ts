@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -14,6 +14,7 @@ import { DashboardService, Offer } from '../../../shared/services/dashboard.serv
 export class MyOffersComponent implements OnInit {
   private dashboardService = inject(DashboardService);
   private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
 
   offers: Offer[] = [];
   loading = true;
@@ -124,14 +125,20 @@ export class MyOffersComponent implements OnInit {
   }
 
   acceptCounterOffer(offer: Offer): void {
-    this.dashboardService.acceptCounterOffer(offer.id).subscribe({
-      next: () => {
-        offer.status = 'ACCEPTED';
-      },
-      error: () => {
-        offer.status = 'ACCEPTED';
-      }
-    });
+    if (confirm('Sei sicuro di voler accettare questa controproposta?')) {
+      this.dashboardService.acceptCounterOffer(offer.id).subscribe({
+        next: () => {
+          offer.status = 'ACCEPTED';
+          this.offers = [...this.offers];
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          offer.status = 'ACCEPTED';
+          this.offers = [...this.offers];
+          this.cdr.detectChanges();
+        }
+      });
+    }
   }
 
   openCounterModal(offer: Offer): void {
@@ -153,6 +160,8 @@ export class MyOffersComponent implements OnInit {
           if (this.selectedOffer) {
             this.selectedOffer.amount = this.counterAmount!;
             this.selectedOffer.status = 'SUBMITTED';
+            this.offers = [...this.offers];
+            this.cdr.detectChanges();
           }
           this.closeCounterModal();
         },
@@ -160,6 +169,8 @@ export class MyOffersComponent implements OnInit {
           if (this.selectedOffer) {
             this.selectedOffer.amount = this.counterAmount!;
             this.selectedOffer.status = 'SUBMITTED';
+            this.offers = [...this.offers];
+            this.cdr.detectChanges();
           }
           this.closeCounterModal();
         }
@@ -172,9 +183,13 @@ export class MyOffersComponent implements OnInit {
       this.dashboardService.withdrawOffer(offer.id).subscribe({
         next: () => {
           offer.status = 'WITHDRAWN';
+          this.offers = [...this.offers];
+          this.cdr.detectChanges();
         },
         error: () => {
           offer.status = 'WITHDRAWN';
+          this.offers = [...this.offers];
+          this.cdr.detectChanges();
         }
       });
     }

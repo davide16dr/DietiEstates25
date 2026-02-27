@@ -1,12 +1,19 @@
 package it.unina.dietiestates25.backend.controllers;
 
+import java.util.List;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import it.unina.dietiestates25.backend.dto.listing.ListingFilterRequest;
 import it.unina.dietiestates25.backend.dto.listing.ListingResponse;
 import it.unina.dietiestates25.backend.services.ListingService;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/listings")
@@ -29,6 +36,7 @@ public class ListingController {
         @RequestParam(required = false) String type,
         @RequestParam(required = false) String status,
         @RequestParam(required = false) String city,
+        @RequestParam(required = false) String propertyType,
         @RequestParam(required = false) Integer priceMin,
         @RequestParam(required = false) Integer priceMax,
         @RequestParam(required = false) Integer roomsMin,
@@ -57,6 +65,7 @@ public class ListingController {
         }
         
         filters.setCity(city);
+        filters.setPropertyType(propertyType); // AGGIUNTO: imposta il tipo di proprietà
         filters.setPriceMin(priceMin);
         filters.setPriceMax(priceMax);
         filters.setRoomsMin(roomsMin);

@@ -1,5 +1,11 @@
 package it.unina.dietiestates25.backend.services;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import it.unina.dietiestates25.backend.dto.listing.ListingFilterRequest;
 import it.unina.dietiestates25.backend.dto.listing.ListingResponse;
 import it.unina.dietiestates25.backend.entities.Listing;
@@ -7,11 +13,6 @@ import it.unina.dietiestates25.backend.entities.ListingImage;
 import it.unina.dietiestates25.backend.entities.Property;
 import it.unina.dietiestates25.backend.entities.enums.ListingStatus;
 import it.unina.dietiestates25.backend.repositories.ListingRepository;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class ListingService {
@@ -31,6 +32,8 @@ public class ListingService {
         // Converto stringhe vuote in null per evitare problemi con la query
         String city = (filters.getCity() != null && !filters.getCity().trim().isEmpty()) 
             ? filters.getCity().trim() : null;
+        String propertyType = (filters.getPropertyType() != null && !filters.getPropertyType().trim().isEmpty()) 
+            ? filters.getPropertyType().trim() : null;
         String energyClass = (filters.getEnergyClass() != null && !filters.getEnergyClass().trim().isEmpty()) 
             ? filters.getEnergyClass().trim() : null;
         String type = filters.getType() != null ? filters.getType().name() : null;
@@ -39,6 +42,7 @@ public class ListingService {
             type,
             status,
             city,
+            propertyType, // AGGIUNTO: filtro per tipo di proprietà
             filters.getPriceMin(),
             filters.getPriceMax(),
             filters.getRoomsMin(),
@@ -74,6 +78,7 @@ public class ListingService {
         if (property != null) {
             response.setAddress(property.getAddress());
             response.setCity(property.getCity());
+            response.setPropertyType(property.getPropertyType()); // AGGIUNTO propertyType
             response.setRooms(property.getRooms());
             response.setArea(property.getAreaM2()); // Corretto da getTotalArea() a getAreaM2()
             response.setFloor(property.getFloor());

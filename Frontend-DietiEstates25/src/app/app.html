@@ -1,4 +1,4 @@
-<div class="app-shell">
+<div class="app-shell" [class.dashboard-mode]="isDashboard()">
   @if (showNavbar()) {
     <header class="navbar-area">
       <app-navbar></app-navbar>

@@ -1,12 +1,13 @@
 package it.unina.dietiestates25.backend.dto.listing;
 
-import it.unina.dietiestates25.backend.entities.enums.ListingType;
 import it.unina.dietiestates25.backend.entities.enums.ListingStatus;
+import it.unina.dietiestates25.backend.entities.enums.ListingType;
 
 public class ListingFilterRequest {
     private ListingType type; // SALE o RENT
     private ListingStatus status; // ACTIVE, SOLD, etc.
     private String city;
+    private String propertyType; // Appartamento, Villa, Attico, etc.
     private Integer priceMin;
     private Integer priceMax;
     private Integer roomsMin;
@@ -23,6 +24,9 @@ public class ListingFilterRequest {
 
     public String getCity() { return city; }
     public void setCity(String city) { this.city = city; }
+
+    public String getPropertyType() { return propertyType; }
+    public void setPropertyType(String propertyType) { this.propertyType = propertyType; }
 
     public Integer getPriceMin() { return priceMin; }
     public void setPriceMin(Integer priceMin) { this.priceMin = priceMin; }
