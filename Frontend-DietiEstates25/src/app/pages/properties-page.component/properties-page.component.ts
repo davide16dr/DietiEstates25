@@ -9,6 +9,9 @@ import { RouterLink, ActivatedRoute } from '@angular/router';
 import { ViewToggleComponent } from '../../shared/components/view-toggle.component/view-toggle.component.js';
 import { MapMarkerData, PropertyMapComponent } from '../../shared/components/properties/property-map.component/property-map.component.js';
 import { ListingService, ListingResponse } from '../../shared/services/listing.service';
+import { SavedSearchService } from '../../shared/services/saved-search.service';
+import { SavedSearchDTO, SavedSearchCriteria } from '../../shared/models/SavedSearch';
+import { AuthService } from '../../auth/auth.service';
 
 export type ViewMode = 'grid' | 'list' | 'map';
 
@@ -40,6 +43,11 @@ export class PropertiesPageComponent implements OnInit {
   readonly itemsPerPage = 6;
   currentPage = signal<number>(1);
 
+  // Segnale per mostrare/nascondere il modal di salvataggio
+  showSaveModal = signal<boolean>(false);
+  searchName = signal<string>('');
+  savingSearch = signal<boolean>(false);
+
   filtersValue = signal<PropertyFiltersValue>({
     mode: null,
     type: 'Tutti',
@@ -55,7 +63,9 @@ export class PropertiesPageComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private listingService: ListingService
+    private listingService: ListingService,
+    private savedSearchService: SavedSearchService,
+    private authService: AuthService
   ) {}
 
   ngOnInit() {
@@ -63,13 +73,21 @@ export class PropertiesPageComponent implements OnInit {
     this.route.queryParams.subscribe(params => {
       const search = params['search'];
       const mode = params['type'];
+      const priceMin = params['priceMin'] ? Number(params['priceMin']) : null;
+      const priceMax = params['priceMax'] ? Number(params['priceMax']) : null;
+      const propertyType = params['propertyType'];
+      const bedrooms = params['bedrooms'] ? Number(params['bedrooms']) : null;
 
-      if (search || mode) {
+      if (search || mode || priceMin || priceMax || propertyType || bedrooms) {
         // Aggiorna i filtri con i parametri ricevuti
         this.filtersValue.update(current => ({
           ...current,
           city: search || current.city,
-          mode: mode === 'sale' ? 'Vendita' : mode === 'rent' ? 'Affitto' : current.mode
+          mode: mode === 'sale' ? 'Vendita' : mode === 'rent' ? 'Affitto' : current.mode,
+          priceMin: priceMin !== null ? priceMin : current.priceMin,
+          priceMax: priceMax !== null ? priceMax : current.priceMax,
+          type: propertyType || current.type,
+          roomsMin: bedrooms !== null ? bedrooms : current.roomsMin
         }));
       }
       
@@ -109,6 +127,7 @@ export class PropertiesPageComponent implements OnInit {
         : `${listing.price.toLocaleString('it-IT')} €/mese`,
       title: listing.title,
       address: listing.address,
+      propertyType: listing.propertyType, // AGGIUNTO: tipo di proprietà dal backend
       rooms: listing.rooms,
       area: listing.area,
       floor: listing.floor,
@@ -126,14 +145,26 @@ export class PropertiesPageComponent implements OnInit {
     const f = this.filtersValue();
     const city = f.city.trim().toLowerCase();
 
-    return this.listings().filter((p) => {
-      // Filtro per modalità (Vendita/Affitto)
-      if (f.mode && p.mode !== f.mode) return false;
+    console.log('🔍 Filtering listings:', {
+      totalListings: this.listings().length,
+      filters: f
+    });
 
-      if (f.type !== 'Tutti') {
-        const t = f.type.toLowerCase();
-        if (!p.title.toLowerCase().includes(t)) return false;
+    const result = this.listings().filter((p) => {
+      // Filtro per modalità (Vendita/Affitto)
+      if (f.mode && p.mode !== f.mode) {
+        console.log(`❌ ${p.title}: mode mismatch - expected ${f.mode}, got ${p.mode}`);
+        return false;
       }
+
+      // Filtro per tipo di proprietà - CONFRONTO 1 a 1
+      if (f.type !== 'Tutti') {
+        if (p.propertyType !== f.type) {
+          console.log(`❌ ${p.title}: propertyType mismatch - expected ${f.type}, got ${p.propertyType}`);
+          return false;
+        }
+      }
+      
       if (city) {
         const inAddr = p.address.toLowerCase().includes(city);
         const inCity = p.city.toLowerCase().includes(city);
@@ -156,6 +187,9 @@ export class PropertiesPageComponent implements OnInit {
 
       return true;
     });
+
+    console.log('✅ Filtered results:', result.length);
+    return result;
   });
 
   // Calcola il numero totale di pagine
@@ -239,6 +273,104 @@ export class PropertiesPageComponent implements OnInit {
 
   onOpenProperty(id: string) {
     console.log('Open property:', id);
+  }
+
+  openSaveSearchModal() {
+    // Verifica che l'utente sia autenticato
+    if (!this.authService.isAuthenticated()) {
+      alert('Devi effettuare il login per salvare una ricerca');
+      return;
+    }
+    
+    this.searchName.set('');
+    this.showSaveModal.set(true);
+  }
+
+  closeSaveSearchModal() {
+    this.showSaveModal.set(false);
+    this.searchName.set('');
+  }
+
+  saveCurrentSearch() {
+    const name = this.searchName().trim();
+    
+    if (!name) {
+      alert('Inserisci un nome per la ricerca');
+      return;
+    }
+
+    this.savingSearch.set(true);
+    
+    // Converti i filtri attuali in un oggetto Map per il backend
+    const filters = this.filtersValue();
+    const filtersMap: { [key: string]: any } = {};
+    
+    if (filters.mode) {
+      filtersMap['mode'] = filters.mode;
+    }
+    if (filters.type && filters.type !== 'Tutti') {
+      filtersMap['propertyType'] = filters.type;
+    }
+    if (filters.city) {
+      filtersMap['city'] = filters.city;
+    }
+    if (filters.priceMin !== null && filters.priceMin !== undefined) {
+      filtersMap['minPrice'] = filters.priceMin;
+    }
+    if (filters.priceMax !== null && filters.priceMax !== undefined) {
+      filtersMap['maxPrice'] = filters.priceMax;
+    }
+    if (filters.roomsMin && filters.roomsMin !== 'Qualsiasi') {
+      filtersMap['minRooms'] = filters.roomsMin;
+    }
+    if (filters.areaMin !== null && filters.areaMin !== undefined) {
+      filtersMap['minArea'] = filters.areaMin;
+    }
+    if (filters.areaMax !== null && filters.areaMax !== undefined) {
+      filtersMap['maxArea'] = filters.areaMax;
+    }
+    if (filters.energy && filters.energy !== 'Qualsiasi') {
+      filtersMap['energyClass'] = filters.energy;
+    }
+    if (filters.elevator) {
+      filtersMap['hasElevator'] = filters.elevator;
+    }
+
+    const savedSearchRequest = {
+      name: name,
+      filters: filtersMap
+    };
+
+    console.log('📤 Invio ricerca salvata:', savedSearchRequest);
+
+    this.savedSearchService.createSavedSearch(savedSearchRequest as any).subscribe({
+      next: () => {
+        alert('✅ Ricerca salvata con successo!');
+        this.closeSaveSearchModal();
+        this.savingSearch.set(false);
+      },
+      error: (err) => {
+        console.error('❌ Error saving search:', err);
+        alert('❌ Errore durante il salvataggio della ricerca: ' + (err.error?.error || err.message));
+        this.savingSearch.set(false);
+      }
+    });
+  }
+
+  hasActiveFilters(): boolean {
+    const f = this.filtersValue();
+    return !!(
+      f.mode ||
+      (f.type && f.type !== 'Tutti') ||
+      f.city ||
+      f.priceMin ||
+      f.priceMax ||
+      (f.roomsMin && f.roomsMin !== 'Qualsiasi') ||
+      f.areaMin ||
+      f.areaMax ||
+      (f.energy && f.energy !== 'Qualsiasi') ||
+      f.elevator
+    );
   }
 
   private extractPriceNumber(priceLabel: string): number {

@@ -15,6 +15,7 @@ public class ListingResponse {
     // Dati della proprietà
     private String address;
     private String city;
+    private String propertyType; // "Appartamento", "Villa", "Attico", etc.
     private Integer rooms;
     private Integer area;
     private Integer floor;
@@ -58,6 +59,9 @@ public class ListingResponse {
 
     public String getCity() { return city; }
     public void setCity(String city) { this.city = city; }
+
+    public String getPropertyType() { return propertyType; }
+    public void setPropertyType(String propertyType) { this.propertyType = propertyType; }
 
     public Integer getRooms() { return rooms; }
     public void setRooms(Integer rooms) { this.rooms = rooms; }

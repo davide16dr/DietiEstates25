@@ -19,6 +19,7 @@ export class App {
   
   showNavbar = signal(true);
   showFooter = signal(true);
+  isDashboard = signal(false);
 
   constructor(private router: Router) {
     this.router.events
@@ -34,6 +35,9 @@ export class App {
         this.showFooter.set(
           !this.hideFooterRoutes.some(route => url === route || url.startsWith(route))
         );
+
+        // Imposta la modalità dashboard
+        this.isDashboard.set(url.startsWith('/dashboard'));
       });
   }
 }

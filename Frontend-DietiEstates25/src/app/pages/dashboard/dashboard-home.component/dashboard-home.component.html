@@ -4,11 +4,6 @@
       <p *ngIf="!isAgent">Gestisci le tue ricerche, visite e offerte immobiliari</p>
       <p *ngIf="isAgent">Gestisci i tuoi immobili, visite e offerte dei clienti</p>
     </div>
-  
-    <a class="primary" [routerLink]="isAgent ? ['/dashboard/agent-properties'] : ['/dashboard/search']">
-      <span class="ico">{{ isAgent ? '+' : '⌂' }}</span>
-      {{ isAgent ? 'Aggiungi Immobile' : 'Cerca Immobili' }}
-    </a>
   </section>
   
   <section class="stats">
@@ -32,7 +27,7 @@
       </div>
   
       <div class="quick">
-        <a class="quick-item" [routerLink]="['/dashboard/search']">
+        <a class="quick-item" [routerLink]="['/pages/properties-page']">
           Cerca nuovi immobili <span class="chev">›</span>
         </a>
         <a class="quick-item" [routerLink]="['/dashboard/saved-searches']">

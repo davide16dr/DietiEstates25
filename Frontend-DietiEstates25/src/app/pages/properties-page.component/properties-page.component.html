@@ -5,8 +5,10 @@
         <p class="subtitle">{{ countLabel() }}</p>
       </div>
 
-      <app-view-toggle [value]="viewMode()" (valueChange)="onChangeView($event)"></app-view-toggle>
-      </header>
+      <div class="header-actions">
+        <app-view-toggle [value]="viewMode()" (valueChange)="onChangeView($event)"></app-view-toggle>
+      </div>
+    </header>
   
     <div class="layout">
       <app-property-filters
@@ -14,6 +16,11 @@
         (search)="onFiltersSearch($event)"
         (reset)="onFiltersReset($event)">
       </app-property-filters>
+
+      <button class="btn-save-search filters-save-btn" (click)="openSaveSearchModal()" title="Salva questa ricerca">
+        <span class="material-icons">bookmark_add</span>
+        Salva ricerca
+      </button>
   
       <section class="content">
         @if (viewMode() === 'map') {
@@ -65,4 +72,98 @@
         }
       </section>
     </div>
-  </div>
+
+    <!-- Modal per salvare la ricerca -->
+    @if (showSaveModal()) {
+      <div class="modal-overlay" (click)="closeSaveSearchModal()">
+        <div class="modal-content" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <h2>Salva questa ricerca</h2>
+            <button class="btn-close" (click)="closeSaveSearchModal()">
+              <span class="material-icons">close</span>
+            </button>
+          </div>
+
+          <div class="modal-body">
+            <p>Dai un nome a questa ricerca per ritrovarla facilmente in futuro.</p>
+            
+            <div class="form-group">
+              <label for="searchName">Nome della ricerca</label>
+              <input 
+                id="searchName"
+                type="text" 
+                class="form-control"
+                placeholder="es. Appartamento Centro Napoli"
+                [value]="searchName()"
+                (input)="searchName.set($any($event.target).value)"
+                maxlength="100"
+              >
+            </div>
+
+            <div class="current-filters">
+              <h4>Criteri attuali:</h4>
+              <div class="filters-summary">
+                @if (filtersValue().mode) {
+                  <span class="filter-chip">{{ filtersValue().mode }}</span>
+                }
+                @if (filtersValue().type && filtersValue().type !== 'Tutti') {
+                  <span class="filter-chip">{{ filtersValue().type }}</span>
+                }
+                @if (filtersValue().city) {
+                  <span class="filter-chip">📍 {{ filtersValue().city }}</span>
+                }
+                @if (filtersValue().priceMin || filtersValue().priceMax) {
+                  <span class="filter-chip">
+                    @if (filtersValue().priceMin && filtersValue().priceMax) {
+                      💰 €{{ filtersValue().priceMin?.toLocaleString() }} - €{{ filtersValue().priceMax?.toLocaleString() }}
+                    } @else if (filtersValue().priceMin) {
+                      💰 Da €{{ filtersValue().priceMin?.toLocaleString() }}
+                    } @else {
+                      💰 Fino a €{{ filtersValue().priceMax?.toLocaleString() }}
+                    }
+                  </span>
+                }
+                @if (filtersValue().roomsMin && filtersValue().roomsMin !== 'Qualsiasi') {
+                  <span class="filter-chip">🛏️ {{ filtersValue().roomsMin }}+ camere</span>
+                }
+                @if (filtersValue().areaMin || filtersValue().areaMax) {
+                  <span class="filter-chip">
+                    @if (filtersValue().areaMin && filtersValue().areaMax) {
+                      📐 {{ filtersValue().areaMin }}-{{ filtersValue().areaMax }} m²
+                    } @else if (filtersValue().areaMin) {
+                      📐 Da {{ filtersValue().areaMin }} m²
+                    } @else {
+                      📐 Fino a {{ filtersValue().areaMax }} m²
+                    }
+                  </span>
+                }
+                @if (filtersValue().energy && filtersValue().energy !== 'Qualsiasi') {
+                  <span class="filter-chip">⚡ Classe {{ filtersValue().energy }}</span>
+                }
+                @if (filtersValue().elevator) {
+                  <span class="filter-chip">🛗 Con ascensore</span>
+                }
+                @if (!hasActiveFilters()) {
+                  <p class="no-filters">Nessun filtro applicato - verranno mostrati tutti gli immobili</p>
+                }
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button class="btn-secondary" (click)="closeSaveSearchModal()" [disabled]="savingSearch()">
+              Annulla
+            </button>
+            <button class="btn-primary" (click)="saveCurrentSearch()" [disabled]="savingSearch()">
+              @if (savingSearch()) {
+                <span>Salvataggio...</span>
+              } @else {
+                <span class="material-icons">save</span>
+                <span>Salva</span>
+              }
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+</div>

@@ -1,7 +1,5 @@
-
 .dashboard-shell {
-  height: 100vh;
-  max-height: 100vh;
+  height: 100%;
   display: flex;
   background: #f3f4f6;
   overflow: hidden;
@@ -9,14 +7,13 @@
 
 .sidebar-host {
   flex: 0 0 auto;
-  height: 100vh;
-  max-height: 100vh;
+  height: 100%;
   overflow: hidden;
 }
 
 .dashboard-main {
   flex: 1;
-  height: 100vh;
+  height: 100%;
   display: flex;
   flex-direction: column;
   background: #f3f4f6;

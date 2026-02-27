@@ -24,6 +24,7 @@ export interface PropertyCard {
   priceLabel: string;
   title: string;
   address: string;
+  propertyType: string; // "Appartamento", "Villa", "Attico", etc.
   rooms: number;
   area: number;
   floor: number;

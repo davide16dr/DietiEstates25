@@ -2,13 +2,7 @@
   <div class="page-header">
     <div class="header-left">
       <h1>Ricerche Salvate</h1>
-      <p class="subtitle">Gestisci le tue ricerche e ricevi notifiche per nuovi immobili</p>
-    </div>
-    <div class="header-actions">
-      <button class="btn-primary" (click)="goToSearch()">
-        <span class="material-icons">add</span>
-        Nuova Ricerca
-      </button>
+      <p class="subtitle">Gestisci le tue ricerche salvate</p>
     </div>
   </div>
 
@@ -19,9 +13,9 @@
           <span class="material-icons icon">bookmark</span>
           <h3>{{ search.name }}</h3>
         </div>
-        <div class="results-count" *ngIf="search.resultsCount">
-          <span class="material-icons">home</span>
-          {{ search.resultsCount }} risultati
+        <div class="search-date">
+          <span class="material-icons">schedule</span>
+          {{ search.createdAt | date:'dd/MM/yyyy' }}
         </div>
       </div>
 
@@ -32,21 +26,6 @@
       </div>
 
       <div class="search-footer">
-        <div class="notification-toggle">
-          <label class="toggle-container">
-            <input 
-              type="checkbox" 
-              [checked]="search.notificationsEnabled"
-              (change)="toggleNotifications(search)"
-            >
-            <span class="toggle-slider"></span>
-          </label>
-          <span class="toggle-label">
-            <span class="material-icons">{{ search.notificationsEnabled ? 'notifications_active' : 'notifications_off' }}</span>
-            {{ search.notificationsEnabled ? 'Notifiche attive' : 'Notifiche disattivate' }}
-          </span>
-        </div>
-
         <div class="search-actions">
           <button class="btn-execute" (click)="executeSearch(search)">
             <span class="material-icons">search</span>
@@ -62,7 +41,7 @@
     <div *ngIf="savedSearches.length === 0" class="empty-state">
       <span class="material-icons">bookmark_border</span>
       <h3>Nessuna ricerca salvata</h3>
-      <p>Salva le tue ricerche per ricevere notifiche quando nuovi immobili corrispondono ai tuoi criteri.</p>
+      <p>Salva le tue ricerche per ritrovarle facilmente in futuro.</p>
       <button class="btn-primary" (click)="goToSearch()">
         Inizia a cercare
       </button>

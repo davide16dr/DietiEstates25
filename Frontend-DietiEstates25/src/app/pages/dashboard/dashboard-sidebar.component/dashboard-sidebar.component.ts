@@ -1,7 +1,7 @@
 import { Component, EventEmitter, inject, Input, Output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { AuthService } from '../../../shared/services/auth.service';
+import { AuthService } from '../../../auth/auth.service';
 import { ChangePasswordModalComponent, PasswordChangeData } from '../change-password-modal.component/change-password-modal.component';
 
 
@@ -24,10 +24,19 @@ export class DashboardSidebarComponent {
   @Output() toggle = new EventEmitter<void>();
 
   private authService = inject(AuthService);  
-  currentUser = this.authService.currentUser;
+  currentUser = signal<any>(null);
   
   // Modal state
   showChangePasswordModal = signal(false);
+  isChangingPassword = signal(false);
+  passwordError = signal<string | null>(null);
+
+  constructor() {
+    // Sottoscrivi all'observable currentUser$ e aggiorna il signal
+    this.authService.currentUser$.subscribe(user => {
+      this.currentUser.set(user);
+    });
+  }
 
   get userName(): string {
     const user = this.currentUser();
@@ -43,7 +52,7 @@ export class DashboardSidebarComponent {
     
     return namePart
       .split('.')
-      .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+      .map((part: string) => part.charAt(0).toUpperCase() + part.slice(1))
       .join('.');
   }
 
@@ -136,14 +145,36 @@ export class DashboardSidebarComponent {
   }
 
   onPasswordChange(data: PasswordChangeData): void {
-    // TODO: Chiamare il backend per cambiare la password
-    console.log('Password change requested:', data);
-    // Simulazione successo
-    alert('Password cambiata con successo!');
-    this.closeChangePasswordModal();
+    const userId = this.authService.getCurrentUserId();
+    
+    if (!userId) {
+      alert('Errore: utente non autenticato');
+      return;
+    }
+
+    this.isChangingPassword.set(true);
+    this.passwordError.set(null);
+
+    this.authService.changePassword(userId, {
+      oldPassword: data.oldPassword,
+      newPassword: data.newPassword
+    }).subscribe({
+      next: () => {
+        this.isChangingPassword.set(false);
+        alert('✅ Password cambiata con successo!');
+        this.closeChangePasswordModal();
+      },
+      error: (error) => {
+        this.isChangingPassword.set(false);
+        const errorMsg = error.error?.error || error.error?.message || 'Errore durante il cambio password';
+        this.passwordError.set(errorMsg);
+        alert('❌ ' + errorMsg);
+      }
+    });
   }
 
   logout() {
-    console.log('logout');
+    this.authService.logout();
+    window.location.href = '/auth/login';
   }
 }

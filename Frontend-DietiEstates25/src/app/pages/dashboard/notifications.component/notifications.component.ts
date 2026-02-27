@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { DashboardService, Notification } from '../../../shared/services/dashboard.service';
@@ -13,6 +13,7 @@ import { DashboardService, Notification } from '../../../shared/services/dashboa
 export class NotificationsComponent implements OnInit {
   private dashboardService = inject(DashboardService);
   private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
 
   notifications: Notification[] = [];
   loading = true;
@@ -121,6 +122,8 @@ export class NotificationsComponent implements OnInit {
       this.dashboardService.markNotificationAsRead(notification.id).subscribe({
         next: () => {
           notification.isRead = true;
+          this.notifications = [...this.notifications];
+          this.cdr.detectChanges();
         }
       });
     }
@@ -130,9 +133,13 @@ export class NotificationsComponent implements OnInit {
     this.dashboardService.markAllNotificationsAsRead().subscribe({
       next: () => {
         this.notifications.forEach(n => n.isRead = true);
+        this.notifications = [...this.notifications];
+        this.cdr.detectChanges();
       },
       error: () => {
         this.notifications.forEach(n => n.isRead = true);
+        this.notifications = [...this.notifications];
+        this.cdr.detectChanges();
       }
     });
   }
@@ -149,9 +156,11 @@ export class NotificationsComponent implements OnInit {
     this.dashboardService.deleteNotification(notification.id).subscribe({
       next: () => {
         this.notifications = this.notifications.filter(n => n.id !== notification.id);
+        this.cdr.detectChanges();
       },
       error: () => {
         this.notifications = this.notifications.filter(n => n.id !== notification.id);
+        this.cdr.detectChanges();
       }
     });
   }

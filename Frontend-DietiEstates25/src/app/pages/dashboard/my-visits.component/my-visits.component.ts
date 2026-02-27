@@ -1,12 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { DashboardService, Visit } from '../../../shared/services/dashboard.service';
 
 @Component({
   selector: 'app-my-visits',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   templateUrl: './my-visits.component.html',
   styleUrls: ['./my-visits.component.scss']
 })
@@ -17,7 +17,8 @@ export class MyVisitsComponent implements OnInit {
 
   constructor(
     private dashboardService: DashboardService,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -152,9 +153,13 @@ export class MyVisitsComponent implements OnInit {
       this.dashboardService.cancelVisit(visit.id).subscribe({
         next: () => {
           visit.status = 'CANCELLED';
+          this.visits = [...this.visits];
+          this.cdr.detectChanges();
         },
         error: () => {
           visit.status = 'CANCELLED';
+          this.visits = [...this.visits];
+          this.cdr.detectChanges();
         }
       });
     }

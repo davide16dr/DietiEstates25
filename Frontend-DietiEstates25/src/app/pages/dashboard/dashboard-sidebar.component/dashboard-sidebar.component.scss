@@ -6,8 +6,7 @@
     display:flex;
     flex-direction:column;
     gap:6px;
-    height: 100vh;
-    max-height: 100vh;
+    height: 100%;
     box-sizing: border-box;
     flex-shrink: 0;
     overflow: hidden;
@@ -78,12 +77,15 @@
   .profile-name{ font-weight:900; color:#111827; font-size: 14px; }
   .profile-role{ font-size:11px; color:#6b7280; margin-top:2px; }
   
-  /* MENU: compatto, non si espande */
+  /* MENU: può scrollare se necessario */
   .menu{
     display:flex;
     flex-direction:column;
     gap:2px;
-    flex: 0 0 auto;
+    flex: 1 1 auto;
+    overflow-y: auto;
+    overflow-x: hidden;
+    min-height: 0;
   }
   
   .menu-item{
@@ -136,9 +138,9 @@
   
   /* Footer: sempre visibile in basso */
   .sidebar-footer{
-    flex:0 0 auto;
-    margin-top: calc(91vh - 390px);
-    padding-top:8px;
+    flex: 0 0 auto;
+    margin-top: auto;
+    padding-top:12px;
     border-top:1px solid #f0f2f4;
     display:flex;
     flex-direction:column;
