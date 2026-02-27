@@ -13,6 +13,7 @@ export interface ListingResponse {
   currency: string;
   address: string;
   city: string;
+  propertyType: string; // "Appartamento", "Villa", "Attico", etc.
   rooms: number;
   area: number;
   floor: number;
@@ -27,6 +28,7 @@ export interface ListingFilterRequest {
   type?: string;
   status?: string;
   city?: string;
+  propertyType?: string;
   priceMin?: number;
   priceMax?: number;
   roomsMin?: number;
@@ -50,6 +52,7 @@ export class ListingService {
       type: filters.mode ? (filters.mode === 'Vendita' ? 'SALE' : 'RENT') : undefined,
       status: 'ACTIVE',
       city: filters.city || undefined,
+      propertyType: filters.type !== 'Tutti' ? filters.type : undefined, // AGGIUNTO: passa il tipo di proprietà
       priceMin: filters.priceMin ?? undefined,
       priceMax: filters.priceMax ?? undefined,
       roomsMin: filters.roomsMin !== 'Qualsiasi' ? filters.roomsMin : undefined,
@@ -65,6 +68,7 @@ export class ListingService {
     if (request.type) params = params.set('type', request.type);
     if (request.status) params = params.set('status', request.status);
     if (request.city) params = params.set('city', request.city);
+    if (request.propertyType) params = params.set('propertyType', request.propertyType); // AGGIUNTO
     if (request.priceMin !== undefined) params = params.set('priceMin', request.priceMin.toString());
     if (request.priceMax !== undefined) params = params.set('priceMax', request.priceMax.toString());
     if (request.roomsMin !== undefined) params = params.set('roomsMin', request.roomsMin.toString());
