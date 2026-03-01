@@ -265,7 +265,28 @@ public class DataSeeder implements CommandLineRunner {
         
         createImage(listing15, "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=800", 0);
 
-        System.out.println("✅ Database popolato con successo! 15 annunci e 3 utenti di test inseriti.");
+        // Proprietà 16 - Appartamento di design gestito da Sofia Verde
+        Property prop16 = createProperty(agency, "Milano", "Via Brera 28",
+            45.4721, 9.1868, "Appartamento", 3, 2, 110, 2, false, "A+",
+            "Appartamento di design nel cuore di Brera");
+        prop16 = propertyRepository.save(prop16);
+
+        Listing listing16 = createListing(prop16, ListingType.SALE, 620000,
+            "Appartamento di Design Brera",
+            "Esclusivo appartamento di 110 mq nel prestigioso quartiere Brera. Completamente ristrutturato con finiture di lusso. 3 locali, 2 bagni, cucina open space designer, pavimenti in rovere. Classe energetica A+.");
+        
+        // Associa l'annuncio all'agente Sofia Verde
+        User agenteSofia = userRepository.findByEmail("agente2@dietiestates.it").orElse(null);
+        if (agenteSofia != null) {
+            listing16.setAgent(agenteSofia);
+            System.out.println("🏠 Immobile gestito da: " + agenteSofia.getFirstName() + " " + agenteSofia.getLastName());
+        }
+        
+        listing16 = listingRepository.save(listing16);
+        
+        createImage(listing16, "https://images.unsplash.com/photo-1600566752355-35792bedcfea?w=800", 0);
+
+        System.out.println("✅ Database popolato con successo! 16 annunci e 4 utenti di test inseriti.");
     }
 
     private void createTestUsers() {
@@ -296,6 +317,21 @@ public class DataSeeder implements CommandLineRunner {
             agent.setPhoneE164("+393331234567");
             userRepository.save(agent);
             System.out.println("👤 Agente creato: agente@dietiestates.it / Agente123!");
+        }
+
+        // Crea secondo Agente se non esiste
+        if (!userRepository.existsByEmail("agente2@dietiestates.it")) {
+            User agent2 = new User();
+            agent2.setId(UUID.randomUUID());
+            agent2.setEmail("agente2@dietiestates.it");
+            agent2.setPasswordHash(passwordEncoder.encode("Agente2123!"));
+            agent2.setFirstName("Sofia");
+            agent2.setLastName("Verde");
+            agent2.setRole(UserRole.AGENT);
+            agent2.setActive(true);
+            agent2.setPhoneE164("+393339876543");
+            userRepository.save(agent2);
+            System.out.println("👤 Secondo Agente creato: agente2@dietiestates.it / Agente2123!");
         }
 
         // Crea Cliente se non esiste

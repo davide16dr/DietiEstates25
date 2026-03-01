@@ -48,8 +48,8 @@ export class LoginComponent {
       .pipe(finalize(() => (this.isSubmitting = false)))
       .subscribe({
         next: () => {
-          // redirect post-login (cambia rotta se vuoi)
-          this.router.navigateByUrl('/'); 
+          // Reindirizza alla dashboard (il guard si occuperà di portare alla pagina corretta in base al ruolo)
+          this.router.navigateByUrl('/dashboard'); 
         },
         error: (err) => {
           // Gestione errori più leggibile

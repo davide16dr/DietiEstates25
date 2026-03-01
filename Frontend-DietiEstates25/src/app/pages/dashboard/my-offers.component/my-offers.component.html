@@ -9,123 +9,197 @@
   <div class="tabs">
     <button 
       class="tab" 
-      [class.active]="activeTab === 'active'"
-      (click)="activeTab = 'active'"
+      [class.active]="activeTab() === 'active'"
+      (click)="activeTab.set('active')"
     >
-      Attive ({{ activeOffers.length }})
+      Attive ({{ activeOffers().length }})
     </button>
     <button 
       class="tab" 
-      [class.active]="activeTab === 'closed'"
-      (click)="activeTab = 'closed'"
+      [class.active]="activeTab() === 'closed'"
+      (click)="activeTab.set('closed')"
     >
-      Chiuse ({{ closedOffers.length }})
+      Chiuse ({{ closedOffers().length }})
     </button>
   </div>
 
-  <div class="offers-list" *ngIf="!loading">
-    <div *ngFor="let offer of displayedOffers" class="offer-card">
-      <div class="offer-property">
-        <div class="property-image">
-          <span class="material-icons">home</span>
-        </div>
-        <div class="property-info">
-          <h3>{{ offer.propertyTitle }}</h3>
-          <span class="status-badge" [ngClass]="getStatusClass(offer.status)">
-            <span class="material-icons" *ngIf="offer.status === 'COUNTEROFFER'">swap_vert</span>
-            {{ getStatusLabel(offer.status) }}
-          </span>
-        </div>
-      </div>
-
-      <div class="offer-details">
-        <div class="offer-amount">
-          <span class="label">€</span>
-          <span class="amount">La tua offerta: <strong>{{ formatCurrency(offer.amount) }}</strong></span>
-        </div>
-
-        <div *ngIf="offer.status === 'COUNTEROFFER' && offer.counterOfferAmount" class="counter-offer-banner">
-          <span class="material-icons">swap_vert</span>
-          <span>Controproposta dell'agente: {{ formatCurrency(offer.counterOfferAmount) }}</span>
-        </div>
-
-        <div *ngIf="offer.message" class="offer-note">
-          <span class="note-label">Note:</span> {{ offer.message }}
-        </div>
-
-        <div class="offer-date">
-          Inviata il {{ formatDate(offer.createdAt) }}
-        </div>
-      </div>
-
-      <div class="offer-actions" *ngIf="offer.status === 'COUNTEROFFER'">
-        <button class="btn-accept" (click)="acceptCounterOffer(offer)">
-          <span class="material-icons">check_circle</span>
-          Accetta Controproposta
-        </button>
-        <button class="btn-counter" (click)="openCounterModal(offer)">
-          <span class="material-icons">swap_vert</span>
-          Rilancia
-        </button>
-        <button class="btn-withdraw" (click)="withdrawOffer(offer)">
-          <span class="material-icons">close</span>
-          Ritira Offerta
-        </button>
-      </div>
-
-      <div class="offer-actions" *ngIf="offer.status === 'SUBMITTED'">
-        <button class="btn-withdraw" (click)="withdrawOffer(offer)">
-          <span class="material-icons">close</span>
-          Ritira Offerta
-        </button>
-      </div>
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Caricamento offerte...</p>
     </div>
+  } @else {
+    <div class="offers-list">
+      @for (offer of displayedOffers(); track offer.id) {
+        <div class="offer-card">
+          <div class="offer-header">
+            <div class="offer-property">
+              <div class="property-image">
+                @if (offer.propertyImage) {
+                  <img [src]="offer.propertyImage" [alt]="offer.propertyTitle" />
+                } @else {
+                  <span class="placeholder-icon">🏠</span>
+                }
+              </div>
+              <div class="property-info">
+                <h3>{{ offer.propertyTitle }}</h3>
+                <p class="property-address">📍 {{ offer.propertyAddress }}</p>
+              </div>
+            </div>
+            <span class="status-badge" [ngClass]="getStatusClass(offer.status)">
+              {{ getStatusLabel(offer.status) }}
+            </span>
+          </div>
 
-    <div *ngIf="displayedOffers.length === 0" class="empty-state">
-      <span class="material-icons">local_offer</span>
-      <h3>Nessuna offerta {{ activeTab === 'active' ? 'attiva' : 'chiusa' }}</h3>
-      <p>{{ activeTab === 'active' ? 'Non hai offerte attive al momento.' : 'Non hai offerte chiuse.' }}</p>
-      <button *ngIf="activeTab === 'active'" class="btn-primary" (click)="goToSearch()">
-        Cerca Immobili
-      </button>
+          <div class="offer-details">
+            <div class="price-info">
+              <div class="price-row">
+                <span class="label">Prezzo richiesto:</span>
+                <span class="value">{{ formatCurrency(offer.propertyPrice) }}</span>
+              </div>
+              <div class="price-row highlight">
+                <span class="label">La tua offerta:</span>
+                <span class="value">{{ formatCurrency(offer.amount) }}</span>
+              </div>
+              @if (getDifference(offer.propertyPrice, offer.amount) !== 0) {
+                <div class="price-diff">
+                  <span class="diff-badge">
+                    -{{ formatCurrency(getDifference(offer.propertyPrice, offer.amount)) }}
+                    ({{ getDifferencePercent(offer.propertyPrice, offer.amount).toFixed(1) }}%)
+                  </span>
+                </div>
+              }
+            </div>
+
+            @if (offer.status === 'COUNTEROFFER' && offer.counterOfferAmount) {
+              <div class="counter-offer-banner">
+                <div class="counter-icon">↔️</div>
+                <div class="counter-content">
+                  <strong>Controproposta dell'agente:</strong>
+                  <span class="counter-amount">{{ formatCurrency(offer.counterOfferAmount) }}</span>
+                  @if (offer.counterMessage) {
+                    <p class="counter-message">{{ offer.counterMessage }}</p>
+                  }
+                </div>
+              </div>
+            }
+
+            @if (offer.message) {
+              <div class="offer-message">
+                <span class="message-label">Il tuo messaggio:</span>
+                <p>{{ offer.message }}</p>
+              </div>
+            }
+
+            <div class="offer-meta">
+              <span class="meta-item">📅 Inviata il {{ formatDate(offer.createdAt) }}</span>
+              @if (offer.updatedAt && offer.updatedAt !== offer.createdAt) {
+                <span class="meta-item">🔄 Aggiornata il {{ formatDate(offer.updatedAt) }}</span>
+              }
+            </div>
+          </div>
+
+          @if (offer.status === 'COUNTEROFFER') {
+            <div class="offer-actions">
+              <button class="btn-accept" (click)="acceptCounterOffer(offer)">
+                ✓ Accetta Controproposta
+              </button>
+              <button class="btn-counter" (click)="openCounterModal(offer)">
+                ↔️ Rilancia
+              </button>
+              <button class="btn-withdraw" (click)="withdrawOffer(offer)">
+                ✕ Ritira Offerta
+              </button>
+            </div>
+          }
+
+          @if (offer.status === 'SUBMITTED') {
+            <div class="offer-actions">
+              <button class="btn-view" (click)="viewProperty(offer.propertyId)">
+                👁️ Vedi Immobile
+              </button>
+              <button class="btn-withdraw" (click)="withdrawOffer(offer)">
+                ✕ Annulla Offerta
+              </button>
+            </div>
+          }
+
+          @if (offer.status === 'ACCEPTED') {
+            <div class="offer-actions">
+              <button class="btn-view" (click)="viewProperty(offer.propertyId)">
+                👁️ Vedi Immobile
+              </button>
+            </div>
+          }
+        </div>
+      } @empty {
+        <div class="empty-state">
+          <div class="empty-icon">💼</div>
+          <h3>Nessuna offerta {{ activeTab() === 'active' ? 'attiva' : 'chiusa' }}</h3>
+          <p>{{ activeTab() === 'active' ? 'Non hai offerte attive al momento.' : 'Non hai offerte chiuse.' }}</p>
+          @if (activeTab() === 'active') {
+            <button class="btn-primary" (click)="goToSearch()">
+              🔍 Cerca Immobili
+            </button>
+          }
+        </div>
+      }
     </div>
-  </div>
-
-  <div *ngIf="loading" class="loading-state">
-    <div class="spinner"></div>
-    <p>Caricamento offerte...</p>
-  </div>
+  }
 </div>
 
 <!-- Counter Offer Modal -->
-<div class="modal-overlay" *ngIf="showCounterModal" (click)="closeCounterModal()">
-  <div class="modal" (click)="$event.stopPropagation()">
-    <button class="modal-close" (click)="closeCounterModal()">
-      <span class="material-icons">close</span>
-    </button>
-    
-    <h2>Invia nuova offerta</h2>
-    <p class="modal-subtitle">Inserisci l'importo della tua nuova offerta</p>
+@if (showCounterModal()) {
+  <div class="modal-overlay" (click)="closeCounterModal()">
+    <div class="modal-container" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Rilancia Offerta</h2>
+        <button class="close-btn" (click)="closeCounterModal()">×</button>
+      </div>
 
-    <div class="form-group">
-      <label>Importo (€)</label>
-      <input 
-        type="number" 
-        [(ngModel)]="counterAmount" 
-        placeholder="es. 350000"
-        class="form-input"
-      >
-    </div>
+      <div class="modal-body">
+        @if (selectedOffer()) {
+          <div class="modal-info">
+            <p><strong>Immobile:</strong> {{ selectedOffer()!.propertyTitle }}</p>
+            <p><strong>Prezzo richiesto:</strong> {{ formatCurrency(selectedOffer()!.propertyPrice) }}</p>
+            <p><strong>Tua offerta precedente:</strong> {{ formatCurrency(selectedOffer()!.amount) }}</p>
+            @if (selectedOffer()!.counterOfferAmount) {
+              <p><strong>Controproposta agente:</strong> {{ formatCurrency(selectedOffer()!.counterOfferAmount!) }}</p>
+            }
+          </div>
 
-    <p class="current-counter" *ngIf="selectedOffer?.counterOfferAmount">
-      Controproposta attuale: {{ formatCurrency(selectedOffer!.counterOfferAmount!) }}
-    </p>
+          <div class="form-group">
+            <label for="counterAmount">Nuova Offerta (€) *</label>
+            <input
+              type="number"
+              id="counterAmount"
+              [(ngModel)]="counterAmount"
+              [min]="selectedOffer()!.amount"
+              [max]="selectedOffer()!.propertyPrice"
+              placeholder="Inserisci importo"
+              required
+            />
+            <p class="hint">Inserisci un importo tra la tua offerta precedente e il prezzo richiesto</p>
+          </div>
 
-    <div class="modal-actions">
-      <button class="btn-secondary" (click)="closeCounterModal()">Annulla</button>
-      <button class="btn-primary" (click)="submitCounter()" [disabled]="!counterAmount">
-        Invia Offerta
-      </button>
+          <div class="form-group">
+            <label for="counterMessage">Messaggio (opzionale)</label>
+            <textarea
+              id="counterMessage"
+              [(ngModel)]="counterMessage"
+              rows="3"
+              placeholder="Aggiungi un messaggio per l'agente..."
+            ></textarea>
+          </div>
+        }
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeCounterModal()">Annulla</button>
+        <button class="btn-primary" (click)="submitCounter()" [disabled]="!counterAmount()">
+          Invia Nuova Offerta
+        </button>
+      </div>
     </div>
   </div>
-</div>
+}

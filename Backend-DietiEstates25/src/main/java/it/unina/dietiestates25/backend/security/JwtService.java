@@ -58,4 +58,12 @@ public class JwtService {
                 .getExpiration();
         return sub.equals(username) && exp.after(new Date());
     }
+
+    public Map<String, Object> extractAllClaims(String token) {
+        return Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+    }
 }

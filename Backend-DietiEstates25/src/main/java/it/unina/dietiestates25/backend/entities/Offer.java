@@ -45,7 +45,7 @@ public class Offer extends Auditable {
     private String message;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, columnDefinition = "offer_status")
+    @Column(nullable = false)
     private OfferStatus status = OfferStatus.SUBMITTED;
 
     public Offer() {}

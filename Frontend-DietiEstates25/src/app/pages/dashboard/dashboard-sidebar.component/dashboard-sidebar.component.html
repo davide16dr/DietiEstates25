@@ -1,41 +1,56 @@
 <aside class="sidebar" [class.collapsed]="collapsed">
     <div class="profile">
       <div class="profile-avatar">{{ userInitials }}</div>
-      <div class="profile-meta" *ngIf="!collapsed">
-        <div class="profile-name">{{ userName }}</div>
-        <div class="profile-role">{{ userRole }}</div>
-      </div>
+      @if (!collapsed) {
+        <div class="profile-meta">
+          <div class="profile-name">{{ userName }}</div>
+          <div class="profile-role">{{ userRole }}</div>
+        </div>
+      }
     </div>
   
     <nav class="menu">
-      <a
-        *ngFor="let item of menu"
-        class="menu-item"
-        [routerLink]="item.route"
-        routerLinkActive="active"
-        [routerLinkActiveOptions]="{ exact: true }"
-      >
-        <span class="ico">{{ item.icon }}</span>
-        <span class="lbl" *ngIf="!collapsed">{{ item.label }}</span>
-        <span class="badge" *ngIf="!collapsed && item.badge">{{ item.badge }}</span>
-        <span class="chev" *ngIf="!collapsed && !item.badge">›</span>
-      </a>
+      @for (item of menu(); track item.route) {
+        <a
+          class="menu-item"
+          [routerLink]="item.route"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+        >
+          <span class="ico">{{ item.icon }}</span>
+          @if (!collapsed) {
+            <span class="lbl">{{ item.label }}</span>
+          }
+          @if (!collapsed && item.badge) {
+            <span class="badge">{{ item.badge }}</span>
+          }
+          @if (!collapsed && !item.badge) {
+            <span class="chev">›</span>
+          }
+        </a>
+      }
     </nav>
   
     <div class="sidebar-footer">
       <button class="footer-btn" type="button" (click)="openChangePasswordModal()">
         <span class="ico">🔒</span>
-        <span class="lbl" *ngIf="!collapsed">Cambia Password</span>
+        @if (!collapsed) {
+          <span class="lbl">Cambia Password</span>
+        }
       </button>
 
       <button class="footer-btn" type="button" (click)="goBackToSite()">
         <span class="ico">⌂</span>
-        <span class="lbl" *ngIf="!collapsed">Torna al sito</span>
+        @if (!collapsed) {
+          <span class="lbl">Torna al sito</span>
+        }
       </button>
   
       <button class="footer-btn danger" type="button" (click)="logout()">
         <span class="ico">⎋</span>
-        <span class="lbl" *ngIf="!collapsed">Esci</span>
+        @if (!collapsed) {
+          <span class="lbl">Esci</span>
+        }
       </button>
     </div>
   </aside>

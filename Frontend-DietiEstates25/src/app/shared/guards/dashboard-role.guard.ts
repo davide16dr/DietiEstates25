@@ -25,7 +25,7 @@ export const dashboardRoleGuard: CanActivateFn = (route, state) => {
         router.navigate(['/dashboard/manager-home']);
         return false;
       case 'agent':
-        router.navigate(['/dashboard/home']); // o agent-properties
+        router.navigate(['/dashboard/agent-properties']);
         return false;
       case 'client':
         router.navigate(['/dashboard/home']);

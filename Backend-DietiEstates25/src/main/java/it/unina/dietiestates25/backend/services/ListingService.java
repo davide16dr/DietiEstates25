@@ -12,15 +12,24 @@ import it.unina.dietiestates25.backend.entities.Listing;
 import it.unina.dietiestates25.backend.entities.ListingImage;
 import it.unina.dietiestates25.backend.entities.Property;
 import it.unina.dietiestates25.backend.entities.enums.ListingStatus;
+import it.unina.dietiestates25.backend.repositories.AgencyRepository;
 import it.unina.dietiestates25.backend.repositories.ListingRepository;
+import it.unina.dietiestates25.backend.repositories.PropertyRepository;
+import it.unina.dietiestates25.backend.repositories.UserRepository;
 
 @Service
 public class ListingService {
 
     private final ListingRepository listingRepository;
+    private final PropertyRepository propertyRepository;
+    private final UserRepository userRepository;
+    private final AgencyRepository agencyRepository;
 
-    public ListingService(ListingRepository listingRepository) {
+    public ListingService(ListingRepository listingRepository, PropertyRepository propertyRepository, UserRepository userRepository, AgencyRepository agencyRepository) {
         this.listingRepository = listingRepository;
+        this.propertyRepository = propertyRepository;
+        this.userRepository = userRepository;
+        this.agencyRepository = agencyRepository;
     }
 
     @Transactional(readOnly = true)
@@ -60,6 +69,91 @@ public class ListingService {
     @Transactional(readOnly = true)
     public ListingResponse getById(java.util.UUID id) {
         return listingRepository.findById(id).map(this::mapToResponse).orElse(null);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ListingResponse> getListingsByAgentId(java.util.UUID agentId) {
+        List<Listing> listings = listingRepository.findAllByAgent_Id(agentId);
+        System.out.println("Recupero proprietà per agentId: " + agentId);
+        System.out.println("Proprietà trovate: " + listings.size());
+        return listings.stream()
+            .map(this::mapToResponse)
+            .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public ListingResponse createListingWithProperty(
+            java.util.UUID agentId,
+            it.unina.dietiestates25.backend.dto.listing.CreateListingRequest request) {
+        
+        // Validazione dei dati ricevuti
+        if (request.getListing() == null || request.getListing().getType() == null) {
+            throw new IllegalArgumentException("Listing type cannot be null");
+        }
+        
+        System.out.println("Listing type ricevuto: " + request.getListing().getType());
+        
+        // Recupera l'agente dal database
+        it.unina.dietiestates25.backend.entities.User agent = userRepository.findById(agentId)
+                .orElseThrow(() -> new IllegalArgumentException("Agent not found"));
+        
+        // Verifica che l'agente abbia un'agenzia associata
+        if (agent.getAgencyId() == null) {
+            throw new IllegalArgumentException("Agent does not have an associated agency");
+        }
+        
+        // Recupera l'agenzia dal database
+        it.unina.dietiestates25.backend.entities.Agency agency = agencyRepository.findById(agent.getAgencyId())
+                .orElseThrow(() -> new IllegalArgumentException("Agency not found"));
+        
+        // Crea la proprietà
+        Property property = new Property();
+        property.setCity(request.getProperty().getCity());
+        property.setAddress(request.getProperty().getAddress());
+        property.setPropertyType(request.getProperty().getPropertyType());
+        property.setRooms(request.getProperty().getRooms());
+        property.setBathrooms(request.getProperty().getBathrooms());
+        property.setAreaM2(request.getProperty().getAreaM2());
+        property.setFloor(request.getProperty().getFloor());
+        property.setElevator(request.getProperty().isElevator());
+        property.setEnergyClass(request.getProperty().getEnergyClass());
+        property.setDescription(request.getProperty().getDescription());
+        
+        // Imposta l'agenzia della proprietà da quella dell'agente
+        property.setAgency(agency);
+        
+        // TODO: Implementare geolocalizzazione reale
+        // Per ora usiamo valori di default (coordinate di Napoli)
+        java.math.BigDecimal defaultLatitude = new java.math.BigDecimal("40.8517");
+        java.math.BigDecimal defaultLongitude = new java.math.BigDecimal("14.2681");
+        property.setLatitude(defaultLatitude);
+        property.setLongitude(defaultLongitude);
+        
+        // Salva la proprietà
+        property = propertyRepository.save(property);
+        
+        // Crea l'annuncio
+        Listing listing = new Listing();
+        listing.setProperty(property);
+        listing.setAgent(agent);
+        
+        // Converti il tipo di annuncio (SALE -> SALE, RENT -> RENT)
+        String listingTypeStr = request.getListing().getType();
+        try {
+            listing.setType(it.unina.dietiestates25.backend.entities.enums.ListingType.valueOf(listingTypeStr));
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid listing type: " + listingTypeStr + ". Expected SALE or RENT");
+        }
+        
+        listing.setTitle(request.getListing().getTitle());
+        listing.setPriceAmount(request.getListing().getPriceAmount());
+        listing.setCurrency(request.getListing().getCurrency());
+        listing.setPublicText(request.getProperty().getDescription());
+        
+        // Salva l'annuncio
+        listing = listingRepository.save(listing);
+        
+        return mapToResponse(listing);
     }
 
     private ListingResponse mapToResponse(Listing listing) {

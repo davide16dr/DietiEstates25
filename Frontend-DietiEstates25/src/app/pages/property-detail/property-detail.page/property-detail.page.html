@@ -113,11 +113,6 @@
 
           <div class="divider"></div>
 
-          <button class="cta cta-primary" type="button" (click)="onBookVisit()">
-            <span class="cta-ic">📅</span>
-            <span>Prenota una visita</span>
-          </button>
-
           <button class="cta cta-ghost" type="button" (click)="onMakeOffer()">
             <span class="cta-ic">€</span>
             <span>Fai un'offerta</span>
@@ -128,18 +123,11 @@
   </section>
 
   @if (showMakeOfferModal()) {
-    <div class="modal-overlay" (click)="closeMakeOfferModal()">
-      <div class="modal-content" (click)="$event.stopPropagation()">
-        <app-make-offer-modal [open]="showMakeOfferModal()" (closed)="closeMakeOfferModal()"></app-make-offer-modal>
-      </div>
-    </div>
-  }
-
-  @if (showBookVisitModal()) {
-    <div class="modal-overlay" (click)="closeBookVisitModal()">
-      <div class="modal-content" (click)="$event.stopPropagation()">
-        <app-book-visit-modal [open]="showBookVisitModal()" (closed)="closeBookVisitModal()"></app-book-visit-modal>
-      </div>
-    </div>
+    <app-make-offer-modal 
+      [open]="showMakeOfferModal()" 
+      [initialAmount]="property().price"
+      (closed)="closeMakeOfferModal()"
+      (submitted)="onOfferSubmitted($event)">
+    </app-make-offer-modal>
   }
 </div>

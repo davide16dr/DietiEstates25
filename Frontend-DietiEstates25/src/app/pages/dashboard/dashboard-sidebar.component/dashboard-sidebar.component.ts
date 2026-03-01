@@ -1,4 +1,4 @@
-import { Component, EventEmitter, inject, Input, Output, signal } from '@angular/core';
+import { Component, EventEmitter, inject, Input, Output, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../../auth/auth.service';
@@ -40,7 +40,6 @@ export class DashboardSidebarComponent {
 
   get userName(): string {
     const user = this.currentUser();
-      console.log(user);
     if (!user) return 'Utente';
     
     if (user.firstName && user.lastName) {
@@ -96,8 +95,11 @@ export class DashboardSidebarComponent {
     return user?.role?.toLowerCase() === 'admin';
   }
 
-  get menu(): MenuItem[] {
-    if (this.isAdmin) {
+  menu = computed<MenuItem[]>(() => {
+    const user = this.currentUser();
+    const role = user?.role?.toLowerCase();
+    
+    if (role === 'admin') {
       return [
         { label: 'Dashboard', icon: '▦', route: '/dashboard/admin-home' },
         { label: 'Gestori', icon: '👥', route: '/dashboard/admin-managers' },
@@ -106,15 +108,15 @@ export class DashboardSidebarComponent {
       ];
     }
 
-    if (this.isManager) {
+    if (role === 'agency_manager') {
       return [
         { label: 'Dashboard', icon: '▦', route: '/dashboard/manager-home' },
-        { label: 'Gestione Agenti', icon: '👥', route: '/dashboard/manager-agents' },
+        { label:'Gestione Agenti', icon: '👥', route: '/dashboard/manager-agents' },
         { label: 'Tutti gli Immobili', icon: '🏠', route: '/dashboard/manager-properties' },
       ];
     }
     
-    if (this.isAgent) {
+    if (role === 'agent') {
       return [
         { label: 'Dashboard', icon: '▦', route: '/dashboard/home' },
         { label: 'I Miei Immobili', icon: '🏠', route: '/dashboard/agent-properties', badge: 6 },
@@ -130,7 +132,7 @@ export class DashboardSidebarComponent {
       { label: 'Le Mie Offerte', icon: '🤝', route: '/dashboard/offers' },
       { label: 'Notifiche', icon: '🔔', route: '/dashboard/notifications' },
     ];
-  }
+  });
 
   goBackToSite() {
     window.location.href = '/';

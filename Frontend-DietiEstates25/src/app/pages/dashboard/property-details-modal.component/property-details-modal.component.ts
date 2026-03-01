@@ -2,7 +2,7 @@ import { Component, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 interface PropertyDetail {
-  id: number;
+  id: string;
   title: string;
   location: string;
   price: number;

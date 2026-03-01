@@ -3,6 +3,7 @@ package it.unina.dietiestates25.backend.controllers;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import it.unina.dietiestates25.backend.dto.listing.ListingFilterRequest;
 import it.unina.dietiestates25.backend.dto.listing.ListingResponse;
+import it.unina.dietiestates25.backend.entities.User;
 import it.unina.dietiestates25.backend.services.ListingService;
 
 @RestController
@@ -23,6 +25,34 @@ public class ListingController {
 
     public ListingController(ListingService listingService) {
         this.listingService = listingService;
+    }
+
+    @GetMapping("/agent/my-listings")
+    public ResponseEntity<List<ListingResponse>> getMyListings(Authentication authentication) {
+        System.out.println("Authentication: " + authentication);
+        System.out.println("Principal: " + (authentication != null ? authentication.getPrincipal() : "null"));
+        
+        if (authentication == null || authentication.getPrincipal() == null) {
+            return ResponseEntity.status(401).build();
+        }
+        
+        // Estrai l'ID dell'utente dal UserPrincipal
+        var principal = authentication.getPrincipal();
+        java.util.UUID agentId = null;
+        
+        if (principal instanceof it.unina.dietiestates25.backend.security.UserPrincipal) {
+            agentId = ((it.unina.dietiestates25.backend.security.UserPrincipal) principal).getId();
+        } else {
+            return ResponseEntity.status(400).build();
+        }
+        
+        if (agentId == null) {
+            return ResponseEntity.status(400).build();
+        }
+        
+        System.out.println("Recupero proprietà per agentId: " + agentId);
+        List<ListingResponse> listings = listingService.getListingsByAgentId(agentId);
+        return ResponseEntity.ok(listings);
     }
 
     @PostMapping("/search")
@@ -83,5 +113,43 @@ public class ListingController {
         ListingResponse dto = listingService.getById(id);
         if (dto == null) return ResponseEntity.notFound().build();
         return ResponseEntity.ok(dto);
+    }
+
+    @PostMapping("/agent/create")
+    public ResponseEntity<ListingResponse> createListing(
+            Authentication authentication,
+            @RequestBody it.unina.dietiestates25.backend.dto.listing.CreateListingRequest request) {
+        
+        System.out.println("=== CREATE LISTING REQUEST ===");
+        System.out.println("Request body: " + request);
+        System.out.println("Request listing: " + (request.getListing() != null ? request.getListing() : "null"));
+        System.out.println("Request listing type: " + (request.getListing() != null ? request.getListing().getType() : "null"));
+        System.out.println("Request property: " + (request.getProperty() != null ? request.getProperty() : "null"));
+        System.out.println("==============================");
+        
+        if (authentication == null || authentication.getPrincipal() == null) {
+            return ResponseEntity.status(401).build();
+        }
+        
+        var principal = authentication.getPrincipal();
+        java.util.UUID agentId = null;
+        
+        if (principal instanceof it.unina.dietiestates25.backend.security.UserPrincipal) {
+            agentId = ((it.unina.dietiestates25.backend.security.UserPrincipal) principal).getId();
+        } else {
+            return ResponseEntity.status(400).build();
+        }
+        
+        try {
+            ListingResponse response = listingService.createListingWithProperty(agentId, request);
+            return ResponseEntity.status(201).body(response);
+        } catch (IllegalArgumentException e) {
+            System.err.println("Errore durante la creazione dell'annuncio: " + e.getMessage());
+            return ResponseEntity.status(400).body(null);
+        } catch (Exception e) {
+            System.err.println("Errore inaspettato durante la creazione dell'annuncio: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(null);
+        }
     }
 }

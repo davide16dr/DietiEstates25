@@ -4,7 +4,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators, NonNullableFor
 
 // Interfaccia per i dati dell'immobile da modificare
 interface PropertyToEdit {
-  id: number;
+  id: string;
   title: string;
   location: string;
   price: number;

@@ -126,6 +126,8 @@ export class AuthService {
   }
 
   getToken(): string | null {
-    return localStorage.getItem('token');
+    const token = localStorage.getItem('token');
+    console.log('🔑 [AuthService.getToken()] Token recuperato:', token ? `${token.substring(0, 20)}...` : 'NULL');
+    return token;
   }
 }
