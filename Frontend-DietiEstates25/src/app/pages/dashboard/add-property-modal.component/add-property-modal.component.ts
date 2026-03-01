@@ -136,6 +136,12 @@ export class AddPropertyModalComponent {
     if (this.propertyForm.valid) {
       const formValue = this.propertyForm.getRawValue();
       
+      console.log('=== ADD PROPERTY MODAL onSubmit ===');
+      console.log('formValue:', formValue);
+      console.log('formValue.listing_type:', formValue.listing_type);
+      console.log('propertyForm value:', this.propertyForm.value);
+      console.log('===================================');
+      
       const formData = {
         property: {
           city: formValue.city,
@@ -151,13 +157,14 @@ export class AddPropertyModalComponent {
         },
         listing: {
           title: formValue.title,
-          type: formValue.listing_type,
+          listing_type: formValue.listing_type,  // Passo come listing_type per il servizio
           price_amount: formValue.price_amount,
           currency: formValue.currency
         },
         images: this.selectedImages()
       };
       
+      console.log('formData da emettere:', formData);
       this.save.emit(formData);
       this.resetForm();
     } else {

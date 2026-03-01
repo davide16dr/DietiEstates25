@@ -1,9 +1,11 @@
 package it.unina.dietiestates25.backend.security;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -27,9 +29,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
-        // Salta il filtro JWT per le rotte pubbliche
+        // Salta il filtro JWT SOLO per gli endpoint pubblici specifici
         return path.startsWith("/auth/") || 
-               path.startsWith("/api/listings/") ||
+               path.equals("/api/listings") || // Solo GET senza ID
+               path.matches("^/api/listings/[a-f0-9-]{36}$") || // GET per UUID specifico
                path.startsWith("/v3/api-docs/") ||
                path.startsWith("/swagger-ui/");
     }
@@ -56,8 +59,20 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails details = userDetailsService.loadUserByUsername(username);
             if (jwtService.isTokenValid(token, details.getUsername())) {
+                // Estrai i ruoli dai claims del token
+                var claims = jwtService.extractAllClaims(token);
+                var roles = (String) claims.get("role");
+
+                // Log per il debug dei ruoli estratti
+                System.out.println("Ruoli estratti dal token: " + roles);
+                System.out.println("Claims estratti: " + claims);
+
+                // Crea le authorities basate sui ruoli
+                var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + roles));
+
+                // Imposta l'autenticazione con i ruoli
                 var authToken = new UsernamePasswordAuthenticationToken(
-                        details, null, details.getAuthorities()
+                        details, null, authorities
                 );
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }

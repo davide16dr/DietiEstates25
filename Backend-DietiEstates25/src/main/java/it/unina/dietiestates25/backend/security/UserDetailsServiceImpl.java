@@ -1,9 +1,6 @@
 package it.unina.dietiestates25.backend.security;
 
-import java.util.List;
-
 import org.springframework.security.authentication.DisabledException;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -30,13 +27,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             throw new DisabledException("User is inactive");
         }
 
-        // Spring Security
-        String role = "ROLE_" + u.getRole().name();
-
-        return new org.springframework.security.core.userdetails.User(
-                u.getEmail(),
-                u.getPasswordHash(),
-                List.of(new SimpleGrantedAuthority(role))
-        );
+        // Return our custom UserPrincipal that includes the User entity
+        return new UserPrincipal(u);
     }
 }

@@ -11,7 +11,7 @@
       <div class="stat-label">In Attesa</div>
       <div class="pill" style="background: #fff4e5; color: #b45309;">⏱️</div>
     </div>
-    <div class="stat-value">{{ stats.inAttesa }}</div>
+    <div class="stat-value">{{ stats().pending }}</div>
   </div>
 
   <div class="stat-card">
@@ -19,7 +19,7 @@
       <div class="stat-label">Accettate</div>
       <div class="pill" style="background: #e9f7ef; color: #0f7a55;">✓</div>
     </div>
-    <div class="stat-value">{{ stats.accettate }}</div>
+    <div class="stat-value">{{ stats().accepted }}</div>
   </div>
 
   <div class="stat-card">
@@ -27,80 +27,292 @@
       <div class="stat-label">Controproposte</div>
       <div class="pill" style="background: #dbeafe; color: #1d4ed8;">↔️</div>
     </div>
-    <div class="stat-value">{{ stats.controproposte }}</div>
+    <div class="stat-value">{{ stats().counteroffers }}</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-top">
+      <div class="stat-label">Totali</div>
+      <div class="pill" style="background: #f3f4f6; color: #374151;">📊</div>
+    </div>
+    <div class="stat-value">{{ stats().total }}</div>
   </div>
 </section>
 
-<section class="offers-list">
-  <div class="offer-card" *ngFor="let offer of offers">
-    <div class="offer-header">
-      <div>
-        <h3 class="offer-property">{{ offer.propertyTitle }}</h3>
-        <div class="offer-location">📍 {{ offer.propertyLocation }}</div>
-      </div>
-      <span class="status-badge" [ngClass]="getStatusClass(offer.status)">
-        {{ getStatusLabel(offer.status) }}
-      </span>
-    </div>
+@if (loading()) {
+  <div class="loading-state">
+    <p>Caricamento offerte...</p>
+  </div>
+} @else {
+  <!-- Pending Offers Section -->
+  @if (pendingOffers().length > 0) {
+    <section class="offers-section">
+      <h2 class="section-title">⏱️ In Attesa ({{ pendingOffers().length }})</h2>
+      <div class="offers-list">
+        @for (offer of pendingOffers(); track offer.id) {
+          <div class="offer-card">
+            <div class="offer-header">
+              <div>
+                <h3 class="offer-property">{{ offer.propertyTitle }}</h3>
+                <div class="offer-location">📍 {{ offer.propertyAddress }}</div>
+              </div>
+              <span class="status-badge" [ngClass]="getStatusClass(offer.status)">
+                {{ getStatusLabel(offer.status) }}
+              </span>
+            </div>
 
-    <div class="offer-prices">
-      <div class="price-box">
-        <div class="price-label">Prezzo Richiesto</div>
-        <div class="price-value">{{ formatPrice(offer.propertyPrice) }}</div>
-      </div>
-      <div class="price-arrow">→</div>
-      <div class="price-box highlight">
-        <div class="price-label">Offerta Cliente</div>
-        <div class="price-value">{{ formatPrice(offer.offerAmount) }}</div>
-      </div>
-      <div class="price-diff" *ngIf="getDifference(offer.propertyPrice, offer.offerAmount) !== 0">
-        <span class="diff-badge">
-          -{{ formatPrice(getDifference(offer.propertyPrice, offer.offerAmount)) }}
-          ({{ getDifferencePercent(offer.propertyPrice, offer.offerAmount).toFixed(1) }}%)
-        </span>
-      </div>
-    </div>
+            <div class="offer-prices">
+              <div class="price-box">
+                <div class="price-label">Prezzo Richiesto</div>
+                <div class="price-value">{{ formatCurrency(offer.propertyPrice) }}</div>
+              </div>
+              <div class="price-arrow">→</div>
+              <div class="price-box highlight">
+                <div class="price-label">Offerta Cliente</div>
+                <div class="price-value">{{ formatCurrency(offer.amount) }}</div>
+              </div>
+              @if (getDifference(offer.propertyPrice, offer.amount) !== 0) {
+                <div class="price-diff">
+                  <span class="diff-badge">
+                    -{{ formatCurrency(getDifference(offer.propertyPrice, offer.amount)) }}
+                    ({{ getDifferencePercent(offer.propertyPrice, offer.amount).toFixed(1) }}%)
+                  </span>
+                </div>
+              }
+            </div>
 
-    <div class="counter-offer-box" *ngIf="offer.counterOffer">
-      <div class="counter-label">💼 Tua Controproposta:</div>
-      <div class="counter-value">{{ formatPrice(offer.counterOffer) }}</div>
-    </div>
+            <div class="offer-details">
+              <div class="detail-row">
+                <span class="detail-label">Cliente:</span>
+                <span class="detail-value">{{ offer.clientName }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Email:</span>
+                <span class="detail-value">
+                  <a [href]="'mailto:' + offer.clientEmail">{{ offer.clientEmail }}</a>
+                </span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Data:</span>
+                <span class="detail-value">📅 {{ formatDate(offer.createdAt) }}</span>
+              </div>
+              @if (offer.message) {
+                <div class="detail-row">
+                  <span class="detail-label">Messaggio:</span>
+                  <span class="detail-value notes">{{ offer.message }}</span>
+                </div>
+              }
+            </div>
 
-    <div class="offer-details">
-      <div class="detail-row">
-        <span class="detail-label">Cliente:</span>
-        <span class="detail-value">{{ offer.clientName }}</span>
+            <div class="offer-actions">
+              <button class="action-btn success" (click)="acceptOffer(offer)">
+                ✓ Accetta
+              </button>
+              <button class="action-btn primary" (click)="openCounterModal(offer)">
+                ↔️ Controproposta
+              </button>
+              <button class="action-btn secondary" (click)="openRejectModal(offer)">
+                ✕ Rifiuta
+              </button>
+            </div>
+          </div>
+        }
       </div>
-      <div class="detail-row">
-        <span class="detail-label">Email:</span>
-        <span class="detail-value">{{ offer.clientEmail }}</span>
-      </div>
-      <div class="detail-row">
-        <span class="detail-label">Data:</span>
-        <span class="detail-value">📅 {{ offer.date }}</span>
-      </div>
-      <div class="detail-row" *ngIf="offer.notes">
-        <span class="detail-label">Note:</span>
-        <span class="detail-value notes">{{ offer.notes }}</span>
-      </div>
-    </div>
+    </section>
+  }
 
-    <div class="offer-actions" *ngIf="offer.status === 'in-attesa'">
-      <button class="action-btn success" (click)="acceptOffer(offer.id)">
-        ✓ Accetta
-      </button>
-      <button class="action-btn primary" (click)="makeCounterOffer(offer.id)">
-        ↔️ Controproposta
-      </button>
-      <button class="action-btn secondary" (click)="rejectOffer(offer.id)">
-        ✕ Rifiuta
-      </button>
+  <!-- Counter Offers Section -->
+  @if (counterOffers().length > 0) {
+    <section class="offers-section">
+      <h2 class="section-title">↔️ Controproposte ({{ counterOffers().length }})</h2>
+      <div class="offers-list">
+        @for (offer of counterOffers(); track offer.id) {
+          <div class="offer-card">
+            <div class="offer-header">
+              <div>
+                <h3 class="offer-property">{{ offer.propertyTitle }}</h3>
+                <div class="offer-location">📍 {{ offer.propertyAddress }}</div>
+              </div>
+              <span class="status-badge" [ngClass]="getStatusClass(offer.status)">
+                {{ getStatusLabel(offer.status) }}
+              </span>
+            </div>
+
+            <div class="offer-prices">
+              <div class="price-box">
+                <div class="price-label">Prezzo Richiesto</div>
+                <div class="price-value">{{ formatCurrency(offer.propertyPrice) }}</div>
+              </div>
+              <div class="price-arrow">→</div>
+              <div class="price-box">
+                <div class="price-label">Offerta Iniziale</div>
+                <div class="price-value">{{ formatCurrency(offer.amount) }}</div>
+              </div>
+            </div>
+
+            @if (offer.counterOfferAmount) {
+              <div class="counter-offer-box">
+                <div class="counter-label">💼 Tua Controproposta:</div>
+                <div class="counter-value">{{ formatCurrency(offer.counterOfferAmount) }}</div>
+                @if (offer.counterMessage) {
+                  <div class="counter-message">{{ offer.counterMessage }}</div>
+                }
+              </div>
+            }
+
+            <div class="offer-details">
+              <div class="detail-row">
+                <span class="detail-label">Cliente:</span>
+                <span class="detail-value">{{ offer.clientName }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Aggiornata il:</span>
+                <span class="detail-value">📅 {{ formatDate(offer.updatedAt || offer.createdAt) }}</span>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+  }
+
+  <!-- Closed Offers Section -->
+  @if (closedOffers().length > 0) {
+    <section class="offers-section">
+      <h2 class="section-title">📋 Concluse ({{ closedOffers().length }})</h2>
+      <div class="offers-list">
+        @for (offer of closedOffers(); track offer.id) {
+          <div class="offer-card closed">
+            <div class="offer-header">
+              <div>
+                <h3 class="offer-property">{{ offer.propertyTitle }}</h3>
+                <div class="offer-location">📍 {{ offer.propertyAddress }}</div>
+              </div>
+              <span class="status-badge" [ngClass]="getStatusClass(offer.status)">
+                {{ getStatusLabel(offer.status) }}
+              </span>
+            </div>
+
+            <div class="offer-prices">
+              <div class="price-box">
+                <div class="price-label">Offerta</div>
+                <div class="price-value">{{ formatCurrency(offer.amount) }}</div>
+              </div>
+            </div>
+
+            <div class="offer-details">
+              <div class="detail-row">
+                <span class="detail-label">Cliente:</span>
+                <span class="detail-value">{{ offer.clientName }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Data:</span>
+                <span class="detail-value">📅 {{ formatDate(offer.updatedAt || offer.createdAt) }}</span>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+  }
+
+  @if (offers().length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">🤝</div>
+      <div class="empty-title">Nessuna offerta ricevuta</div>
+      <div class="empty-text">Le offerte per i tuoi immobili appariranno qui</div>
+    </div>
+  }
+}
+
+<!-- Counter Offer Modal -->
+@if (showCounterModal()) {
+  <div class="modal-overlay" (click)="closeCounterModal()">
+    <div class="modal-container" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Invia Controproposta</h2>
+        <button class="close-btn" (click)="closeCounterModal()">×</button>
+      </div>
+
+      <div class="modal-body">
+        @if (selectedOffer()) {
+          <div class="modal-info">
+            <p><strong>Immobile:</strong> {{ selectedOffer()!.propertyTitle }}</p>
+            <p><strong>Offerta ricevuta:</strong> {{ formatCurrency(selectedOffer()!.amount) }}</p>
+            <p><strong>Prezzo richiesto:</strong> {{ formatCurrency(selectedOffer()!.propertyPrice) }}</p>
+          </div>
+
+          <div class="form-group">
+            <label for="counterAmount">Importo Controproposta (€) *</label>
+            <input
+              type="number"
+              id="counterAmount"
+              [(ngModel)]="counterAmount"
+              [min]="selectedOffer()!.amount"
+              [max]="selectedOffer()!.propertyPrice"
+              placeholder="Inserisci importo"
+              required
+            />
+            <p class="hint">Deve essere tra l'offerta ricevuta e il prezzo richiesto</p>
+          </div>
+
+          <div class="form-group">
+            <label for="counterMessage">Messaggio (opzionale)</label>
+            <textarea
+              id="counterMessage"
+              [(ngModel)]="counterMessage"
+              rows="3"
+              placeholder="Aggiungi un messaggio per il cliente..."
+            ></textarea>
+          </div>
+        }
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeCounterModal()">Annulla</button>
+        <button class="btn-primary" (click)="submitCounterOffer()" [disabled]="!counterAmount()">
+          Invia Controproposta
+        </button>
+      </div>
     </div>
   </div>
+}
 
-  <div class="empty-state" *ngIf="offers.length === 0">
-    <div class="empty-icon">🤝</div>
-    <div class="empty-title">Nessuna offerta ricevuta</div>
-    <div class="empty-text">Le offerte per i tuoi immobili appariranno qui</div>
+<!-- Reject Modal -->
+@if (showRejectModal()) {
+  <div class="modal-overlay" (click)="closeRejectModal()">
+    <div class="modal-container" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Rifiuta Offerta</h2>
+        <button class="close-btn" (click)="closeRejectModal()">×</button>
+      </div>
+
+      <div class="modal-body">
+        @if (selectedOffer()) {
+          <div class="modal-info">
+            <p><strong>Immobile:</strong> {{ selectedOffer()!.propertyTitle }}</p>
+            <p><strong>Cliente:</strong> {{ selectedOffer()!.clientName }}</p>
+            <p><strong>Offerta:</strong> {{ formatCurrency(selectedOffer()!.amount) }}</p>
+          </div>
+
+          <div class="form-group">
+            <label for="rejectReason">Motivo del rifiuto (opzionale)</label>
+            <textarea
+              id="rejectReason"
+              [(ngModel)]="rejectReason"
+              rows="3"
+              placeholder="Spiega perché rifiuti questa offerta..."
+            ></textarea>
+          </div>
+        }
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeRejectModal()">Annulla</button>
+        <button class="btn-danger" (click)="confirmReject()">
+          Conferma Rifiuto
+        </button>
+      </div>
+    </div>
   </div>
-</section>
+}

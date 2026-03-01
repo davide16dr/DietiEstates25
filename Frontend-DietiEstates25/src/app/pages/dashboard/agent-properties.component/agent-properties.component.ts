@@ -1,12 +1,13 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AddPropertyModalComponent } from '../add-property-modal.component/add-property-modal.component';
 import { PropertyDetailsModalComponent } from '../property-details-modal.component/property-details-modal.component';
 import { EditPropertyModalComponent } from '../edit-property-modal.component/edit-property-modal.component';
+import { ListingService, ListingResponse } from '../../../shared/services/listing.service';
 
 interface Property {
-  id: number;
+  id: string;
   title: string;
   location: string;
   price: number;
@@ -32,133 +33,78 @@ interface Property {
   templateUrl: './agent-properties.component.html',
   styleUrl: './agent-properties.component.scss',
 })
-export class AgentPropertiesComponent {
+export class AgentPropertiesComponent implements OnInit {
+  private listingService = inject(ListingService);
+  
   // Modern Angular 21: signal() per stato reattivo
   showAddModal = signal(false);
   showDetailsModal = signal(false);
   showEditModal = signal(false);
   selectedProperty = signal<Property | null>(null);
+  properties = signal<Property[]>([]);
+  isLoading = signal(true);
+  error = signal<string | null>(null);
 
-  properties: Property[] = [
-    {
-      id: 1,
-      title: 'Appartamento moderno',
-      location: 'Milano Centro',
-      price: 350000,
-      type: 'vendita',
-      status: 'disponibile',
-      rooms: 3,
-      bathrooms: 2,
-      size: 120,
-      floor: 3,
-      elevator: true,
-      energyClass: 'B',
-      description: 'Elegante appartamento completamente ristrutturato nel cuore di Milano. Dotato di tutti i comfort moderni.',
-      propertyType: 'Appartamento',
-      address: 'Via Roma 15',
-      city: 'Milano',
-      image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400'
-    },
-    {
-      id: 2,
-      title: 'Villa con giardino',
-      location: 'Roma Nord',
-      price: 750000,
-      type: 'vendita',
-      status: 'disponibile',
-      rooms: 5,
-      bathrooms: 3,
-      size: 250,
-      elevator: false,
-      energyClass: 'C',
-      description: 'Splendida villa indipendente con ampio giardino e piscina. Zona residenziale tranquilla.',
-      propertyType: 'Villa',
-      address: 'Via dei Colli 42',
-      city: 'Roma',
-      image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400'
-    },
-    {
-      id: 3,
-      title: 'Attico panoramico',
-      location: 'Napoli, Vomero',
-      price: 2500,
-      type: 'affitto',
-      status: 'disponibile',
-      rooms: 4,
-      bathrooms: 2,
-      size: 180,
-      floor: 8,
-      elevator: true,
-      energyClass: 'A',
-      description: 'Attico con vista mare mozzafiato. Terrazza di 60 mq. Completamente arredato.',
-      propertyType: 'Attico',
-      address: 'Via Scarlatti 100',
-      city: 'Napoli',
-      image: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400'
-    },
-    {
-      id: 4,
-      title: 'Monolocale centro',
-      location: 'Torino Centro',
-      price: 180000,
-      type: 'vendita',
-      status: 'venduto',
-      rooms: 1,
-      bathrooms: 1,
-      size: 45,
-      floor: 2,
-      elevator: false,
-      energyClass: 'D',
-      description: 'Monolocale ideale per studenti o prima casa. Ben collegato ai mezzi pubblici.',
-      propertyType: 'Monolocale',
-      address: 'Corso Vittorio 23',
-      city: 'Torino',
-      image: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400'
-    },
-    {
-      id: 5,
-      title: 'Loft industriale',
-      location: 'Milano, Navigli',
-      price: 1800,
-      type: 'affitto',
-      status: 'affittato',
-      rooms: 2,
-      bathrooms: 1,
-      size: 95,
-      floor: 1,
-      elevator: false,
-      energyClass: 'C',
-      description: 'Loft in stile industriale nella zona dei Navigli. Ambiente unico e caratteristico.',
-      propertyType: 'Loft',
-      address: 'Alzaia Naviglio Grande 8',
-      city: 'Milano',
-      image: 'https://images.unsplash.com/photo-1574362848149-11496d93a7c7?w=400'
-    },
-    {
-      id: 6,
-      title: 'Casa indipendente',
-      location: 'Firenze Collina',
-      price: 520000,
-      type: 'vendita',
-      status: 'disponibile',
-      rooms: 4,
-      bathrooms: 2,
-      size: 200,
-      elevator: false,
-      energyClass: 'B',
-      description: 'Casa indipendente sulle colline fiorentine. Vista panoramica, tranquillità assoluta.',
-      propertyType: 'Casa Indipendente',
-      address: 'Via Senese 155',
-      city: 'Firenze',
-      image: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400'
+  ngOnInit(): void {
+    this.loadMyProperties();
+  }
+
+  loadMyProperties(): void {
+    this.isLoading.set(true);
+    this.error.set(null);
+    
+    this.listingService.getMyListings().subscribe({
+      next: (listings: ListingResponse[]) => {
+        const mappedProperties = listings.map(listing => this.mapListingToProperty(listing));
+        this.properties.set(mappedProperties);
+        this.isLoading.set(false);
+      },
+      error: (err) => {
+        console.error('Errore nel caricamento delle proprietà:', err);
+        this.error.set('Errore nel caricamento delle proprietà. Riprova più tardi.');
+        this.isLoading.set(false);
+      }
+    });
+  }
+
+  private mapListingToProperty(listing: ListingResponse): Property {
+    return {
+      id: listing.id,
+      title: listing.title,
+      location: listing.city,
+      price: listing.price,
+      type: listing.type === 'SALE' ? 'vendita' : 'affitto',
+      status: this.mapStatus(listing.status),
+      rooms: listing.rooms,
+      size: listing.area,
+      floor: listing.floor,
+      elevator: listing.hasElevator,
+      energyClass: listing.energyClass,
+      description: listing.description,
+      propertyType: listing.propertyType,
+      address: listing.address,
+      city: listing.city,
+      image: listing.imageUrls && listing.imageUrls.length > 0 
+        ? listing.imageUrls[0] 
+        : 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400'
+    };
+  }
+
+  private mapStatus(status: string): 'disponibile' | 'venduto' | 'affittato' {
+    switch (status) {
+      case 'ACTIVE': return 'disponibile';
+      case 'SOLD': return 'venduto';
+      case 'RENTED': return 'affittato';
+      default: return 'disponibile';
     }
-  ];
+  }
 
   get stats() {
-    const totale = this.properties.length;
-    const disponibili = this.properties.filter(p => p.status === 'disponibile').length;
-    const venduti = this.properties.filter(p => p.status === 'venduto').length;
-    const affittati = this.properties.filter(p => p.status === 'affittato').length;
+    const props = this.properties();
+    const totale = props.length;
+    const disponibili = props.filter(p => p.status === 'disponibile').length;
+    const venduti = props.filter(p => p.status === 'venduto').length;
+    const affittati = props.filter(p => p.status === 'affittato').length;
     
     return { totale, disponibili, venduti, affittati };
   }
@@ -174,32 +120,18 @@ export class AgentPropertiesComponent {
   }
 
   saveProperty(propertyData: any): void {
-    const newProperty: Property = {
-      id: this.properties.length + 1,
-      title: propertyData.listing.title,
-      location: `${propertyData.property.city}`,
-      price: propertyData.listing.price_amount,
-      type: propertyData.listing.type === 'SALE' ? 'vendita' : 'affitto',
-      status: 'disponibile',
-      rooms: propertyData.property.rooms,
-      bathrooms: propertyData.property.bathrooms,
-      size: propertyData.property.area_m2,
-      floor: propertyData.property.floor,
-      elevator: propertyData.property.elevator,
-      energyClass: propertyData.property.energy_class,
-      description: propertyData.property.description,
-      propertyType: propertyData.property.property_type,
-      address: propertyData.property.address,
-      city: propertyData.property.city,
-      image: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400'
-    };
-
-    this.properties.unshift(newProperty);
-    this.closeAddModal();
-    
-    console.log('Nuovo immobile aggiunto:', newProperty);
-    console.log('Immagini:', propertyData.images);
-    // TODO: Inviare i dati al backend
+    console.log('Salvataggio immobile:', propertyData);
+    this.listingService.createListing(propertyData).subscribe({
+      next: (response) => {
+        console.log('Immobile salvato con successo:', response);
+        this.closeAddModal();
+        this.loadMyProperties();
+      },
+      error: (err) => {
+        console.error('Errore nel salvataggio dell\'immobile:', err);
+        this.error.set('Errore nel salvataggio dell\'immobile. Riprova più tardi.');
+      }
+    });
   }
 
   // ===== DETAILS MODAL =====
@@ -232,32 +164,11 @@ export class AgentPropertiesComponent {
   }
 
   updateProperty(updatedData: any): void {
-    const index = this.properties.findIndex(p => p.id === updatedData.id);
-    if (index !== -1) {
-      this.properties[index] = {
-        ...this.properties[index],
-        title: updatedData.listing.title,
-        location: `${updatedData.property.city}`,
-        price: updatedData.listing.price_amount,
-        type: updatedData.listing.type === 'SALE' ? 'vendita' : 'affitto',
-        status: updatedData.listing.status,
-        rooms: updatedData.property.rooms,
-        bathrooms: updatedData.property.bathrooms,
-        size: updatedData.property.area_m2,
-        floor: updatedData.property.floor,
-        elevator: updatedData.property.elevator,
-        energyClass: updatedData.property.energy_class,
-        description: updatedData.property.description,
-        propertyType: updatedData.property.property_type,
-        address: updatedData.property.address,
-        city: updatedData.property.city
-      };
-    }
-    
     this.closeEditModal();
+    this.loadMyProperties(); // Ricarica la lista dopo l'aggiornamento
     
     console.log('Immobile aggiornato:', updatedData);
-    // TODO: Inviare i dati al backend
+    // TODO: Implementare l'aggiornamento reale al backend
   }
 
   // ===== HELPERS =====

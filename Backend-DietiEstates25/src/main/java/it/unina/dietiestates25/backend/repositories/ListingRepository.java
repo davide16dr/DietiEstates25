@@ -13,6 +13,8 @@ import it.unina.dietiestates25.backend.entities.Listing;
 @Repository
 public interface ListingRepository extends JpaRepository<Listing, UUID> {
     
+    List<Listing> findAllByAgent_Id(UUID agentId);
+    
     @Query(value = "SELECT DISTINCT l.* FROM listings l " +
            "LEFT JOIN properties p ON p.id = l.property_id " +
            "WHERE (CAST(:type AS VARCHAR) IS NULL OR l.type = :type) " +

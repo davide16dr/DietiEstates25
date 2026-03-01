@@ -31,11 +31,11 @@ public class OfferStatusHistory {
     private Offer offer;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "old_status", columnDefinition = "offer_status")
+    @Column(name = "old_status")
     private OfferStatus oldStatus;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "new_status", nullable = false, columnDefinition = "offer_status")
+    @Column(name = "new_status", nullable = false)
     private OfferStatus newStatus;
 
     @ManyToOne(fetch = FetchType.LAZY)

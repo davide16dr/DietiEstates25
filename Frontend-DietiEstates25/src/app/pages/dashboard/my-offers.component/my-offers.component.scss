@@ -620,3 +620,402 @@ $shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 
     }
   }
 }
+
+// Additional styles for new elements
+.offer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid $gray-100;
+
+  .offer-property {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: 1;
+
+    .property-image {
+      width: 64px;
+      height: 64px;
+      border-radius: $radius-md;
+      overflow: hidden;
+      background: $gray-100;
+      flex-shrink: 0;
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .placeholder-icon {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+      }
+    }
+
+    .property-info {
+      flex: 1;
+
+      h3 {
+        margin: 0 0 4px 0;
+        font-size: 18px;
+        font-weight: 700;
+        color: $gray-900;
+      }
+
+      .property-address {
+        font-size: 13px;
+        color: $gray-500;
+        margin: 0;
+      }
+    }
+  }
+
+  .status-badge {
+    padding: 8px 16px;
+    border-radius: $radius-full;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+}
+
+.price-info {
+  background: $gray-50;
+  padding: 16px;
+  border-radius: $radius-md;
+  margin-bottom: 16px;
+
+  .price-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+
+    .label {
+      font-size: 14px;
+      color: $gray-600;
+      font-weight: 500;
+    }
+
+    .value {
+      font-size: 16px;
+      font-weight: 700;
+      color: $gray-900;
+    }
+
+    &.highlight {
+      .value {
+        color: $primary;
+        font-size: 20px;
+      }
+    }
+  }
+
+  .price-diff {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid $gray-200;
+
+    .diff-badge {
+      display: inline-block;
+      background: #fee2e2;
+      color: #dc2626;
+      padding: 4px 12px;
+      border-radius: $radius-sm;
+      font-size: 12px;
+      font-weight: 600;
+    }
+  }
+}
+
+.counter-offer-banner {
+  display: flex;
+  gap: 12px;
+  background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
+  padding: 16px;
+  border-radius: $radius-md;
+  margin-bottom: 16px;
+  border: 1px solid rgba($purple, 0.2);
+
+  .counter-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+
+  .counter-content {
+    flex: 1;
+
+    strong {
+      display: block;
+      color: $purple;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    .counter-amount {
+      display: block;
+      font-size: 20px;
+      font-weight: 800;
+      color: $purple;
+      margin-bottom: 8px;
+    }
+
+    .counter-message {
+      font-size: 13px;
+      color: darken($purple, 10%);
+      font-style: italic;
+      margin: 0;
+    }
+  }
+}
+
+.offer-message {
+  background: $gray-50;
+  padding: 12px 16px;
+  border-radius: $radius-md;
+  margin-bottom: 16px;
+  border-left: 3px solid $primary;
+
+  .message-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: $gray-600;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 14px;
+    color: $gray-700;
+    line-height: 1.5;
+  }
+}
+
+.offer-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 16px;
+
+  .meta-item {
+    font-size: 13px;
+    color: $gray-500;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+}
+
+.btn-view {
+  background: white;
+  color: $primary;
+  border: 1px solid $primary;
+
+  &:hover {
+    background: $primary;
+    color: white;
+  }
+}
+
+.btn-accept {
+  background: linear-gradient(135deg, $success 0%, $success-dark 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba($success, 0.3);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba($success, 0.4);
+  }
+}
+
+.btn-counter {
+  background: linear-gradient(135deg, $purple 0%, #7c3aed 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba($purple, 0.3);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba($purple, 0.4);
+  }
+}
+
+.btn-withdraw {
+  background: white;
+  color: $gray-600;
+  border: 1px solid $gray-200;
+
+  &:hover {
+    background: #fee2e2;
+    color: $danger;
+    border-color: #fecaca;
+  }
+}
+
+// Modal container styles
+.modal-container {
+  background: white;
+  border-radius: $radius-xl;
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: $shadow-xl;
+  animation: slideUp 0.3s ease;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px;
+  border-bottom: 1px solid $gray-200;
+
+  h2 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 800;
+    color: $gray-900;
+  }
+
+  .close-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: $gray-100;
+    border-radius: $radius-sm;
+    cursor: pointer;
+    color: $gray-500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: $gray-200;
+      color: $gray-700;
+    }
+  }
+}
+
+.modal-body {
+  padding: 24px;
+
+  .modal-info {
+    background: $gray-50;
+    padding: 16px;
+    border-radius: $radius-md;
+    margin-bottom: 20px;
+
+    p {
+      margin: 6px 0;
+      font-size: 14px;
+      color: $gray-700;
+
+      strong {
+        color: $gray-900;
+        font-weight: 700;
+      }
+    }
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+
+    label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: $gray-700;
+      margin-bottom: 8px;
+    }
+
+    input[type="number"],
+    textarea {
+      width: 100%;
+      padding: 12px 14px;
+      border: 2px solid $gray-200;
+      border-radius: $radius-md;
+      font-size: 15px;
+      transition: all 0.2s ease;
+      box-sizing: border-box;
+
+      &:focus {
+        outline: none;
+        border-color: $primary;
+        box-shadow: 0 0 0 4px rgba($primary, 0.1);
+      }
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+      font-family: inherit;
+    }
+
+    .hint {
+      margin-top: 6px;
+      font-size: 12px;
+      color: $gray-500;
+    }
+  }
+}
+
+.modal-footer {
+  display: flex;
+  gap: 12px;
+  padding: 20px 24px;
+  border-top: 1px solid $gray-200;
+  justify-content: flex-end;
+
+  .btn-secondary {
+    padding: 12px 24px;
+    border: 1px solid $gray-300;
+    background: white;
+    color: $gray-700;
+    border-radius: $radius-md;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: $gray-50;
+    }
+  }
+
+  .btn-primary {
+    padding: 12px 24px;
+    border: none;
+    background: linear-gradient(135deg, $primary 0%, $primary-dark 100%);
+    color: white;
+    border-radius: $radius-md;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba($primary, 0.3);
+
+    &:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba($primary, 0.4);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+}
