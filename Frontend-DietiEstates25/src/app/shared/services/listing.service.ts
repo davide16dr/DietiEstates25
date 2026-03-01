@@ -83,4 +83,12 @@ export class ListingService {
   getById(id: string): Observable<ListingResponse> {
     return this.http.get<ListingResponse>(`${this.API}/${id}`);
   }
+
+  getMyListings(): Observable<ListingResponse[]> {
+    return this.http.get<ListingResponse[]>(`${this.API}/my-listings`);
+  }
+
+  createListing(propertyData: any): Observable<ListingResponse> {
+    return this.http.post<ListingResponse>(this.API, propertyData);
+  }
 }
