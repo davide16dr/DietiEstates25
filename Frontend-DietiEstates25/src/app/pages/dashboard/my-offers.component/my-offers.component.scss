@@ -1,3 +1,5 @@
+@use 'sass:color';
+
 $primary: #10b981;
 $primary-dark: #059669;
 $success: #10b981;
@@ -771,7 +773,7 @@ $shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 
 
     .counter-message {
       font-size: 13px;
-      color: darken($purple, 10%);
+      color: color.adjust($purple, $lightness: -10%);
       font-style: italic;
       margin: 0;
     }

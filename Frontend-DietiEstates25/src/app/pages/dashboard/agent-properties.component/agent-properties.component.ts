@@ -59,7 +59,7 @@ export class AgentPropertiesComponent implements OnInit {
         this.properties.set(mappedProperties);
         this.isLoading.set(false);
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Errore nel caricamento delle proprietà:', err);
         this.error.set('Errore nel caricamento delle proprietà. Riprova più tardi.');
         this.isLoading.set(false);
@@ -122,12 +122,12 @@ export class AgentPropertiesComponent implements OnInit {
   saveProperty(propertyData: any): void {
     console.log('Salvataggio immobile:', propertyData);
     this.listingService.createListing(propertyData).subscribe({
-      next: (response) => {
+      next: (response: any) => {
         console.log('Immobile salvato con successo:', response);
         this.closeAddModal();
         this.loadMyProperties();
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Errore nel salvataggio dell\'immobile:', err);
         this.error.set('Errore nel salvataggio dell\'immobile. Riprova più tardi.');
       }
