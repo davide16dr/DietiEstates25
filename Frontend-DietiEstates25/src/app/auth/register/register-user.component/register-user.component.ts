@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
@@ -11,6 +11,7 @@ import { finalize } from 'rxjs';
   imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './register-user.component.html',
   styleUrls: ['./register-user.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RegisterUserComponent {
   form: FormGroup;
@@ -26,7 +27,14 @@ export class RegisterUserComponent {
       password: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', [Validators.required, Validators.minLength(6)]],
     }, {
-      validators: this.passwordMatchValidator // Validatore custom per password match
+      validators: this.passwordMatchValidator
+    });
+
+    // Rimuovi il messaggio di errore quando l'utente modifica i campi
+    this.form.valueChanges.subscribe(() => {
+      if (this.errorMessage) {
+        this.errorMessage = null;
+      }
     });
   }
 
@@ -53,6 +61,13 @@ export class RegisterUserComponent {
   onSubmit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      
+      // Mostra messaggio di errore specifico
+      if (this.form.hasError('passwordMismatch')) {
+        this.errorMessage = 'Le password non coincidono. Controlla i campi.';
+      } else {
+        this.errorMessage = 'Completa correttamente tutti i campi obbligatori.';
+      }
       return;
     }
 
@@ -80,13 +95,11 @@ export class RegisterUserComponent {
           console.error('Registration failed:', err);
           
           if (err.status === 0) {
-            this.errorMessage = 'Impossibile connettersi al server. Verifica che il backend sia attivo.';
-          } else if (err.status === 409) {
-            this.errorMessage = 'Email già registrata';
-          } else if (err.status === 400) {
-            this.errorMessage = 'Dati non validi. Controlla i campi.';
+            this.errorMessage = 'Backend non raggiungibile. Verifica che il server sia avviato su http://localhost:8080';
+          } else if (err.status === 409 || err.status === 400) {
+            this.errorMessage = err?.error?.error ?? 'Email già registrata o dati non validi. Riprova.';
           } else {
-            this.errorMessage = 'Errore durante la registrazione. Riprova.';
+            this.errorMessage = err?.error?.message ?? 'Errore durante la registrazione. Riprova più tardi.';
           }
         }
       });

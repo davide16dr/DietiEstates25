@@ -47,6 +47,12 @@
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 
+			<!-- Spring Mail Dependencies -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-mail</artifactId>
+		</dependency>
+
 		<!-- JWT Dependencies -->
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>

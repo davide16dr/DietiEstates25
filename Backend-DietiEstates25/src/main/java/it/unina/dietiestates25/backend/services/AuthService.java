@@ -36,13 +36,16 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest req) {
+        // Normalizza l'email a minuscolo
+        String normalizedEmail = req.getEmail().toLowerCase().trim();
+        
         // autentica con Spring Security
         authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(req.getEmail(), req.getPassword())
+                new UsernamePasswordAuthenticationToken(normalizedEmail, req.getPassword())
         );
 
         // carica utente
-        User u = userRepository.findByEmail(req.getEmail())
+        User u = userRepository.findByEmail(normalizedEmail)
                 .orElseThrow(() -> new BadCredentialsException("Bad credentials"));
 
         // genera JWT
@@ -56,15 +59,18 @@ public class AuthService {
 
     @Transactional
     public AuthResponse register(RegisterRequest req) {
+        // Normalizza l'email a minuscolo
+        String normalizedEmail = req.getEmail().toLowerCase().trim();
+        
         // Verifica se l'email esiste già
-        if (userRepository.existsByEmail(req.getEmail())) {
+        if (userRepository.existsByEmail(normalizedEmail)) {
             throw new IllegalArgumentException("Email already registered");
         }
 
         // Crea nuovo utente
         User user = new User();
         user.setId(UUID.randomUUID());
-        user.setEmail(req.getEmail());
+        user.setEmail(normalizedEmail);
         user.setPasswordHash(passwordEncoder.encode(req.getPassword()));
         user.setFirstName(req.getFirstName());
         user.setLastName(req.getLastName());

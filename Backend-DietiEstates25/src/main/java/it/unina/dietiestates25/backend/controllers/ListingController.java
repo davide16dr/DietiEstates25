@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import it.unina.dietiestates25.backend.dto.listing.ListingFilterRequest;
 import it.unina.dietiestates25.backend.dto.listing.ListingResponse;
-import it.unina.dietiestates25.backend.entities.User;
 import it.unina.dietiestates25.backend.services.ListingService;
 
 @RestController
