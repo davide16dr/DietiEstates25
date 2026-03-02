@@ -16,6 +16,17 @@ export interface RegisterRequest {
   role: 'CLIENT' | 'AGENT' | 'AGENCY_MANAGER' | 'ADMIN';
 }
 
+export interface RegisterBusinessRequest {
+  email: string;
+  firstName: string;
+  lastName: string;
+  companyName: string;
+  vatNumber: string;
+  city: string;
+  address?: string;
+  phoneE164: string;
+}
+
 export interface AuthResponse {
   accessToken: string;
   tokenType: string;
@@ -97,26 +108,50 @@ export class AuthService {
   }
 
   login(req: LoginRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.API}/login`, req).pipe(
+    // Normalizza l'email a minuscolo
+    const normalizedReq = {
+      ...req,
+      email: req.email.toLowerCase().trim()
+    };
+    
+    console.log('📝 Login request:', normalizedReq);
+    
+    return this.http.post<AuthResponse>(`${this.API}/login`, normalizedReq).pipe(
       tap((res) => {
-        console.log('🎯 Login response:', res); // DEBUG
-        localStorage.setItem('token', res.accessToken); // Usa accessToken
+        console.log('✅ Login response:', res);
+        localStorage.setItem('token', res.accessToken);
         localStorage.setItem('currentUser', JSON.stringify(res));
         this.currentUserSignal.set(res);
-        console.log('✅ User signal set to:', this.currentUserSignal()); // DEBUG
-        console.log('🔐 Is authenticated after login:', this.isAuthenticated()); // DEBUG
+        console.log('✅ User signal set to:', this.currentUserSignal());
+        console.log('🔐 Is authenticated after login:', this.isAuthenticated());
       })
     );
   }
 
   register(req: RegisterRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.API}/register`, req).pipe(
+    // Normalizza l'email a minuscolo
+    const normalizedReq = {
+      ...req,
+      email: req.email.toLowerCase().trim()
+    };
+    
+    return this.http.post<AuthResponse>(`${this.API}/register`, normalizedReq).pipe(
       tap((res) => {
-        localStorage.setItem('token', res.accessToken); // Usa accessToken
+        localStorage.setItem('token', res.accessToken);
         localStorage.setItem('currentUser', JSON.stringify(res));
         this.currentUserSignal.set(res);
       })
     );
+  }
+
+  registerBusiness(req: RegisterBusinessRequest): Observable<any> {
+    // Normalizza l'email a minuscolo
+    const normalizedReq = {
+      ...req,
+      email: req.email.toLowerCase().trim()
+    };
+    
+    return this.http.post<any>(`${this.API}/register-business`, normalizedReq);
   }
 
   logout(): void {

@@ -1,11 +1,16 @@
 <div class="login-page">
   <section class="hero">
     <div class="hero-content">
+      <button type="button" class="back-btn" routerLink="/" aria-label="Torna alla Home">
+        <span class="back-icon">←</span>
+        <span class="back-text">Torna alla Home</span>
+      </button>
+
       <button type="button" class="brand" routerLink="/" aria-label="Vai alla Home">
         <div class="brand-icon">
-          <span>🏠</span>
+          <img src="/assets/dietiEstates25_onlyLogo.png" alt="DietiEstates Logo" class="logo-image">
         </div>
-        <span class="brand-text">DietiEstates25</span>
+        <span class="brand-text">DietiEstates<span class="brand-suffix">25</span></span>
       </button>
 
       <div class="hero-copy">
@@ -26,6 +31,13 @@
       <p class="card-subtitle">Accedi al tuo account per continuare</p>
 
       <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+        @if (errorMessage) {
+          <div class="error-alert">
+            <span class="error-icon">⚠️</span>
+            <p class="error-msg">{{ errorMessage }}</p>
+          </div>
+        }
+
         <label class="field">
           <span class="field-label">Email</span>
           <div class="field-input">
@@ -51,7 +63,7 @@
         </label>
 
         <button class="primary-btn" type="submit" [disabled]="isSubmitting">
-          {{ isSubmitting ? 'Accesso in corso...' : 'Accedi' }}
+          {{ isSubmitting ? '⏳ Accesso in corso...' : 'Accedi' }}
         </button>
 
         <div class="divider" aria-hidden="true">
@@ -75,10 +87,6 @@
           Non hai un account?
           <a routerLink="/auth/register">Registrati</a>
         </p>
-
-        @if (errorMessage) {
-          <p class="error-msg">{{ errorMessage }}</p>
-        }
       </form>
     </div>
   </section>

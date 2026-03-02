@@ -1,9 +1,16 @@
 <div class="register-page">
     <section class="hero">
       <div class="hero-content">
+        <button type="button" class="back-btn" (click)="goHome()" aria-label="Torna alla Home">
+          <span class="back-icon">←</span>
+          <span class="back-text">Torna alla Home</span>
+        </button>
+
         <button type="button" class="brand" (click)="goHome()" aria-label="Vai alla Home">
-          <div class="brand-icon"><span>🏢</span></div>
-          <span class="brand-text">DietiEstates25</span>
+          <div class="brand-icon">
+            <img src="/assets/dietiEstates25_onlyLogo.png" alt="DietiEstates Logo" class="logo-image">
+          </div>
+          <span class="brand-text">DietiEstates<span class="brand-suffix">25</span></span>
         </button>
   
         <div class="hero-copy">
@@ -29,6 +36,20 @@
         <p class="card-subtitle">Inserisci i dati richiesti per la registrazione</p>
   
         <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+          @if (errorMessage) {
+            <div class="error-alert">
+              <span class="error-icon">⚠️</span>
+              <p class="error-msg">{{ errorMessage }}</p>
+            </div>
+          }
+
+          @if (successMessage) {
+            <div class="success-alert">
+              <span class="success-icon">✅</span>
+              <p class="success-msg">{{ successMessage }}</p>
+            </div>
+          }
+
           <div class="row-2">
             <label class="field">
               <span class="field-label">Nome</span>
@@ -90,9 +111,9 @@
           <label class="field">
             <span class="field-label">Comune</span>
             <div class="field-input">
-              <input type="text" formControlName="comune" placeholder="Milano" />
+              <input type="text" formControlName="city" placeholder="Milano" />
             </div>
-            @if (form.get('comune')?.touched && form.get('comune')?.invalid) {
+            @if (form.get('city')?.touched && form.get('city')?.invalid) {
               <div class="field-error">Inserisci il comune.</div>
             }
           </label>
@@ -138,11 +159,7 @@
           <button class="primary-btn" type="submit" [disabled]="isSubmitting">
             {{ isSubmitting ? 'Invio...' : 'Crea account aziendale' }}
           </button>
-  
-          @if (errorMessage) {
-            <p class="error-msg">{{ errorMessage }}</p>
-          }
-  
+
           <p class="login-link">
             Hai già un account?
             <a routerLink="/auth/login">Accedi</a>
