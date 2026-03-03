@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 export interface ManagerEdit {
-  id: number;
+  id: string;
   name: string;
   email: string;
   phone: string;

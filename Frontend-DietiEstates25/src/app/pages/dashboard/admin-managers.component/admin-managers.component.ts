@@ -1,11 +1,12 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { EditManagerModalComponent, ManagerEdit } from '../edit-manager-modal.component/edit-manager-modal.component';
 import { AddManagerModalComponent, NewManager } from '../add-manager-modal.component/add-manager-modal.component';
+import { UserService, User } from '../../../shared/services/user.service';
 
 interface Manager {
-  id: number;
+  id: string;
   name: string;
   email: string;
   phone: string;
@@ -19,29 +20,66 @@ interface Manager {
   templateUrl: './admin-managers.component.html',
   styleUrl: './admin-managers.component.scss',
 })
-export class AdminManagersComponent {
+export class AdminManagersComponent implements OnInit {
+  private userService = inject(UserService);
+  
   searchQuery = signal('');
+  managers = signal<Manager[]>([]);
+  isLoading = signal(true);
+  error = signal<string | null>(null);
   
   // Modal state
   showEditModal = signal(false);
   showAddModal = signal(false);
   selectedManager = signal<Manager | null>(null);
 
-  managers: Manager[] = [
-    {
-      id: 1,
-      name: 'Giuseppe Verdi',
-      email: 'manager@dietiestates.it',
-      phone: '+39 02 2345678',
-      status: 'attivo'
-    }
-  ];
+  ngOnInit(): void {
+    this.loadManagers();
+  }
+
+  loadManagers(): void {
+    this.isLoading.set(true);
+    this.error.set(null);
+    
+    this.userService.getUsersByRole('AGENCY_MANAGER').subscribe({
+      next: (users: User[]) => {
+        const mappedManagers = users.map(user => this.mapUserToManager(user));
+        this.managers.set(mappedManagers);
+        this.isLoading.set(false);
+      },
+      error: (err: any) => {
+        console.error('Errore nel caricamento dei gestori:', err);
+        this.error.set('Errore nel caricamento dei gestori. Riprova più tardi.');
+        this.isLoading.set(false);
+      }
+    });
+  }
+
+  private mapUserToManager(user: User): Manager {
+    return {
+      id: user.id,
+      name: `${user.firstName} ${user.lastName}`,
+      email: user.email,
+      phone: user.phoneE164 || 'N/A',
+      status: user.active ? 'attivo' : 'inattivo'
+    };
+  }
+
+  get stats() {
+    const mgrs = this.managers();
+    const totale = mgrs.length;
+    const attivi = mgrs.filter(m => m.status === 'attivo').length;
+    const inattivi = mgrs.filter(m => m.status === 'inattivo').length;
+    
+    return { totale, attivi, inattivi };
+  }
 
   get filteredManagers(): Manager[] {
     const query = this.searchQuery().toLowerCase();
-    if (!query) return this.managers;
+    const mgrs = this.managers();
+    if (!query) return mgrs;
 
-    return this.managers.filter(m => 
+    return mgrs.filter(m => 
       m.name.toLowerCase().includes(query) ||
       m.email.toLowerCase().includes(query) ||
       m.phone.includes(query)
@@ -64,16 +102,28 @@ export class AdminManagersComponent {
   }
 
   saveManager(updatedManager: ManagerEdit): void {
-    const index = this.managers.findIndex(m => m.id === updatedManager.id);
+    const managers = this.managers();
+    const index = managers.findIndex(m => m.id === updatedManager.id);
     if (index !== -1) {
-      this.managers[index] = updatedManager as Manager;
+      managers[index] = updatedManager as Manager;
+      this.managers.set([...managers]);
     }
     this.closeEditModal();
+    this.loadManagers(); // Ricarica i dati dal backend
   }
 
   toggleManagerStatus(manager: Manager): void {
-    manager.status = manager.status === 'attivo' ? 'inattivo' : 'attivo';
-    console.log('Manager status toggled:', manager);
+    this.userService.toggleUserStatus(manager.id).subscribe({
+      next: () => {
+        manager.status = manager.status === 'attivo' ? 'inattivo' : 'attivo';
+        console.log('Manager status toggled:', manager);
+        this.loadManagers(); // Ricarica i dati
+      },
+      error: (err: any) => {
+        console.error('Errore nel cambio stato:', err);
+        this.error.set('Errore nel cambio stato del gestore.');
+      }
+    });
   }
 
   addNewManager(): void {
@@ -85,16 +135,8 @@ export class AdminManagersComponent {
   }
 
   saveNewManager(newManager: NewManager): void {
-    const maxId = Math.max(...this.managers.map(m => m.id), 0);
-    const manager: Manager = {
-      id: maxId + 1,
-      name: newManager.name,
-      email: newManager.email,
-      phone: newManager.phone,
-      status: newManager.status
-    };
-    this.managers.push(manager);
     this.closeAddModal();
+    this.loadManagers(); // Ricarica i dati dopo aver aggiunto un nuovo manager
   }
 
   getStatusClass(status: string): string {

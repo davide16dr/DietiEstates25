@@ -46,10 +46,10 @@
         </div>
   
         <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
-          @if (errorMessage) {
+          @if (errorMessage()) {
             <div class="error-alert">
               <span class="error-icon">⚠️</span>
-              <p class="error-msg">{{ errorMessage }}</p>
+              <p class="error-msg">{{ errorMessage() }}</p>
             </div>
           }
 
@@ -114,8 +114,8 @@
             </label>
           </div>
   
-          <button class="primary-btn" type="submit" [disabled]="isSubmitting">
-            {{ isSubmitting ? 'Registrazione...' : 'Registrati' }}
+          <button class="primary-btn" type="submit" [disabled]="isSubmitting()">
+            {{ isSubmitting() ? 'Registrazione...' : 'Registrati' }}
           </button>
   
           <div class="divider" aria-hidden="true">
