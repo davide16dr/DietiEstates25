@@ -1,4 +1,4 @@
-import { Component, input, output, OnInit } from '@angular/core';
+import { Component, input, output, inject, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, FormControl } from '@angular/forms';
 import { PropertyType, EnergyClass, PropertyFiltersValue, ListingMode } from '../../../models/Property';
@@ -23,9 +23,10 @@ type FiltersForm = FormGroup<{
   templateUrl: './property-filters.component.html',
   styleUrls: ['./property-filters.component.scss'],
 })
-export class PropertyFiltersComponent implements OnInit {
-  initialValue = input.required<PropertyFiltersValue>();
+export class PropertyFiltersComponent {
+  private fb = inject(FormBuilder);
 
+  initialValue = input.required<PropertyFiltersValue>();
   search = output<PropertyFiltersValue>();
   reset = output<PropertyFiltersValue>();
 
@@ -34,25 +35,25 @@ export class PropertyFiltersComponent implements OnInit {
   rooms: Array<number | 'Qualsiasi'> = ['Qualsiasi', 1, 2, 3, 4, 5, 6];
   energies: EnergyClass[] = ['Qualsiasi', 'A', 'B', 'C', 'D', 'E', 'F', 'G'];
 
-  form: FiltersForm;
+  form: FiltersForm = this.fb.group({
+    mode: this.fb.control<ListingMode | null>(null),
+    type: this.fb.control<PropertyType>('Tutti', { nonNullable: true }),
+    city: this.fb.control<string>('', { nonNullable: true }),
+    priceMin: this.fb.control<number | null>(null),
+    priceMax: this.fb.control<number | null>(null),
+    roomsMin: this.fb.control<number | 'Qualsiasi'>('Qualsiasi', { nonNullable: true }),
+    areaMin: this.fb.control<number | null>(null),
+    areaMax: this.fb.control<number | null>(null),
+    energy: this.fb.control<EnergyClass>('Qualsiasi', { nonNullable: true }),
+    elevator: this.fb.control<boolean>(false, { nonNullable: true }),
+  });
 
-  constructor(private fb: FormBuilder) {
-    this.form = this.fb.group({
-      mode: this.fb.control<ListingMode | null>(null),
-      type: this.fb.control<PropertyType>('Tutti', { nonNullable: true }),
-      city: this.fb.control<string>('', { nonNullable: true }),
-      priceMin: this.fb.control<number | null>(null),
-      priceMax: this.fb.control<number | null>(null),
-      roomsMin: this.fb.control<number | 'Qualsiasi'>('Qualsiasi', { nonNullable: true }),
-      areaMin: this.fb.control<number | null>(null),
-      areaMax: this.fb.control<number | null>(null),
-      energy: this.fb.control<EnergyClass>('Qualsiasi', { nonNullable: true }),
-      elevator: this.fb.control<boolean>(false, { nonNullable: true }),
+  constructor() {
+    // Ogni volta che initialValue cambia (incluso il primo valore),
+    // aggiorna il form automaticamente — funziona con signal inputs
+    effect(() => {
+      this.form.reset(this.initialValue());
     });
-  }
-
-  ngOnInit(): void {
-    this.form.reset(this.initialValue());
   }
 
   onSearch(): void {

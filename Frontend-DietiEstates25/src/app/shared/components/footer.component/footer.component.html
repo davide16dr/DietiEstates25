@@ -12,9 +12,9 @@
 
       <div class="footer-col">
         <h4>Link Utili</h4>
-        <a routerLink="/properties">Cerca Immobili</a>
-        <a routerLink="/sell">Vendita</a>
-        <a routerLink="/rent">Affitto</a>
+        <a routerLink="/pages/properties-page">Cerca Immobili</a>
+        <a routerLink="/pages/properties-page" [queryParams]="{ type: 'sale' }">Vendita</a>
+        <a routerLink="/pages/properties-page" [queryParams]="{ type: 'rent' }">Affitto</a>
       </div>
 
       <div class="footer-col">
