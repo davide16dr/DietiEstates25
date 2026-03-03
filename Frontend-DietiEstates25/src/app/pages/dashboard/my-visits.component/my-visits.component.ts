@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { DashboardService, Visit } from '../../../shared/services/dashboard.service';
@@ -10,23 +10,43 @@ import { DashboardService, Visit } from '../../../shared/services/dashboard.serv
   templateUrl: './my-visits.component.html',
   styleUrls: ['./my-visits.component.scss']
 })
-export class MyVisitsComponent implements OnInit {
-  activeTab: 'upcoming' | 'past' = 'upcoming';
-  loading = true;
-  visits: Visit[] = [];
+export class MyVisitsComponent {
+  private dashboardService = inject(DashboardService);
+  private router = inject(Router);
 
-  constructor(
-    private dashboardService: DashboardService,
-    private router: Router,
-    private cdr: ChangeDetectorRef
-  ) {}
+  activeTab = signal<'upcoming' | 'past'>('upcoming');
+  loading = signal(true);
+  visits = signal<Visit[]>([]);
 
-  ngOnInit(): void {
+  upcomingVisits = computed(() => {
+    const now = new Date();
+    return this.visits().filter(v =>
+      new Date(v.scheduledDate) >= now &&
+      v.status !== 'CANCELLED' &&
+      v.status !== 'COMPLETED'
+    );
+  });
+
+  pastVisits = computed(() => {
+    const now = new Date();
+    return this.visits().filter(v =>
+      new Date(v.scheduledDate) < now ||
+      v.status === 'CANCELLED' ||
+      v.status === 'COMPLETED'
+    );
+  });
+
+  displayedVisits = computed(() =>
+    this.activeTab() === 'upcoming' ? this.upcomingVisits() : this.pastVisits()
+  );
+
+  constructor() {
     this.loadVisits();
   }
 
   loadVisits(): void {
-    this.visits = [
+    // Dati mock di fallback
+    const mockVisits: Visit[] = [
       {
         id: 1,
         propertyId: 101,
@@ -68,101 +88,68 @@ export class MyVisitsComponent implements OnInit {
         agentName: 'Anna Neri'
       }
     ];
-    this.loading = false;
-    
-    // Prova a caricare dal backend (se disponibile)
+
+    this.visits.set(mockVisits);
+    this.loading.set(false);
+
     this.dashboardService.getVisits().subscribe({
       next: (visits) => {
-        if (visits.length > 0) {
-          this.visits = visits;
-        }
+        if (visits.length > 0) this.visits.set(visits);
       }
     });
   }
 
-  get upcomingVisits(): Visit[] {
-    const now = new Date();
-    return this.visits.filter(v => 
-      new Date(v.scheduledDate) >= now && 
-      v.status !== 'CANCELLED' && 
-      v.status !== 'COMPLETED'
-    );
-  }
-
-  get pastVisits(): Visit[] {
-    const now = new Date();
-    return this.visits.filter(v => 
-      new Date(v.scheduledDate) < now || 
-      v.status === 'CANCELLED' || 
-      v.status === 'COMPLETED'
-    );
-  }
-
-  get displayedVisits(): Visit[] {
-    return this.activeTab === 'upcoming' ? this.upcomingVisits : this.pastVisits;
-  }
-
   getStatusClass(status: string): string {
-    const statusMap: { [key: string]: string } = {
-      'CONFIRMED': 'status-confirmed',
-      'PENDING': 'status-pending',
-      'COMPLETED': 'status-completed',
-      'CANCELLED': 'status-cancelled'
+    const map: Record<string, string> = {
+      CONFIRMED: 'status-confirmed',
+      PENDING: 'status-pending',
+      COMPLETED: 'status-completed',
+      CANCELLED: 'status-cancelled'
     };
-    return statusMap[status] || 'status-pending';
+    return map[status] ?? 'status-pending';
   }
 
   getStatusLabel(status: string): string {
-    const statusMap: { [key: string]: string } = {
-      'CONFIRMED': 'Confermata',
-      'PENDING': 'In Attesa',
-      'COMPLETED': 'Completata',
-      'CANCELLED': 'Annullata'
+    const map: Record<string, string> = {
+      CONFIRMED: 'Confermata',
+      PENDING: 'In Attesa',
+      COMPLETED: 'Completata',
+      CANCELLED: 'Annullata'
     };
-    return statusMap[status] || status;
+    return map[status] ?? status;
   }
 
   formatDate(dateStr: string): string {
-    const date = new Date(dateStr);
-    const options: Intl.DateTimeFormatOptions = { 
-      weekday: 'long', 
-      day: 'numeric', 
-      month: 'long', 
-      year: 'numeric' 
-    };
-    return date.toLocaleDateString('it-IT', options);
+    return new Date(dateStr).toLocaleDateString('it-IT', {
+      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+    });
   }
 
   formatShortDate(dateStr: string): string {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('it-IT', { day: 'numeric', month: 'short' });
+    return new Date(dateStr).toLocaleDateString('it-IT', { day: 'numeric', month: 'short' });
   }
 
   getDayOfWeek(dateStr: string): string {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('it-IT', { weekday: 'short' }).toUpperCase();
+    return new Date(dateStr).toLocaleDateString('it-IT', { weekday: 'short' }).toUpperCase();
   }
 
   getDayNumber(dateStr: string): string {
-    const date = new Date(dateStr);
-    return date.getDate().toString();
+    return new Date(dateStr).getDate().toString();
   }
 
   cancelVisit(visit: Visit): void {
-    if (confirm('Sei sicuro di voler annullare questa visita?')) {
-      this.dashboardService.cancelVisit(visit.id).subscribe({
-        next: () => {
-          visit.status = 'CANCELLED';
-          this.visits = [...this.visits];
-          this.cdr.detectChanges();
-        },
-        error: () => {
-          visit.status = 'CANCELLED';
-          this.visits = [...this.visits];
-          this.cdr.detectChanges();
-        }
-      });
-    }
+    if (!confirm('Sei sicuro di voler annullare questa visita?')) return;
+
+    const doCancel = () => {
+      this.visits.update(list =>
+        list.map(v => v.id === visit.id ? { ...v, status: 'CANCELLED' } : v)
+      );
+    };
+
+    this.dashboardService.cancelVisit(visit.id).subscribe({
+      next: doCancel,
+      error: doCancel
+    });
   }
 
   goToProperty(propertyId: number): void {

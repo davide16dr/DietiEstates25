@@ -16,28 +16,26 @@
           in ogni passo verso la tua nuova casa.
         </p>
 
-        <form class="search-bar">
+        <form class="search-bar" (submit)="onSearch(); $event.preventDefault()">
           <div class="search-input">
             <span class="search-icon">📍</span>
-            <input type="text" [(ngModel)]="searchQuery" name="searchQuery"
+            <input type="text"
+              [value]="searchQuery()"
+              (input)="searchQuery.set($any($event.target).value)"
               placeholder="Cerca per città, zona o indirizzo..." />
           </div>
 
           <div class="search-filters">
-            <button type="button" class="chip" [class.active]="contractType === 'sale'" (click)="selectType('sale')">
+            <button type="button" class="chip" [class.active]="contractType() === 'sale'" (click)="selectType('sale')">
               Vendita
             </button>
 
-            <button type="button" class="chip" [class.active]="contractType === 'rent'" (click)="selectType('rent')">
+            <button type="button" class="chip" [class.active]="contractType() === 'rent'" (click)="selectType('rent')">
               Affitto
             </button>
           </div>
 
-          <button class="btn primary" type="submit" 
-            [routerLink]="['/pages/properties-page']"
-            [queryParams]="{ search: searchQuery, type: contractType }">
-            Cerca
-          </button>
+          <button class="btn primary" type="submit">Cerca</button>
         </form>
 
         <div class="hero-filters">
@@ -51,10 +49,12 @@
 
     <section class="stats-section">
       <div class="stats-inner">
-        <div class="stat" *ngFor="let s of stats">
-          <div class="stat-value">{{ s.value }}</div>
-          <div class="stat-label">{{ s.label }}</div>
-        </div>
+        @for (s of stats; track s.label) {
+          <div class="stat">
+            <div class="stat-value">{{ s.value }}</div>
+            <div class="stat-label">{{ s.label }}</div>
+          </div>
+        }
       </div>
     </section>
 
@@ -67,11 +67,13 @@
         </p>
 
         <div class="features-grid">
-          <article class="feature-card" *ngFor="let f of features">
-            <div class="feature-icon"><span>{{ f.icon }}</span></div>
-            <h3>{{ f.title }}</h3>
-            <p>{{ f.description }}</p>
-          </article>
+          @for (f of features; track f.title) {
+            <article class="feature-card">
+              <div class="feature-icon"><span>{{ f.icon }}</span></div>
+              <h3>{{ f.title }}</h3>
+              <p>{{ f.description }}</p>
+            </article>
+          }
         </div>
       </div>
     </section>

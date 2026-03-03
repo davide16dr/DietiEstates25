@@ -11,6 +11,35 @@
     </button>
   </section>
 
+  <!-- Stats Section -->
+  @if (!isLoading() && !error()) {
+    <section class="stats">
+      <div class="stat-card">
+        <div class="stat-top">
+          <div class="stat-label">Totale Gestori</div>
+          <div class="pill" style="background: #eaf2ff; color: #2563eb;">👥</div>
+        </div>
+        <div class="stat-value">{{ stats.totale }}</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-top">
+          <div class="stat-label">Attivi</div>
+          <div class="pill" style="background: #e9f7ef; color: #0f7a55;">✓</div>
+        </div>
+        <div class="stat-value">{{ stats.attivi }}</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-top">
+          <div class="stat-label">Inattivi</div>
+          <div class="pill" style="background: #fee; color: #dc2626;">✗</div>
+        </div>
+        <div class="stat-value">{{ stats.inattivi }}</div>
+      </div>
+    </section>
+  }
+
   <!-- Search -->
   <section class="search-section">
     <div class="search-box">
@@ -24,50 +53,68 @@
     </div>
   </section>
 
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Caricamento gestori in corso...</p>
+    </div>
+  }
+
+  <!-- Error State -->
+  @if (error()) {
+    <div class="error-state">
+      <p>{{ error() }}</p>
+      <button class="btn-primary" (click)="loadManagers()">Riprova</button>
+    </div>
+  }
+
   <!-- Managers List -->
-  <section class="managers-list">
-    @for (manager of filteredManagers; track manager.id) {
-      <div class="manager-card">
-        <div class="manager-avatar">
-          <img [src]="'https://ui-avatars.com/api/?name=' + manager.name + '&background=3b82f6&color=fff'" [alt]="manager.name" />
-        </div>
-
-        <div class="manager-info">
-          <div class="manager-header">
-            <h3 class="manager-name">{{ manager.name }}</h3>
-            <span class="status-badge" [ngClass]="getStatusClass(manager.status)">
-              {{ getStatusLabel(manager.status) }}
-            </span>
+  @if (!isLoading() && !error()) {
+    <section class="managers-list">
+      @for (manager of filteredManagers; track manager.id) {
+        <div class="manager-card">
+          <div class="manager-avatar">
+            <img [src]="'https://ui-avatars.com/api/?name=' + manager.name + '&background=3b82f6&color=fff'" [alt]="manager.name" />
           </div>
 
-          <div class="manager-contacts">
-            <div class="contact-item">
-              <span class="contact-icon">📧</span>
-              <span>{{ manager.email }}</span>
+          <div class="manager-info">
+            <div class="manager-header">
+              <h3 class="manager-name">{{ manager.name }}</h3>
+              <span class="status-badge" [ngClass]="getStatusClass(manager.status)">
+                {{ getStatusLabel(manager.status) }}
+              </span>
             </div>
-            <div class="contact-item">
-              <span class="contact-icon">📱</span>
-              <span>{{ manager.phone }}</span>
+
+            <div class="manager-contacts">
+              <div class="contact-item">
+                <span class="contact-icon">📧</span>
+                <span>{{ manager.email }}</span>
+              </div>
+              <div class="contact-item">
+                <span class="contact-icon">📱</span>
+                <span>{{ manager.phone }}</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="manager-actions">
-          <button class="action-btn primary" (click)="editManager(manager)">
-            Modifica
-          </button>
+          <div class="manager-actions">
+            <button class="action-btn primary" (click)="editManager(manager)">
+              Modifica
+            </button>
+          </div>
         </div>
-      </div>
-    }
+      }
 
-    @if (filteredManagers.length === 0) {
-      <div class="empty-state">
-        <span class="empty-icon">🔍</span>
-        <h3>Nessun gestore trovato</h3>
-        <p>Prova a modificare i criteri di ricerca</p>
-      </div>
-    }
-  </section>
+      @if (filteredManagers.length === 0) {
+        <div class="empty-state">
+          <span class="empty-icon">🔍</span>
+          <h3>Nessun gestore trovato</h3>
+          <p>Prova a modificare i criteri di ricerca</p>
+        </div>
+      }
+    </section>
+  }
 </div>
 
 <!-- Edit Manager Modal -->

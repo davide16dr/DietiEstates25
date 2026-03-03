@@ -21,15 +21,18 @@ public class BusinessRegistrationService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final UserService userService;
 
     public BusinessRegistrationService(AgencyRepository agencyRepository, 
                                        UserRepository userRepository,
                                        PasswordEncoder passwordEncoder,
-                                       EmailService emailService) {
+                                       EmailService emailService,
+                                       UserService userService) {
         this.agencyRepository = agencyRepository;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
+        this.userService = userService;
     }
 
     /**
@@ -80,6 +83,9 @@ public class BusinessRegistrationService {
 
         User savedManager = userRepository.save(manager);
         System.out.println("Manager creato con successo: " + savedManager.getId());
+
+        // ✅ Aggiungi automaticamente alla tabella agency_memberships
+        userService.addAgencyMembershipIfNeeded(savedManager);
 
         // Invia l'email di conferma registrazione
         try {

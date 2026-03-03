@@ -8,7 +8,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import it.unina.dietiestates25.backend.dto.ChangePasswordRequest;
+import it.unina.dietiestates25.backend.entities.Agency;
+import it.unina.dietiestates25.backend.entities.AgencyMembership;
 import it.unina.dietiestates25.backend.entities.User;
+import it.unina.dietiestates25.backend.entities.enums.UserRole;
+import it.unina.dietiestates25.backend.repositories.AgencyMembershipRepository;
+import it.unina.dietiestates25.backend.repositories.AgencyRepository;
 import it.unina.dietiestates25.backend.repositories.UserRepository;
 
 @Service
@@ -19,6 +24,12 @@ public class UserService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private AgencyMembershipRepository agencyMembershipRepository;
+
+    @Autowired
+    private AgencyRepository agencyRepository;
 
     @Transactional
     public void changePassword(UUID userId, ChangePasswordRequest request) {
@@ -52,6 +63,50 @@ public class UserService {
         userRepository.save(user);
         
         System.out.println("✅ [UserService] Password cambiata con successo per utente: " + user.getEmail());
+    }
+
+    /**
+     * Aggiunge automaticamente un utente alla tabella agency_memberships
+     * quando viene assegnato a un'agenzia (per AGENT, AGENCY_MANAGER, ADMIN con agenzia)
+     */
+    @Transactional
+    public void addAgencyMembershipIfNeeded(User user) {
+        // Controlla se l'utente ha un'agenzia e se è un ruolo che richiede membership
+        if (user.getAgencyId() == null) {
+            System.out.println("⚠️ [UserService] Utente " + user.getEmail() + " non ha agency_id, skip membership");
+            return;
+        }
+
+        UserRole role = user.getRole();
+        if (role != UserRole.AGENT && role != UserRole.AGENCY_MANAGER && role != UserRole.ADMIN) {
+            System.out.println("⚠️ [UserService] Utente " + user.getEmail() + " ha ruolo " + role + ", non richiede membership");
+            return;
+        }
+
+        // Verifica se la membership esiste già
+        boolean exists = agencyMembershipRepository.existsByAgency_IdAndUser_Id(
+            user.getAgencyId(), 
+            user.getId()
+        );
+
+        if (exists) {
+            System.out.println("✅ [UserService] Membership già esistente per " + user.getEmail());
+            return;
+        }
+
+        // Recupera l'agenzia
+        Agency agency = agencyRepository.findById(user.getAgencyId())
+            .orElseThrow(() -> new RuntimeException("Agenzia non trovata: " + user.getAgencyId()));
+
+        // Crea la membership
+        AgencyMembership membership = new AgencyMembership();
+        membership.setAgency(agency);
+        membership.setUser(user);
+        membership.setMembershipRole(role);
+
+        agencyMembershipRepository.save(membership);
+        System.out.println("✅ [UserService] Membership creata per " + user.getEmail() + 
+                         " nell'agenzia " + agency.getName() + " con ruolo " + role);
     }
 
     public User getUserById(UUID userId) {

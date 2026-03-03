@@ -85,10 +85,10 @@ export class ListingService {
   }
 
   getMyListings(): Observable<ListingResponse[]> {
-    return this.http.get<ListingResponse[]>(`${this.API}/my-listings`);
+    return this.http.get<ListingResponse[]>(`${this.API}/agent/my-listings`);
   }
 
   createListing(propertyData: any): Observable<ListingResponse> {
-    return this.http.post<ListingResponse>(this.API, propertyData);
+    return this.http.post<ListingResponse>(`${this.API}/agent/create`, propertyData);
   }
 }

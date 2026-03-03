@@ -1,28 +1,22 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterModule, RouterLink } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { Component, signal, inject } from '@angular/core';
+import { RouterModule, Router } from '@angular/router';
 
-interface Stat {
-  label: string;
-  value: string;
-}
-
-interface Feature {
-  icon: string;
-  title: string;
-  description: string;
-}
+interface Stat { label: string; value: string; }
+interface Feature { icon: string; title: string; description: string; }
 
 @Component({
   selector: 'app-homepage',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [RouterModule],
   templateUrl: './homepage.component.html',
   styleUrl: './homepage.component.scss',
 })
-
 export class HomepageComponent {
+  private router = inject(Router);
+
+  searchQuery = signal('');
+  contractType = signal<'sale' | 'rent' | null>(null);
+
   stats: Stat[] = [
     { value: '10,000+', label: 'Immobili' },
     { value: '500+', label: 'Agenti' },
@@ -36,20 +30,18 @@ export class HomepageComponent {
     { icon: '📈', title: 'Prezzi Competitivi', description: 'Valutazioni di mercato accurate e trasparenti.' },
     { icon: '👨‍💼', title: 'Supporto Dedicato', description: 'Assistenza professionale in ogni fase.' },
   ];
-  contractType: 'sale' | 'rent' | null = null;
-
-  searchQuery = '';
-
-  onSearch(): void {
-    const searchParams = {
-      query: this.searchQuery,
-      type: this.contractType,
-    };
-
-    console.log('Search params:', searchParams);
-  }
 
   selectType(type: 'sale' | 'rent'): void {
-    this.contractType = type;
+    // Toggle: se già selezionato, deseleziona
+    this.contractType.set(this.contractType() === type ? null : type);
+  }
+
+  onSearch(): void {
+    this.router.navigate(['/pages/properties-page'], {
+      queryParams: {
+        search: this.searchQuery(),
+        type: this.contractType(),
+      }
+    });
   }
 }

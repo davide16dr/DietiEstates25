@@ -31,10 +31,10 @@
       <p class="card-subtitle">Accedi al tuo account per continuare</p>
 
       <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
-        @if (errorMessage) {
+        @if (errorMessage()) {
           <div class="error-alert">
             <span class="error-icon">⚠️</span>
-            <p class="error-msg">{{ errorMessage }}</p>
+            <p class="error-msg">{{ errorMessage() }}</p>
           </div>
         }
 
@@ -62,8 +62,8 @@
           }
         </label>
 
-        <button class="primary-btn" type="submit" [disabled]="isSubmitting">
-          {{ isSubmitting ? '⏳ Accesso in corso...' : 'Accedi' }}
+        <button class="primary-btn" type="submit" [disabled]="isSubmitting()">
+          {{ isSubmitting() ? '⏳ Accesso in corso...' : 'Accedi' }}
         </button>
 
         <div class="divider" aria-hidden="true">

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { DashboardService, Notification } from '../../../shared/services/dashboard.service';
@@ -13,46 +13,36 @@ import { DashboardService, Notification } from '../../../shared/services/dashboa
 export class NotificationsComponent implements OnInit {
   private dashboardService = inject(DashboardService);
   private router = inject(Router);
-  private cdr = inject(ChangeDetectorRef);
 
-  notifications: Notification[] = [];
-  loading = true;
+  notifications = signal<Notification[]>([]);
+  loading = signal(true);
+
+  unreadCount = computed(() => this.notifications().filter(n => !n.isRead).length);
 
   private mockNotifications: Notification[] = [
     {
-      id: 1,
-      type: 'PROPERTY_MATCH',
-      title: 'Nuovo immobile corrispondente',
+      id: 1, type: 'PROPERTY_MATCH', title: 'Nuovo immobile corrispondente',
       message: 'Un nuovo appartamento a Milano Centro corrisponde alla tua ricerca salvata.',
       createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-      isRead: false,
-      listingId: 101
+      isRead: false, listingId: 101
     },
     {
-      id: 2,
-      type: 'VISIT_CONFIRMED',
-      title: 'Visita confermata',
+      id: 2, type: 'VISIT_CONFIRMED', title: 'Visita confermata',
       message: "La tua visita all'immobile in Via Monte Napoleone è stata confermata per il 25 Gennaio alle 10:00.",
       createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-      isRead: false,
-      listingId: 102
+      isRead: false, listingId: 102
     },
     {
-      id: 3,
-      type: 'SPECIAL_OFFER',
-      title: 'Offerta speciale',
+      id: 3, type: 'SPECIAL_OFFER', title: 'Offerta speciale',
       message: 'Scopri i nuovi immobili di prestigio appena arrivati nel nostro catalogo!',
       createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
       isRead: true
     },
     {
-      id: 4,
-      type: 'COUNTEROFFER',
-      title: 'Controproposta ricevuta',
+      id: 4, type: 'COUNTEROFFER', title: 'Controproposta ricevuta',
       message: "L'agente ha inviato una controproposta per l'immobile in Piazza Duomo.",
       createdAt: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
-      isRead: true,
-      listingId: 103
+      isRead: true, listingId: 103
     }
   ];
 
@@ -61,48 +51,34 @@ export class NotificationsComponent implements OnInit {
   }
 
   loadNotifications(): void {
-    this.notifications = this.mockNotifications;
-    this.loading = false;
-    
+    this.notifications.set(this.mockNotifications);
+    this.loading.set(false);
+
     this.dashboardService.getNotifications().subscribe({
       next: (notifications) => {
-        if (notifications.length > 0) {
-          this.notifications = notifications;
-        }
+        if (notifications.length > 0) this.notifications.set(notifications);
       }
     });
   }
 
-  get unreadCount(): number {
-    return this.notifications.filter(n => !n.isRead).length;
-  }
-
   getNotificationIcon(type: string): string {
     const icons: Record<string, string> = {
-      'PROPERTY_MATCH': 'home',
-      'VISIT_CONFIRMED': 'calendar_today',
-      'OFFER_UPDATE': 'local_offer',
-      'COUNTEROFFER': 'description',
-      'SPECIAL_OFFER': 'sell'
+      PROPERTY_MATCH: 'home', VISIT_CONFIRMED: 'calendar_today',
+      OFFER_UPDATE: 'local_offer', COUNTEROFFER: 'description', SPECIAL_OFFER: 'sell'
     };
-    return icons[type] || 'notifications';
+    return icons[type] ?? 'notifications';
   }
 
   getNotificationIconClass(type: string): string {
     const classes: Record<string, string> = {
-      'PROPERTY_MATCH': 'icon-property',
-      'VISIT_CONFIRMED': 'icon-visit',
-      'OFFER_UPDATE': 'icon-offer',
-      'COUNTEROFFER': 'icon-counter',
-      'SPECIAL_OFFER': 'icon-special'
+      PROPERTY_MATCH: 'icon-property', VISIT_CONFIRMED: 'icon-visit',
+      OFFER_UPDATE: 'icon-offer', COUNTEROFFER: 'icon-counter', SPECIAL_OFFER: 'icon-special'
     };
-    return classes[type] || 'icon-default';
+    return classes[type] ?? 'icon-default';
   }
 
   formatTimeAgo(dateString: string): string {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
+    const diffMs = Date.now() - new Date(dateString).getTime();
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMins / 60);
     const diffDays = Math.floor(diffHours / 24);
@@ -118,51 +94,28 @@ export class NotificationsComponent implements OnInit {
   }
 
   markAsRead(notification: Notification): void {
-    if (!notification.isRead) {
-      this.dashboardService.markNotificationAsRead(notification.id).subscribe({
-        next: () => {
-          notification.isRead = true;
-          this.notifications = [...this.notifications];
-          this.cdr.detectChanges();
-        }
-      });
-    }
+    if (notification.isRead) return;
+    this.dashboardService.markNotificationAsRead(notification.id).subscribe({
+      next: () => this.notifications.update(list =>
+        list.map(n => n.id === notification.id ? { ...n, isRead: true } : n)
+      )
+    });
   }
 
   markAllAsRead(): void {
-    this.dashboardService.markAllNotificationsAsRead().subscribe({
-      next: () => {
-        this.notifications.forEach(n => n.isRead = true);
-        this.notifications = [...this.notifications];
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.notifications.forEach(n => n.isRead = true);
-        this.notifications = [...this.notifications];
-        this.cdr.detectChanges();
-      }
-    });
+    const doMark = () => this.notifications.update(list => list.map(n => ({ ...n, isRead: true })));
+    this.dashboardService.markAllNotificationsAsRead().subscribe({ next: doMark, error: doMark });
   }
 
   openNotification(notification: Notification): void {
     this.markAsRead(notification);
-    if (notification.listingId) {
-      this.router.navigate(['/properties', notification.listingId]);
-    }
+    if (notification.listingId) this.router.navigate(['/properties', notification.listingId]);
   }
 
   deleteNotification(notification: Notification, event: Event): void {
     event.stopPropagation();
-    this.dashboardService.deleteNotification(notification.id).subscribe({
-      next: () => {
-        this.notifications = this.notifications.filter(n => n.id !== notification.id);
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.notifications = this.notifications.filter(n => n.id !== notification.id);
-        this.cdr.detectChanges();
-      }
-    });
+    const doDelete = () => this.notifications.update(list => list.filter(n => n.id !== notification.id));
+    this.dashboardService.deleteNotification(notification.id).subscribe({ next: doDelete, error: doDelete });
   }
 
   openSettings(): void {

@@ -21,6 +21,7 @@ import it.unina.dietiestates25.backend.repositories.ListingImageRepository;
 import it.unina.dietiestates25.backend.repositories.ListingRepository;
 import it.unina.dietiestates25.backend.repositories.PropertyRepository;
 import it.unina.dietiestates25.backend.repositories.UserRepository;
+import it.unina.dietiestates25.backend.services.UserService;
 
 @Component
 public class DataSeeder implements CommandLineRunner {
@@ -31,25 +32,47 @@ public class DataSeeder implements CommandLineRunner {
     private final ListingImageRepository listingImageRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserService userService;
 
     public DataSeeder(AgencyRepository agencyRepository,
                       PropertyRepository propertyRepository,
                       ListingRepository listingRepository,
                       ListingImageRepository listingImageRepository,
                       UserRepository userRepository,
-                      PasswordEncoder passwordEncoder) {
+                      PasswordEncoder passwordEncoder,
+                      UserService userService) {
         this.agencyRepository = agencyRepository;
         this.propertyRepository = propertyRepository;
         this.listingRepository = listingRepository;
         this.listingImageRepository = listingImageRepository;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.userService = userService;
     }
 
     @Override
     public void run(String... args) {
         // ========== CREAZIONE UTENTI DI TEST (sempre eseguita) ==========
-        createTestUsers();
+        
+        // Crea o ottieni l'agenzia PRIMA di creare gli utenti
+        Agency agency = null;
+        if (agencyRepository.count() == 0) {
+            agency = new Agency();
+            agency.setId(UUID.randomUUID());
+            agency.setName("Agenzia Immobiliare Milano Centro");
+            agency.setVatNumber("12345678901");
+            agency.setAddress("Via Dante 10");
+            agency.setCity("Milano");
+            agency.setPhoneE164("+390212345678");
+            agency.setEmail("info@agenziamc.it");
+            agency = agencyRepository.save(agency);
+            System.out.println("🏢 Agenzia creata: " + agency.getName());
+        } else {
+            agency = agencyRepository.findAll().get(0);
+            System.out.println("🏢 Agenzia esistente: " + agency.getName());
+        }
+        
+        createTestUsers(agency);
 
         // Evita di inserire dati se già esistono più di 15 annunci
         if (listingRepository.count() >= 15) {
@@ -57,18 +80,9 @@ public class DataSeeder implements CommandLineRunner {
             return;
         }
 
-        System.out.println("🌱 Inizio popolamento database...");
+        System.out.println("🌱 Inizio popolamento database con proprietà di test...");
 
-        // Crea agenzia
-        Agency agency = new Agency();
-        agency.setId(UUID.randomUUID());
-        agency.setName("Agenzia Immobiliare Milano Centro");
-        agency.setVatNumber("12345678901");
-        agency.setAddress("Via Dante 10");
-        agency.setCity("Milano");
-        agency.setPhoneE164("+390212345678");
-        agency.setEmail("info@agenziamc.it");
-        agency = agencyRepository.save(agency);
+        // ✅ USA LA STESSA AGENZIA già creata sopra (non crearne una nuova!)
 
         // Proprietà 1 - Appartamento in vendita
         Property prop1 = createProperty(agency, "Milano", "Via Monte Napoleone 15", 
@@ -289,7 +303,7 @@ public class DataSeeder implements CommandLineRunner {
         System.out.println("✅ Database popolato con successo! 16 annunci e 4 utenti di test inseriti.");
     }
 
-    private void createTestUsers() {
+    private void createTestUsers(Agency agency) {
         // Crea Admin se non esiste
         if (!userRepository.existsByEmail("admin@dietiestates.it")) {
             User admin = new User();
@@ -300,7 +314,7 @@ public class DataSeeder implements CommandLineRunner {
             admin.setLastName("Sistema");
             admin.setRole(UserRole.ADMIN);
             admin.setActive(true);
-            userRepository.save(admin);
+            admin = userRepository.save(admin);
             System.out.println("👤 Admin creato: admin@dietiestates.it / Admin123!");
         }
 
@@ -315,8 +329,20 @@ public class DataSeeder implements CommandLineRunner {
             agent.setRole(UserRole.AGENT);
             agent.setActive(true);
             agent.setPhoneE164("+393331234567");
-            userRepository.save(agent);
-            System.out.println("👤 Agente creato: agente@dietiestates.it / Agente123!");
+            agent.setAgencyId(agency.getId());
+            agent = userRepository.save(agent);
+            // ✅ Aggiungi automaticamente alla tabella agency_memberships
+            userService.addAgencyMembershipIfNeeded(agent);
+            System.out.println("👤 Agente creato: agente@dietiestates.it / Agente123! (Agenzia: " + agency.getName() + ")");
+        } else {
+            // Aggiorna agente esistente se non ha agenzia
+            User agent = userRepository.findByEmail("agente@dietiestates.it").orElse(null);
+            if (agent != null && agent.getAgencyId() == null) {
+                agent.setAgencyId(agency.getId());
+                agent = userRepository.save(agent);
+                userService.addAgencyMembershipIfNeeded(agent);
+                System.out.println("👤 Agente aggiornato con agenzia: " + agency.getName());
+            }
         }
 
         // Crea secondo Agente se non esiste
@@ -330,8 +356,20 @@ public class DataSeeder implements CommandLineRunner {
             agent2.setRole(UserRole.AGENT);
             agent2.setActive(true);
             agent2.setPhoneE164("+393339876543");
-            userRepository.save(agent2);
-            System.out.println("👤 Secondo Agente creato: agente2@dietiestates.it / Agente2123!");
+            agent2.setAgencyId(agency.getId());
+            agent2 = userRepository.save(agent2);
+            // ✅ Aggiungi automaticamente alla tabella agency_memberships
+            userService.addAgencyMembershipIfNeeded(agent2);
+            System.out.println("👤 Secondo Agente creato: agente2@dietiestates.it / Agente2123! (Agenzia: " + agency.getName() + ")");
+        } else {
+            // Aggiorna agente esistente se non ha agenzia
+            User agent2 = userRepository.findByEmail("agente2@dietiestates.it").orElse(null);
+            if (agent2 != null && agent2.getAgencyId() == null) {
+                agent2.setAgencyId(agency.getId());
+                agent2 = userRepository.save(agent2);
+                userService.addAgencyMembershipIfNeeded(agent2);
+                System.out.println("👤 Secondo Agente aggiornato con agenzia: " + agency.getName());
+            }
         }
 
         // Crea Cliente se non esiste
@@ -345,7 +383,7 @@ public class DataSeeder implements CommandLineRunner {
             client.setRole(UserRole.CLIENT);
             client.setActive(true);
             client.setPhoneE164("+393337654321");
-            userRepository.save(client);
+            client = userRepository.save(client);
             System.out.println("👤 Cliente creato: cliente@dietiestates.it / Cliente123!");
         }
 
@@ -360,8 +398,20 @@ public class DataSeeder implements CommandLineRunner {
             gestore.setRole(UserRole.AGENCY_MANAGER);
             gestore.setActive(true);
             gestore.setPhoneE164("+393338765432");
-            userRepository.save(gestore);
-            System.out.println("👤 Gestore creato: gestore@dietiestates.it / Gestore123!");
+            gestore.setAgencyId(agency.getId());
+            gestore = userRepository.save(gestore);
+            // ✅ Aggiungi automaticamente alla tabella agency_memberships
+            userService.addAgencyMembershipIfNeeded(gestore);
+            System.out.println("👤 Gestore creato: gestore@dietiestates.it / Gestore123! (Agenzia: " + agency.getName() + ")");
+        } else {
+            // Aggiorna gestore esistente se non ha agenzia
+            User gestore = userRepository.findByEmail("gestore@dietiestates.it").orElse(null);
+            if (gestore != null && gestore.getAgencyId() == null) {
+                gestore.setAgencyId(agency.getId());
+                gestore = userRepository.save(gestore);
+                userService.addAgencyMembershipIfNeeded(gestore);
+                System.out.println("👤 Gestore aggiornato con agenzia: " + agency.getName());
+            }
         }
     }
 
