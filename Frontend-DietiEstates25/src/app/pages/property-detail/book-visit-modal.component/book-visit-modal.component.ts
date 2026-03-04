@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, input, output } from '@angular/core';
+import { Component, computed, input, output, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 export type BookVisitPayload = {
@@ -24,11 +24,17 @@ export class BookVisitModalComponent {
   closed = output<void>();
   submitted = output<BookVisitPayload>();
 
+  // Get today's date in YYYY-MM-DD format
+  minDate = new Date().toISOString().split('T')[0];
+
   form = new FormGroup({
     date: new FormControl<string>('', { nonNullable: true, validators: [Validators.required] }),
     time: new FormControl<string>('', { nonNullable: true }),
     notes: new FormControl<string>('', { nonNullable: true }),
   });
+
+  // Use a signal instead of computed
+  canSubmit = signal(false);
 
   constructor() {
     const d = this.initialDate();
@@ -36,9 +42,22 @@ export class BookVisitModalComponent {
 
     if (d && !this.form.controls.date.value) this.form.controls.date.setValue(d);
     if (t && !this.form.controls.time.value) this.form.controls.time.setValue(t);
+    
+    // Update canSubmit signal when form validity changes
+    this.form.statusChanges.subscribe(() => {
+      this.canSubmit.set(this.form.valid);
+    });
+    
+    // Initial check
+    this.canSubmit.set(this.form.valid);
+    
+    // Debug: log form changes
+    this.form.valueChanges.subscribe(value => {
+      console.log('Form values:', value);
+      console.log('Form valid:', this.form.valid);
+      console.log('Date errors:', this.form.controls.date.errors);
+    });
   }
-
-  canSubmit = computed(() => this.form.valid);
 
   close(): void {
     this.closed.emit();

@@ -3,7 +3,9 @@ import { CommonModule, Location } from '@angular/common';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { ListingService } from '../../../shared/services/listing.service';
 import { OfferService, OfferRequest } from '../../../shared/services/offer.service';
+import { DashboardService } from '../../../shared/services/dashboard.service';
 import { MakeOfferModalComponent, MakeOfferPayload } from '../make-offer-modal.component/make-offer-modal.component';
+import { BookVisitModalComponent, BookVisitPayload } from '../book-visit-modal.component/book-visit-modal.component';
 
 type DealType = 'Vendita' | 'Affitto';
 type Availability = 'Disponibile' | 'Non disponibile';
@@ -37,6 +39,7 @@ type PropertyDetail = {
   agent: {
     name: string;
     roleLabel: string;
+    agency?: string;
     phone: string;
     email: string;
     initials: string;
@@ -48,7 +51,7 @@ type PropertyDetail = {
 @Component({
   selector: 'app-property-detail-page',
   standalone: true,
-  imports: [CommonModule, RouterModule, MakeOfferModalComponent],
+  imports: [CommonModule, RouterModule, MakeOfferModalComponent, BookVisitModalComponent],
   templateUrl: './property-detail.page.html',
   styleUrls: ['./property-detail.page.scss'],
 })
@@ -58,9 +61,12 @@ export class PropertyDetailPage implements OnInit {
   private location = inject(Location);
   private listingService = inject(ListingService);
   private offerService = inject(OfferService);
+  private dashboardService = inject(DashboardService);
   
   showMakeOfferModal = signal(false);
+  showBookVisitModal = signal(false);
   submittingOffer = signal(false);
+  submittingVisit = signal(false);
 
   // TODO: da sostituire
   private mock: PropertyDetail = {
@@ -114,11 +120,12 @@ export class PropertyDetailPage implements OnInit {
         description: l.description ?? l.publicText ?? '',
         features: [],
         agent: {
-          name: '',
+          name: l.agentName ?? 'Agente Immobiliare',
           roleLabel: 'Agente Immobiliare',
-          phone: '',
-          email: '',
-          initials: ''
+          agency: l.agencyName ?? 'DietiEstates25',
+          phone: l.agentPhone ?? '+39 02 1234567',
+          email: l.agentEmail ?? 'info@dietiestates.it',
+          initials: this.getInitials(l.agentName)
         },
         images: Array.isArray(l.imageUrls) && l.imageUrls.length ? l.imageUrls : ['assets/placeholders/property-hero.jpg']
       };
@@ -161,14 +168,24 @@ export class PropertyDetailPage implements OnInit {
       description: l.description ?? l.publicText ?? '',
       features: [],
       agent: {
-        name: l.agentName ?? '',
+        name: l.agentName ?? 'Agente Immobiliare',
         roleLabel: 'Agente Immobiliare',
-        phone: l.agentPhone ?? '',
-        email: l.agentEmail ?? '',
-        initials: ''
+        agency: l.agencyName ?? 'DietiEstates25',
+        phone: l.agentPhone ?? '+39 02 1234567',
+        email: l.agentEmail ?? 'info@dietiestates.it',
+        initials: this.getInitials(l.agentName)
       },
       images: Array.isArray(l.imageUrls) && l.imageUrls.length ? l.imageUrls : ['assets/placeholders/property-hero.jpg']
     };
+  }
+
+  private getInitials(name: string | null | undefined): string {
+    if (!name) return 'AI';
+    const parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
   }
 
   priceLabel = computed(() => {
@@ -198,6 +215,52 @@ export class PropertyDetailPage implements OnInit {
 
   closeMakeOfferModal(): void {
     this.showMakeOfferModal.set(false);
+  }
+
+  onBookVisit(): void {
+    this.showBookVisitModal.set(true);
+  }
+
+  closeBookVisitModal(): void {
+    this.showBookVisitModal.set(false);
+  }
+
+  onVisitSubmitted(payload: BookVisitPayload): void {
+    const property = this.property();
+    const propertyId = property.id;
+
+    if (!propertyId) {
+      alert('ID proprietà non valido');
+      return;
+    }
+
+    this.submittingVisit.set(true);
+
+    this.dashboardService.createVisit(propertyId, payload.date, payload.time, payload.notes).subscribe({
+      next: (response) => {
+        console.log('✅ Visit booked successfully:', response);
+        this.submittingVisit.set(false);
+        this.closeBookVisitModal();
+        
+        alert(`Richiesta di visita inviata con successo per il ${payload.date}!`);
+        
+        if (confirm('Vuoi visualizzare le tue visite?')) {
+          this.router.navigate(['/dashboard/visits']);
+        }
+      },
+      error: (error) => {
+        this.submittingVisit.set(false);
+        console.error('❌ Error booking visit:', error);
+        
+        if (error.status === 404) {
+          alert('Proprietà non trovata.');
+        } else if (error.status === 400) {
+          alert('Dati visita non validi.');
+        } else {
+          alert('Errore nella prenotazione della visita. Riprova più tardi.');
+        }
+      }
+    });
   }
 
   onOfferSubmitted(payload: MakeOfferPayload): void {

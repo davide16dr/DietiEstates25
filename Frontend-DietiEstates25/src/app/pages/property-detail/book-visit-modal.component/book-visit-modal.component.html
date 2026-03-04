@@ -9,7 +9,7 @@
       <form class="body" [formGroup]="form" (ngSubmit)="submit()">
         <label class="label">Data preferita</label>
         <div class="input-wrap">
-          <input type="date" formControlName="date" />
+          <input type="date" formControlName="date" [min]="minDate" />
         </div>
         @if (form.controls.date.touched && form.controls.date.invalid) {
           <p class="error">Seleziona una data.</p>

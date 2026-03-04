@@ -54,7 +54,7 @@ public class Visit extends Auditable {
     private Instant scheduledFor;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, columnDefinition = "visit_status")
+    @Column(nullable = false)
     private VisitStatus status = VisitStatus.REQUESTED;
 
     @Column(columnDefinition = "text")

@@ -19,7 +19,7 @@ p{
 
 .stats{
   display:grid;
-  grid-template-columns:repeat(3, minmax(0, 1fr));
+  grid-template-columns:repeat(5, minmax(0, 1fr));
   gap:16px;
   margin:10px 0 18px;
 }
@@ -55,6 +55,38 @@ p{
   font-size:28px;
   font-weight:900;
   color:#111827;
+}
+
+.filters{
+  display:flex;
+  gap:12px;
+  margin:20px 0;
+  padding:8px;
+  background:#fff;
+  border:1px solid #eceef0;
+  border-radius:16px;
+}
+
+.filter-btn{
+  padding:10px 20px;
+  border-radius:10px;
+  font-size:14px;
+  font-weight:700;
+  cursor:pointer;
+  border:none;
+  background:transparent;
+  color:#6b7280;
+  transition:all 0.2s;
+}
+
+.filter-btn:hover{
+  background:#f9fafb;
+  color:#111827;
+}
+
+.filter-btn.active{
+  background:#2563eb;
+  color:#fff;
 }
 
 .visits-list{
@@ -113,6 +145,11 @@ p{
 .status-completed{
   background:#eaf2ff;
   color:#2563eb;
+}
+
+.status-cancelled{
+  background:#ffe9e9;
+  color:#dc2626;
 }
 
 .visit-details{
@@ -210,6 +247,7 @@ p{
 }
 
 @media (max-width: 1100px){
-  .stats{ grid-template-columns:1fr; }
+  .stats{ grid-template-columns:repeat(2, 1fr); }
+  .filters{ flex-wrap:wrap; }
   .visit-header{ flex-direction:column; }
 }

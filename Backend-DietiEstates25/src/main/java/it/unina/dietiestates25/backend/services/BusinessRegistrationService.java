@@ -84,7 +84,7 @@ public class BusinessRegistrationService {
         User savedManager = userRepository.save(manager);
         System.out.println("Manager creato con successo: " + savedManager.getId());
 
-        // ✅ Aggiungi automaticamente alla tabella agency_memberships
+        // Aggiungi automaticamente alla tabella agency_memberships
         userService.addAgencyMembershipIfNeeded(savedManager);
 
         // Invia l'email di conferma registrazione
