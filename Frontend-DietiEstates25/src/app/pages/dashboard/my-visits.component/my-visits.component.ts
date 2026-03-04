@@ -45,56 +45,17 @@ export class MyVisitsComponent {
   }
 
   loadVisits(): void {
-    // Dati mock di fallback
-    const mockVisits: Visit[] = [
-      {
-        id: 1,
-        propertyId: 101,
-        propertyTitle: 'Appartamento Centro Storico',
-        propertyAddress: 'Via Roma 45, Napoli',
-        scheduledDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
-        scheduledTime: '10:00',
-        status: 'CONFIRMED',
-        agentName: 'Marco Rossi'
-      },
-      {
-        id: 2,
-        propertyId: 102,
-        propertyTitle: 'Villa con Giardino',
-        propertyAddress: 'Via dei Fiori 12, Napoli',
-        scheduledDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
-        scheduledTime: '15:30',
-        status: 'PENDING',
-        agentName: 'Laura Bianchi'
-      },
-      {
-        id: 3,
-        propertyId: 103,
-        propertyTitle: 'Monolocale Vomero',
-        propertyAddress: 'Via Scarlatti 78, Napoli',
-        scheduledDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-        scheduledTime: '11:00',
-        status: 'COMPLETED',
-        agentName: 'Giovanni Verdi'
-      },
-      {
-        id: 4,
-        propertyId: 104,
-        propertyTitle: 'Attico Panoramico',
-        propertyAddress: 'Via Posillipo 200, Napoli',
-        scheduledDate: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
-        scheduledTime: '16:00',
-        status: 'CANCELLED',
-        agentName: 'Anna Neri'
-      }
-    ];
-
-    this.visits.set(mockVisits);
-    this.loading.set(false);
-
+    this.loading.set(true);
+    
     this.dashboardService.getVisits().subscribe({
       next: (visits) => {
-        if (visits.length > 0) this.visits.set(visits);
+        this.visits.set(visits);
+        this.loading.set(false);
+      },
+      error: (err) => {
+        console.error('Error loading visits:', err);
+        this.visits.set([]);
+        this.loading.set(false);
       }
     });
   }

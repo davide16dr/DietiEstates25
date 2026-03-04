@@ -25,6 +25,8 @@ export interface Visit {
   scheduledDate: string;
   scheduledTime: string;
   agentName: string;
+  clientName?: string;
+  clientEmail?: string;
   note?: string;
 }
 
@@ -59,6 +61,21 @@ export interface SavedSearch {
   notificationsEnabled: boolean;
   createdAt: string;
   resultsCount?: number;
+}
+
+export interface ClientStats {
+  totalVisits: number;
+  pendingVisits: number;
+  completedVisits: number;
+  favoriteProperties: number;
+}
+
+export interface AgentStats {
+  totalVisits: number;
+  pendingVisits: number;
+  completedVisits: number;
+  todayVisits: number;
+  totalProperties: number;
 }
 
 @Injectable({
@@ -134,5 +151,61 @@ export class DashboardService {
 
   createSavedSearch(search: Partial<SavedSearch>): Observable<SavedSearch> {
     return this.http.post<SavedSearch>(`${this.apiUrl}/client/saved-searches`, search);
+  }
+
+  // ============ STATISTICS ============
+
+  getClientStats(): Observable<ClientStats> {
+    return this.http.get<ClientStats>(`${this.apiUrl}/dashboard/client/stats`).pipe(
+      timeout(3000),
+      catchError(() => of({ totalVisits: 0, pendingVisits: 0, completedVisits: 0, favoriteProperties: 0 }))
+    );
+  }
+
+  getAgentStats(): Observable<AgentStats> {
+    return this.http.get<AgentStats>(`${this.apiUrl}/dashboard/agent/stats`).pipe(
+      timeout(3000),
+      catchError(() => of({ totalVisits: 0, pendingVisits: 0, completedVisits: 0, todayVisits: 0, totalProperties: 0 }))
+    );
+  }
+
+  // ============ AGENT VISITS ============
+
+  getAgentVisits(): Observable<Visit[]> {
+    return this.http.get<Visit[]>(`${this.apiUrl}/agent/visits`).pipe(
+      timeout(3000),
+      catchError(() => of([]))
+    );
+  }
+
+  // ============ CREATE VISIT ============
+
+  createVisit(propertyId: string, date: string, time?: string, notes?: string): Observable<Visit> {
+    // Convert date and time to ISO format (Instant)
+    let scheduledFor: string;
+    
+    if (time) {
+      scheduledFor = new Date(`${date}T${time}:00`).toISOString();
+    } else {
+      scheduledFor = new Date(`${date}T10:00:00`).toISOString();
+    }
+
+    return this.http.post<Visit>(`${this.apiUrl}/client/visits`, {
+      listingId: propertyId,
+      scheduledFor: scheduledFor,
+      notes: notes
+    });
+  }
+
+  confirmVisit(id: number): Observable<void> {
+    return this.http.patch<void>(`${this.apiUrl}/agent/visits/${id}/confirm`, {});
+  }
+
+  completeVisit(id: number): Observable<void> {
+    return this.http.patch<void>(`${this.apiUrl}/agent/visits/${id}/complete`, {});
+  }
+
+  rejectVisit(id: number, reason?: string): Observable<void> {
+    return this.http.patch<void>(`${this.apiUrl}/agent/visits/${id}/reject`, { reason });
   }
 }

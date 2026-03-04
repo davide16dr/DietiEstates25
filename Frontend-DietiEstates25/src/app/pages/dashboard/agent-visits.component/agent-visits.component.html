@@ -11,7 +11,7 @@
       <div class="stat-label">In Attesa</div>
       <div class="pill" style="background: #fff4e5; color: #b45309;">⏱️</div>
     </div>
-    <div class="stat-value">{{ stats.inAttesa }}</div>
+    <div class="stat-value">{{ stats().inAttesa }}</div>
   </div>
 
   <div class="stat-card">
@@ -19,7 +19,7 @@
       <div class="stat-label">Confermate</div>
       <div class="pill" style="background: #e9f7ef; color: #0f7a55;">✓</div>
     </div>
-    <div class="stat-value">{{ stats.confermate }}</div>
+    <div class="stat-value">{{ stats().confermate }}</div>
   </div>
 
   <div class="stat-card">
@@ -27,17 +27,64 @@
       <div class="stat-label">Completate</div>
       <div class="pill" style="background: #eaf2ff; color: #2563eb;">🏁</div>
     </div>
-    <div class="stat-value">{{ stats.completate }}</div>
+    <div class="stat-value">{{ stats().completate }}</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-top">
+      <div class="stat-label">Rifiutate</div>
+      <div class="pill" style="background: #ffe9e9; color: #dc2626;">✕</div>
+    </div>
+    <div class="stat-value">{{ stats().rifiutate }}</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-top">
+      <div class="stat-label">Passate</div>
+      <div class="pill" style="background: #f3f4f6; color: #6b7280;">📅</div>
+    </div>
+    <div class="stat-value">{{ stats().passate }}</div>
   </div>
 </section>
 
+<section class="filters">
+  <button 
+    class="filter-btn" 
+    [class.active]="activeFilter() === 'all'"
+    (click)="setFilter('all')">
+    Tutte
+  </button>
+  <button 
+    class="filter-btn" 
+    [class.active]="activeFilter() === 'confirmed'"
+    (click)="setFilter('confirmed')">
+    Accettate
+  </button>
+  <button 
+    class="filter-btn" 
+    [class.active]="activeFilter() === 'cancelled'"
+    (click)="setFilter('cancelled')">
+    Rifiutate
+  </button>
+  <button 
+    class="filter-btn" 
+    [class.active]="activeFilter() === 'past'"
+    (click)="setFilter('past')">
+    Passate
+  </button>
+</section>
+
 <section class="visits-list">
-  @for (visit of visits; track visit.id) {
+  @if (loading()) {
+    <div class="loading-state">Caricamento visite...</div>
+  }
+  
+  @for (visit of filteredVisits(); track visit.id) {
     <div class="visit-card">
       <div class="visit-header">
         <div>
           <h3 class="visit-property">{{ visit.propertyTitle }}</h3>
-          <div class="visit-location">📍 {{ visit.propertyLocation }}</div>
+          <div class="visit-location">📍 {{ visit.propertyAddress }}</div>
         </div>
         <span class="status-badge" [ngClass]="getStatusClass(visit.status)">
           {{ getStatusLabel(visit.status) }}
@@ -47,51 +94,60 @@
       <div class="visit-details">
         <div class="detail-row">
           <span class="detail-label">Cliente:</span>
-          <span class="detail-value">{{ visit.clientName }}</span>
+          <span class="detail-value">{{ visit.clientName || 'N/A' }}</span>
         </div>
         <div class="detail-row">
           <span class="detail-label">Email:</span>
-          <span class="detail-value">{{ visit.clientEmail }}</span>
+          <span class="detail-value">{{ visit.clientEmail || 'N/A' }}</span>
         </div>
         <div class="detail-row">
           <span class="detail-label">Data:</span>
-          <span class="detail-value">📅 {{ visit.date }}</span>
+          <span class="detail-value">📅 {{ formatDate(visit.scheduledDate) }}</span>
         </div>
         <div class="detail-row">
           <span class="detail-label">Ora:</span>
-          <span class="detail-value">⏰ {{ visit.time }}</span>
+          <span class="detail-value">⏰ {{ visit.scheduledTime }}</span>
         </div>
-        @if (visit.notes) {
+        @if (visit.note) {
           <div class="detail-row">
             <span class="detail-label">Note:</span>
-            <span class="detail-value notes">{{ visit.notes }}</span>
+            <span class="detail-value notes">{{ visit.note }}</span>
           </div>
         }
       </div>
 
       <div class="visit-actions">
-        @if (visit.status === 'in-attesa') {
+        @if (visit.status === 'REQUESTED') {
           <button class="action-btn success" (click)="confirmVisit(visit.id)">
             ✓ Conferma
           </button>
         }
-        @if (visit.status === 'confermata') {
+        @if (visit.status === 'CONFIRMED') {
           <button class="action-btn primary" (click)="completeVisit(visit.id)">
             ✓ Segna Completata
           </button>
         }
-        <button class="action-btn secondary" (click)="rejectVisit(visit.id)">
-          ✕ Rifiuta
-        </button>
+        @if (visit.status !== 'COMPLETED' && visit.status !== 'CANCELLED') {
+          <button class="action-btn secondary" (click)="rejectVisit(visit.id)">
+            ✕ Rifiuta
+          </button>
+        }
       </div>
     </div>
   }
 
-  @if (visits.length === 0) {
+  @if (!loading() && filteredVisits().length === 0) {
     <div class="empty-state">
       <div class="empty-icon">📅</div>
-      <div class="empty-title">Nessuna visita programmata</div>
-      <div class="empty-text">Le richieste di visita appariranno qui</div>
+      <div class="empty-title">Nessuna visita trovata</div>
+      <div class="empty-text">
+        @switch (activeFilter()) {
+          @case ('confirmed') { Non ci sono visite confermate }
+          @case ('cancelled') { Non ci sono visite rifiutate }
+          @case ('past') { Non ci sono visite passate }
+          @default { Le richieste di visita appariranno qui }
+        }
+      </div>
     </div>
   }
 </section>

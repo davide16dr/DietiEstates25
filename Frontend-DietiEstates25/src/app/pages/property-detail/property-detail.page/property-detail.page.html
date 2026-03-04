@@ -95,6 +95,9 @@
             <div class="avatar">{{ property().agent.initials }}</div>
             <div class="agent-meta">
               <div class="agent-name">{{ property().agent.name }}</div>
+              @if (property().agent.agency) {
+                <div class="agent-agency">{{ property().agent.agency }}</div>
+              }
               <div class="agent-role">{{ property().agent.roleLabel }}</div>
             </div>
           </div>
@@ -113,6 +116,11 @@
 
           <div class="divider"></div>
 
+          <button class="cta cta-primary" type="button" (click)="onBookVisit()">
+            <span class="cta-ic">📅</span>
+            <span>Prenota una visita</span>
+          </button>
+
           <button class="cta cta-ghost" type="button" (click)="onMakeOffer()">
             <span class="cta-ic">€</span>
             <span>Fai un'offerta</span>
@@ -129,5 +137,13 @@
       (closed)="closeMakeOfferModal()"
       (submitted)="onOfferSubmitted($event)">
     </app-make-offer-modal>
+  }
+
+  @if (showBookVisitModal()) {
+    <app-book-visit-modal 
+      [open]="showBookVisitModal()" 
+      (closed)="closeBookVisitModal()"
+      (submitted)="onVisitSubmitted($event)">
+    </app-book-visit-modal>
   }
 </div>
