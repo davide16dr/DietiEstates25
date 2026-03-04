@@ -189,8 +189,7 @@ export class EditPropertyModalComponent {
     if (this.propertyForm.valid) {
       const formValue = this.propertyForm.getRawValue();
       
-      const formData = {
-        id: this.property().id,
+      const updateData = {
         property: {
           city: formValue.city,
           address: formValue.address,
@@ -209,11 +208,11 @@ export class EditPropertyModalComponent {
           price_amount: formValue.price_amount,
           currency: formValue.currency,
           status: formValue.status
-        },
-        images: this.selectedImages()
+        }
       };
       
-      this.save.emit(formData);
+      console.log('📤 Dati da inviare al backend:', updateData);
+      this.save.emit(updateData);
     } else {
       this.propertyForm.markAllAsTouched();
     }

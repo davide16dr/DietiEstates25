@@ -1,8 +1,8 @@
 import { inject } from '@angular/core';
-import { CanActivateFn, Router } from '@angular/router';
+import { CanActivateFn, Router, ActivatedRouteSnapshot } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 
-export const dashboardRoleGuard: CanActivateFn = (route, state) => {
+export const dashboardRoleGuard: CanActivateFn = (route: ActivatedRouteSnapshot, state) => {
   const authService = inject(AuthService);
   const router = inject(Router);
   
@@ -14,27 +14,34 @@ export const dashboardRoleGuard: CanActivateFn = (route, state) => {
   }
 
   const role = user.role?.toLowerCase();
+  const path = route.routeConfig?.path || '';
 
-  // Se l'utente sta accedendo a /dashboard (root), reindirizza alla dashboard corretta
-  if (state.url === '/dashboard' || state.url === '/dashboard/') {
-    switch (role) {
-      case 'admin':
-        router.navigate(['/dashboard/admin-home']);
-        return false;
-      case 'agency_manager':
-        router.navigate(['/dashboard/manager-home']);
-        return false;
-      case 'agent':
-        router.navigate(['/dashboard/agent-properties']);
-        return false;
-      case 'client':
-        router.navigate(['/dashboard/home']);
-        return false;
-      default:
-        router.navigate(['/dashboard/home']);
-        return false;
-    }
+  console.log(`🔒 Guard: ruolo=${role}, path=${path}, url=${state.url}`);
+
+  // Mappa delle rotte autorizzate per ogni ruolo
+  const roleRoutes: { [key: string]: string[] } = {
+    'admin': ['home', 'admin-home', 'admin-managers', 'admin-agents', 'admin-agency-info'], 
+    'agency_manager': ['home', 'manager-home', 'manager-agents', 'manager-properties'], 
+    'agent': ['home', 'agent-properties', 'agent-visits', 'agent-offers'],
+    'client': ['home', 'saved-searches', 'visits', 'offers', 'notifications']
+  };
+
+  // Ottieni le rotte autorizzate per il ruolo
+  const allowedRoutes = roleRoutes[role] || [];
+  
+  // Se la rotta è autorizzata, permetti l'accesso
+  if (allowedRoutes.includes(path)) {
+    console.log(`✅ Accesso consentito a "${path}" per ruolo "${role}"`);
+    return true;
   }
+  
+  // Se la rotta NON è autorizzata, reindirizza alla dashboard corretta
+  console.warn(`⚠️ Accesso negato: l'utente con ruolo "${role}" sta tentando di accedere a "${path}"`);
+  
+  // Rotta di defaul
+  let defaultRoute = '/dashboard/home';
 
-  return true;
+  
+  router.navigate([defaultRoute]);
+  return false;
 };

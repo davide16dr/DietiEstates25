@@ -73,7 +73,6 @@ public class UserService {
     public void addAgencyMembershipIfNeeded(User user) {
         // Controlla se l'utente ha un'agenzia e se è un ruolo che richiede membership
         if (user.getAgencyId() == null) {
-            System.out.println("⚠️ [UserService] Utente " + user.getEmail() + " non ha agency_id, skip membership");
             return;
         }
 
@@ -112,5 +111,31 @@ public class UserService {
     public User getUserById(UUID userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Utente non trovato"));
+    }
+
+    /**
+     * Crea un nuovo utente con password e lo salva nel database
+     */
+    @Transactional
+    public User createUserWithPassword(User user, String password) {
+        System.out.println("➕ [UserService] Creazione nuovo utente: " + user.getEmail());
+        
+        // Valida la password
+        if (password == null || password.length() < 8) {
+            throw new RuntimeException("La password deve contenere almeno 8 caratteri");
+        }
+        
+        // Hash della password
+        String hashedPassword = passwordEncoder.encode(password);
+        user.setPasswordHash(hashedPassword);
+        
+        // Salva l'utente
+        User savedUser = userRepository.save(user);
+        System.out.println("✅ [UserService] Utente salvato: " + savedUser.getId());
+        
+        // Aggiungi la membership all'agenzia se necessario
+        addAgencyMembershipIfNeeded(savedUser);
+        
+        return savedUser;
     }
 }

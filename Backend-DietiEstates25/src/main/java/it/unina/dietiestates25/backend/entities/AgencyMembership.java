@@ -2,6 +2,9 @@ package it.unina.dietiestates25.backend.entities;
 
 import java.util.UUID;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import it.unina.dietiestates25.backend.entities.enums.UserRole;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

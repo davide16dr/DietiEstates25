@@ -81,6 +81,44 @@ public class ListingService {
             .collect(Collectors.toList());
     }
 
+    /**
+     * Recupera tutti gli immobili dell'agenzia per il manager loggato
+     */
+    @Transactional(readOnly = true)
+    public List<ListingResponse> getAllAgencyListings(java.util.UUID userId) {
+        // Recupera l'utente (manager) dal database
+        it.unina.dietiestates25.backend.entities.User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        
+        // Verifica che l'utente abbia un'agenzia associata
+        if (user.getAgencyId() == null) {
+            throw new IllegalArgumentException("User does not have an associated agency");
+        }
+        
+        java.util.UUID agencyId = user.getAgencyId();
+        System.out.println("📋 Recupero immobili per agenzia: " + agencyId);
+        
+        // Recupera tutti gli agenti dell'agenzia
+        List<it.unina.dietiestates25.backend.entities.User> agents = userRepository.findByAgencyIdAndRole(
+            agencyId, 
+            it.unina.dietiestates25.backend.entities.enums.UserRole.AGENT
+        );
+        
+        System.out.println("👥 Agenti trovati: " + agents.size());
+        
+        // Recupera tutti gli immobili degli agenti
+        List<java.util.UUID> agentIds = agents.stream()
+            .map(it.unina.dietiestates25.backend.entities.User::getId)
+            .collect(Collectors.toList());
+        
+        List<Listing> listings = listingRepository.findByAgentIdIn(agentIds);
+        System.out.println("🏠 Immobili trovati: " + listings.size());
+        
+        return listings.stream()
+            .map(this::mapToResponse)
+            .collect(Collectors.toList());
+    }
+
     @Transactional
     public ListingResponse createListingWithProperty(
             java.util.UUID agentId,
@@ -156,6 +194,122 @@ public class ListingService {
         return mapToResponse(listing);
     }
 
+    @Transactional
+    public ListingResponse updateListing(
+            java.util.UUID listingId,
+            java.util.UUID userId,
+            it.unina.dietiestates25.backend.dto.listing.UpdateListingRequest request) {
+        
+        System.out.println("🔄 Aggiornamento listing ID: " + listingId);
+        
+        // Recupera il listing esistente
+        Listing listing = listingRepository.findById(listingId)
+                .orElseThrow(() -> new IllegalArgumentException("Listing not found"));
+        
+        // Verifica che l'utente abbia i permessi (deve essere l'agente proprietario o un manager della stessa agenzia)
+        it.unina.dietiestates25.backend.entities.User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        
+        // 🔍 LOG DI DEBUG PER IL CHECK DI SICUREZZA
+        System.out.println("🔐 === DEBUG CHECK SICUREZZA ===");
+        System.out.println("👤 User ID: " + userId);
+        System.out.println("👤 User Role: " + user.getRole());
+        System.out.println("🏢 User AgencyId: " + user.getAgencyId());
+        System.out.println("📋 Listing ID: " + listingId);
+        System.out.println("👨‍💼 Agent ID: " + listing.getAgent().getId());
+        System.out.println("🏢 Agent AgencyId: " + listing.getAgent().getAgencyId());
+        
+        boolean isAgent = listing.getAgent().getId().equals(userId);
+        boolean isManager = user.getRole() == it.unina.dietiestates25.backend.entities.enums.UserRole.AGENCY_MANAGER 
+                && user.getAgencyId() != null 
+                && user.getAgencyId().equals(listing.getAgent().getAgencyId());
+        
+        System.out.println("✅ isAgent: " + isAgent);
+        System.out.println("✅ isManager: " + isManager);
+        System.out.println("🔐 === FINE DEBUG ===");
+        
+        if (!isAgent && !isManager) {
+            throw new SecurityException("User does not have permission to update this listing");
+        }
+        
+        // Aggiorna i dati del listing
+        if (request.getListing() != null) {
+            it.unina.dietiestates25.backend.dto.listing.UpdateListingRequest.ListingUpdate listingUpdate = request.getListing();
+            
+            if (listingUpdate.getTitle() != null) {
+                listing.setTitle(listingUpdate.getTitle());
+            }
+            if (listingUpdate.getType() != null) {
+                listing.setType(it.unina.dietiestates25.backend.entities.enums.ListingType.valueOf(listingUpdate.getType()));
+            }
+            if (listingUpdate.getPriceAmount() != null) {
+                listing.setPriceAmount(listingUpdate.getPriceAmount());
+            }
+            if (listingUpdate.getCurrency() != null) {
+                listing.setCurrency(listingUpdate.getCurrency());
+            }
+            if (listingUpdate.getStatus() != null) {
+                // Mappa lo status dal frontend al backend
+                String status = listingUpdate.getStatus();
+                if ("disponibile".equals(status)) {
+                    listing.setStatus(ListingStatus.ACTIVE);
+                } else if ("venduto".equals(status)) {
+                    listing.setStatus(ListingStatus.SOLD);
+                } else if ("affittato".equals(status)) {
+                    listing.setStatus(ListingStatus.RENTED);
+                } else if ("in_trattativa".equals(status)) {
+                    listing.setStatus(ListingStatus.SUSPENDED);
+                }
+            }
+        }
+        
+        // Aggiorna i dati della proprietà
+        if (request.getProperty() != null) {
+            Property property = listing.getProperty();
+            it.unina.dietiestates25.backend.dto.listing.UpdateListingRequest.PropertyUpdate propertyUpdate = request.getProperty();
+            
+            if (propertyUpdate.getCity() != null) {
+                property.setCity(propertyUpdate.getCity());
+            }
+            if (propertyUpdate.getAddress() != null) {
+                property.setAddress(propertyUpdate.getAddress());
+            }
+            if (propertyUpdate.getPropertyType() != null) {
+                property.setPropertyType(propertyUpdate.getPropertyType());
+            }
+            if (propertyUpdate.getRooms() != null) {
+                property.setRooms(propertyUpdate.getRooms());
+            }
+            if (propertyUpdate.getBathrooms() != null) {
+                property.setBathrooms(propertyUpdate.getBathrooms());
+            }
+            if (propertyUpdate.getAreaM2() != null) {
+                property.setAreaM2(propertyUpdate.getAreaM2());
+            }
+            if (propertyUpdate.getFloor() != null) {
+                property.setFloor(propertyUpdate.getFloor());
+            }
+            if (propertyUpdate.getElevator() != null) {
+                property.setElevator(propertyUpdate.getElevator());
+            }
+            if (propertyUpdate.getEnergyClass() != null) {
+                property.setEnergyClass(propertyUpdate.getEnergyClass());
+            }
+            if (propertyUpdate.getDescription() != null) {
+                property.setDescription(propertyUpdate.getDescription());
+                listing.setPublicText(propertyUpdate.getDescription());
+            }
+            
+            propertyRepository.save(property);
+        }
+        
+        // Salva il listing aggiornato
+        listing = listingRepository.save(listing);
+        
+        System.out.println("✅ Listing aggiornato con successo");
+        return mapToResponse(listing);
+    }
+
     private ListingResponse mapToResponse(Listing listing) {
         ListingResponse response = new ListingResponse();
         Property property = listing.getProperty();
@@ -168,16 +322,22 @@ public class ListingService {
         response.setPrice(listing.getPriceAmount());
         response.setCurrency(listing.getCurrency());
 
+        // Dati dell'agente
+        if (listing.getAgent() != null) {
+            String agentName = listing.getAgent().getFirstName() + " " + listing.getAgent().getLastName();
+            response.setAgentName(agentName);
+        }
+
         // Dati della proprietà
         if (property != null) {
             response.setAddress(property.getAddress());
             response.setCity(property.getCity());
-            response.setPropertyType(property.getPropertyType()); // AGGIUNTO propertyType
+            response.setPropertyType(property.getPropertyType());
             response.setRooms(property.getRooms());
-            response.setArea(property.getAreaM2()); // Corretto da getTotalArea() a getAreaM2()
+            response.setArea(property.getAreaM2());
             response.setFloor(property.getFloor());
             response.setEnergyClass(property.getEnergyClass());
-            response.setHasElevator(property.isElevator()); // Corretto da getHasElevator() a isElevator()
+            response.setHasElevator(property.isElevator());
             
             // Converti BigDecimal a Double per le coordinate
             response.setLatitude(property.getLatitude() != null ? property.getLatitude().doubleValue() : null);

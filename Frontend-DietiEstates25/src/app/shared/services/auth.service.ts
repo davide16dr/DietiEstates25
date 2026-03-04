@@ -165,4 +165,13 @@ export class AuthService {
     console.log('🔑 [AuthService.getToken()] Token recuperato:', token ? `${token.substring(0, 20)}...` : 'NULL');
     return token;
   }
+
+  getCurrentUserId(): string | null {
+    const user = this.currentUserSignal();
+    return user?.userId ?? null;
+  }
+
+  changePassword(userId: string, data: { oldPassword: string; newPassword: string }): Observable<any> {
+    return this.http.put(`http://localhost:8080/api/users/${userId}/password`, data);
+  }
 }

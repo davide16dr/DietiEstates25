@@ -15,6 +15,11 @@ public interface ListingRepository extends JpaRepository<Listing, UUID> {
     
     List<Listing> findAllByAgent_Id(UUID agentId);
     
+    /**
+     * Trova tutti i listing degli agenti specificati (per statistiche manager)
+     */
+    List<Listing> findByAgentIdIn(List<UUID> agentIds);
+    
     @Query(value = "SELECT DISTINCT l.* FROM listings l " +
            "LEFT JOIN properties p ON p.id = l.property_id " +
            "WHERE (CAST(:type AS VARCHAR) IS NULL OR l.type = :type) " +

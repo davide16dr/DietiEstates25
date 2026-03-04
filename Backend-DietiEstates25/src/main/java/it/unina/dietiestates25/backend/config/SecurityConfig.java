@@ -61,9 +61,6 @@ public class SecurityConfig {
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
-                    "/api/listings", // Elenco pubblico degli immobili
-                    "/api/listings/search", // Ricerca pubblica degli immobili
-                    "/api/listings/*", // Dettagli singolo immobile (GET /api/listings/{id})
                     "/api/auth/**",
                     "/auth/**",
                     "/error",
@@ -71,9 +68,15 @@ public class SecurityConfig {
                     "/swagger-ui/**",
                     "/swagger-ui.html"
                 ).permitAll()
-                .requestMatchers(
-                    "/api/listings/agent/**" // Endpoint privati per agenti
-                ).hasRole("AGENT")
+                // Endpoint pubblici solo GET per listings
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/listings", "/api/listings/search", "/api/listings/*").permitAll()
+                // Endpoint privati per agenti
+                .requestMatchers("/api/listings/agent/**").hasRole("AGENT")
+                // Endpoint privati per manager
+                .requestMatchers("/api/listings/agency/**").hasRole("AGENCY_MANAGER")
+                // PUT/DELETE su listings richiedono AGENT o MANAGER
+                .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/listings/*").hasAnyRole("AGENT", "AGENCY_MANAGER")
+                .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/listings/*").hasAnyRole("AGENT", "AGENCY_MANAGER")
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

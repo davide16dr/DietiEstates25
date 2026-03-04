@@ -11,17 +11,24 @@ export interface ListingResponse {
   status: string;
   price: number;
   currency: string;
+  agentName?: string;
+  
+  // Dati della proprietà (struttura piatta come nel backend)
   address: string;
   city: string;
-  propertyType: string; // "Appartamento", "Villa", "Attico", etc.
+  propertyType: string;
   rooms: number;
   area: number;
   floor: number;
   energyClass: string;
   hasElevator: boolean;
-  latitude: number;
-  longitude: number;
-  imageUrls: string[];
+  
+  // Coordinate per la mappa
+  latitude?: number;
+  longitude?: number;
+  
+  // Immagini
+  imageUrls?: string[];
 }
 
 export interface ListingFilterRequest {
@@ -88,7 +95,18 @@ export class ListingService {
     return this.http.get<ListingResponse[]>(`${this.API}/agent/my-listings`);
   }
 
+  /**
+   * Recupera tutti gli immobili dell'agenzia (per i manager)
+   */
+  getAllAgencyListings(): Observable<ListingResponse[]> {
+    return this.http.get<ListingResponse[]>(`${this.API}/agency/all`);
+  }
+
   createListing(propertyData: any): Observable<ListingResponse> {
     return this.http.post<ListingResponse>(`${this.API}/agent/create`, propertyData);
+  }
+
+  updateListing(id: string, propertyData: any): Observable<ListingResponse> {
+    return this.http.put<ListingResponse>(`${this.API}/${id}`, propertyData);
   }
 }

@@ -12,6 +12,9 @@ public class ListingResponse {
     private Integer price;
     private String currency;
     
+    // Dati dell'agente
+    private String agentName;
+    
     // Dati della proprietà
     private String address;
     private String city;
@@ -53,6 +56,9 @@ public class ListingResponse {
 
     public String getCurrency() { return currency; }
     public void setCurrency(String currency) { this.currency = currency; }
+
+    public String getAgentName() { return agentName; }
+    public void setAgentName(String agentName) { this.agentName = agentName; }
 
     public String getAddress() { return address; }
     public void setAddress(String address) { this.address = address; }

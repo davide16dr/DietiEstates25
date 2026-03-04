@@ -1,11 +1,12 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { PropertyDetailsModalComponent } from '../property-details-modal.component/property-details-modal.component';
 import { EditPropertyModalComponent } from '../edit-property-modal.component/edit-property-modal.component';
+import { ListingService, ListingResponse } from '../../../shared/services/listing.service';
 
 interface Property {
-  id: number;
+  id: string;
   title: string;
   address: string;
   price: number;
@@ -17,8 +18,6 @@ interface Property {
   bathrooms: number;
   surface: number;
   image: string;
-  views: number;
-  offers: number;
   // Aggiunti campi per i modal
   location?: string;
   propertyType?: string;
@@ -36,7 +35,9 @@ interface Property {
   templateUrl: './manager-properties.component.html',
   styleUrl: './manager-properties.component.scss',
 })
-export class ManagerPropertiesComponent {
+export class ManagerPropertiesComponent implements OnInit {
+  private listingService = inject(ListingService);
+
   searchQuery = signal('');
   filterStatus = signal<string>('tutti');
   filterType = signal<string>('tutti');
@@ -44,109 +45,74 @@ export class ManagerPropertiesComponent {
   // Signal per gestire i modal
   showDetailsModal = signal(false);
   showEditModal = signal(false);
-  selectedProperty = signal<any>(null); // Usa 'any' per evitare problemi di tipo con il mapping
+  selectedProperty = signal<any>(null);
 
-  properties: Property[] = [
-    {
-      id: 1,
-      title: 'Appartamento Centro',
-      address: 'Via Roma 45, Milano',
-      price: 350000,
-      type: 'vendita',
-      category: 'Appartamento',
-      status: 'disponibile',
-      agent: 'Lucia Bianchi',
-      rooms: 3,
-      bathrooms: 2,
-      surface: 95,
-      image: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400',
-      views: 245,
-      offers: 3
-    },
-    {
-      id: 2,
-      title: 'Villa con Giardino',
-      address: 'Via dei Fiori 12, Monza',
-      price: 680000,
-      type: 'vendita',
-      category: 'Villa',
-      status: 'venduto',
-      agent: 'Marco Colombo',
-      rooms: 5,
-      bathrooms: 3,
-      surface: 220,
-      image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400',
-      views: 567,
-      offers: 8
-    },
-    {
-      id: 3,
-      title: 'Bilocale Navigli',
-      address: 'Alzaia Naviglio Grande 8, Milano',
-      price: 1100,
-      type: 'affitto',
-      category: 'Appartamento',
-      status: 'affittato',
-      agent: 'Sara Romano',
-      rooms: 2,
-      bathrooms: 1,
-      surface: 55,
-      image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400',
-      views: 189,
-      offers: 5
-    },
-    {
-      id: 4,
-      title: 'Attico Panoramico',
-      address: 'Corso Buenos Aires 89, Milano',
-      price: 850000,
-      type: 'vendita',
-      category: 'Attico',
-      status: 'in_trattativa',
-      agent: 'Giuseppe Ferrara',
-      rooms: 4,
-      bathrooms: 3,
-      surface: 180,
-      image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400',
-      views: 423,
-      offers: 6
-    },
-    {
-      id: 5,
-      title: 'Loft Industriale',
-      address: 'Via Tortona 31, Milano',
-      price: 2200,
-      type: 'affitto',
-      category: 'Loft',
-      status: 'disponibile',
-      agent: 'Francesca Rizzo',
-      rooms: 3,
-      bathrooms: 2,
-      surface: 120,
-      image: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400',
-      views: 312,
-      offers: 2
-    },
-    {
-      id: 6,
-      title: 'Trilocale Brera',
-      address: 'Via Fiori Chiari 18, Milano',
-      price: 520000,
-      type: 'vendita',
-      category: 'Appartamento',
-      status: 'disponibile',
-      agent: 'Roberto Greco',
-      rooms: 3,
-      bathrooms: 2,
-      surface: 85,
-      image: 'https://images.unsplash.com/photo-1502672023488-70e25813eb80?w=400',
-      views: 278,
-      offers: 4
-    }
-  ];
+  // State management
+  properties = signal<Property[]>([]);
+  isLoading = signal(true);
+  error = signal<string | null>(null);
+
+  ngOnInit(): void {
+    this.loadProperties();
+  }
+
+  loadProperties(): void {
+    this.isLoading.set(true);
+    this.error.set(null);
+
+    // Carica tutti gli immobili dell'agenzia
+    this.listingService.getAllAgencyListings().subscribe({
+      next: (listings: ListingResponse[]) => {
+        console.log('📊 Immobili agenzia caricati:', listings);
+        
+        const mapped = listings.map(listing => this.mapListingToProperty(listing));
+        this.properties.set(mapped);
+        this.isLoading.set(false);
+      },
+      error: (err: any) => {
+        console.error('❌ Errore nel caricamento degli immobili:', err);
+        this.error.set('Errore nel caricamento degli immobili. Riprova più tardi.');
+        this.isLoading.set(false);
+      }
+    });
+  }
+
+  private mapListingToProperty(listing: ListingResponse): Property {
+    return {
+      id: listing.id,
+      title: listing.title,
+      address: `${listing.address}, ${listing.city}`,
+      price: listing.price,
+      type: listing.type === 'SALE' ? 'vendita' : 'affitto',
+      category: listing.propertyType,
+      status: this.mapStatus(listing.status),
+      agent: listing.agentName || 'N/A',
+      rooms: listing.rooms,
+      bathrooms: 2, // TODO: aggiungere bathrooms al backend DTO
+      surface: listing.area,
+      image: listing.imageUrls?.[0] || 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400',
+      location: `${listing.address}, ${listing.city}`,
+      propertyType: listing.propertyType,
+      city: listing.city,
+      floor: listing.floor,
+      elevator: listing.hasElevator,
+      energyClass: listing.energyClass,
+      description: listing.description
+    };
+  }
+
+  private mapStatus(status: string): 'disponibile' | 'venduto' | 'affittato' | 'in_trattativa' {
+    const statusMap: { [key: string]: 'disponibile' | 'venduto' | 'affittato' | 'in_trattativa' } = {
+      'ACTIVE': 'disponibile',
+      'SOLD': 'venduto',
+      'RENTED': 'affittato',
+      'SUSPENDED': 'in_trattativa'
+    };
+    return statusMap[status] || 'disponibile';
+  }
 
   get filteredProperties(): Property[] {
-    let filtered = this.properties;
+    let filtered = this.properties();
 
     // Filtro per stato
     if (this.filterStatus() !== 'tutti') {
@@ -172,10 +138,11 @@ export class ManagerPropertiesComponent {
   }
 
   get stats() {
-    const totali = this.properties.length;
-    const disponibili = this.properties.filter(p => p.status === 'disponibile').length;
-    const venduti = this.properties.filter(p => p.status === 'venduto').length;
-    const affittati = this.properties.filter(p => p.status === 'affittato').length;
+    const props = this.properties();
+    const totali = props.length;
+    const disponibili = props.filter(p => p.status === 'disponibile').length;
+    const venduti = props.filter(p => p.status === 'venduto').length;
+    const affittati = props.filter(p => p.status === 'affittato').length;
     
     return { totali, disponibili, venduti, affittati };
   }
@@ -214,9 +181,7 @@ export class ManagerPropertiesComponent {
       propertyType: property.category,
       address: property.address,
       city: property.address.split(',')[1]?.trim() || 'Milano',
-      image: property.image,
-      views: property.views,
-      favorites: property.offers
+      image: property.image
     };
     
     this.selectedProperty.set(propertyDetail);
@@ -265,36 +230,31 @@ export class ManagerPropertiesComponent {
   }
 
   onSaveProperty(formData: any): void {
-    console.log('Saving property:', formData);
-    // TODO: Chiamata API per salvare le modifiche
-    
-    // Aggiorna la property nella lista locale
-    const index = this.properties.findIndex(p => p.id === formData.id);
-    if (index !== -1) {
-      this.properties[index] = {
-        ...this.properties[index],
-        title: formData.listing.title,
-        price: formData.listing.price_amount,
-        rooms: formData.property.rooms,
-        bathrooms: formData.property.bathrooms,
-        surface: formData.property.area_m2,
-        address: `${formData.property.address}, ${formData.property.city}`,
-        city: formData.property.city,
-        type: formData.listing.type === 'SALE' ? 'vendita' : 'affitto',
-        status: formData.listing.status as any,
-        category: formData.property.property_type,
-        floor: formData.property.floor,
-        elevator: formData.property.elevator,
-        energyClass: formData.property.energy_class,
-        description: formData.property.description
-      };
+    const propertyId = this.selectedProperty()?.id;
+    if (!propertyId) {
+      console.error('❌ ID proprietà non trovato');
+      this.error.set('Errore: ID proprietà non trovato');
+      return;
     }
+
+    console.log('📤 Salvataggio modifiche immobile ID:', propertyId);
+    console.log('📦 Dati da inviare:', formData);
     
-    this.showEditModal.set(false);
-    this.selectedProperty.set(null);
-    
-    // Mostra messaggio di successo
-    alert('Immobile aggiornato con successo!');
+    this.listingService.updateListing(propertyId, formData).subscribe({
+      next: (response: any) => {
+        console.log('✅ Immobile aggiornato con successo:', response);
+        this.showEditModal.set(false);
+        this.selectedProperty.set(null);
+        this.error.set(null);
+        
+        // Ricarica gli immobili dopo il salvataggio
+        this.loadProperties();
+      },
+      error: (err: any) => {
+        console.error('❌ Errore nell\'aggiornamento dell\'immobile:', err);
+        this.error.set('Errore nell\'aggiornamento dell\'immobile. Riprova più tardi.');
+      }
+    });
   }
 
   getStatusClass(status: string): string {

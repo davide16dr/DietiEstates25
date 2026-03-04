@@ -1,12 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { UserService } from '../../../shared/services/user.service';
 
 interface DashboardStats {
   agenti: { attivi: number; totali: number };
-  immobili: { totali: number; disponibili: number };
-  visite: { totali: number; variazione: string };
-  offerte: { totali: number; periodo: string };
+  immobili: { totali: number; disponibili: number; venduti: number; affittati: number };
 }
 
 interface PropertyStatus {
@@ -16,6 +15,7 @@ interface PropertyStatus {
 }
 
 interface RecentProperty {
+  id: string;
   title: string;
   agent: string;
   status: string;
@@ -30,51 +30,116 @@ interface RecentProperty {
   templateUrl: './manager-dashboard.component.html',
   styleUrl: './manager-dashboard.component.scss',
 })
-export class ManagerDashboardComponent {
-  stats: DashboardStats = {
-    agenti: { attivi: 6, totali: 8 },
-    immobili: { totali: 45, disponibili: 32 },
-    visite: { totali: 127, variazione: '+18% vs mese scorso' },
-    offerte: { totali: 23, periodo: 'questo mese' }
-  };
+export class ManagerDashboardComponent implements OnInit {
+  private userService = inject(UserService);
 
-  propertyStatus: PropertyStatus[] = [
-    { label: 'Disponibili', count: 32, color: '#10b981' },
-    { label: 'Venduti', count: 8, color: '#6b7280' },
-    { label: 'Affittati', count: 5, color: '#3b82f6' }
-  ];
+  // Stato reattivo con signals
+  stats = signal<DashboardStats>({
+    agenti: { attivi: 0, totali: 0 },
+    immobili: { totali: 0, disponibili: 0, venduti: 0, affittati: 0 }
+  });
+  
+  propertyStatus = signal<PropertyStatus[]>([]);
+  recentProperties = signal<RecentProperty[]>([]);
+  isLoading = signal(true);
+  error = signal<string | null>(null);
 
-  recentProperties: RecentProperty[] = [
-    {
-      title: 'Appartamento Centro',
-      agent: 'Lucia Bianchi',
-      status: 'Disponibile',
-      statusColor: '#10b981',
-      price: '€350.000'
-    },
-    {
-      title: 'Villa con Giardino',
-      agent: 'Marco Colombo',
-      status: 'Venduto',
-      statusColor: '#6b7280',
-      price: '€680.000'
-    },
-    {
-      title: 'Bilocale Navigli',
-      agent: 'Sara Romano',
-      status: 'Affittato',
-      statusColor: '#3b82f6',
-      price: '€1100/mese'
-    }
-  ];
+  ngOnInit(): void {
+    this.loadManagerStats();
+  }
+
+  loadManagerStats(): void {
+    this.isLoading.set(true);
+    this.error.set(null);
+
+    this.userService.getManagerStats().subscribe({
+      next: (data: any) => {
+        console.log('📊 Statistiche manager ricevute:', data);
+
+        // Aggiorna le statistiche
+        this.stats.set({
+          agenti: {
+            attivi: data.agenti.attivi || 0,
+            totali: data.agenti.totali || 0
+          },
+          immobili: {
+            totali: data.immobili.totali || 0,
+            disponibili: data.immobili.disponibili || 0,
+            venduti: data.immobili.venduti || 0,
+            affittati: data.immobili.affittati || 0
+          }
+        });
+
+        // Aggiorna stato immobili
+        this.propertyStatus.set([
+          { 
+            label: 'Disponibili', 
+            count: data.immobili.disponibili || 0, 
+            color: '#10b981' 
+          },
+          { 
+            label: 'Venduti', 
+            count: data.immobili.venduti || 0, 
+            color: '#6b7280' 
+          },
+          { 
+            label: 'Affittati', 
+            count: data.immobili.affittati || 0, 
+            color: '#3b82f6' 
+          }
+        ]);
+
+        // Mappa gli immobili recenti
+        const mapped = (data.immobiliRecenti || []).map((prop: any) => ({
+          id: prop.id,
+          title: prop.title,
+          agent: prop.agentName,
+          status: this.mapStatus(prop.status),
+          statusColor: this.getStatusColor(prop.status),
+          price: this.formatPrice(prop.price, prop.currency, prop.type)
+        }));
+        
+        this.recentProperties.set(mapped);
+        this.isLoading.set(false);
+      },
+      error: (err: any) => {
+        console.error('❌ Errore nel caricamento delle statistiche:', err);
+        this.error.set('Errore nel caricamento delle statistiche. Riprova più tardi.');
+        this.isLoading.set(false);
+      }
+    });
+  }
+
+  private mapStatus(status: string): string {
+    const statusMap: { [key: string]: string } = {
+      'ACTIVE': 'Disponibile',
+      'SOLD': 'Venduto',
+      'RENTED': 'Affittato',
+      'SUSPENDED': 'Sospeso'
+    };
+    return statusMap[status] || status;
+  }
+
+  private getStatusColor(status: string): string {
+    const colorMap: { [key: string]: string } = {
+      'ACTIVE': '#10b981',
+      'SOLD': '#6b7280',
+      'RENTED': '#3b82f6',
+      'SUSPENDED': '#ef4444'
+    };
+    return colorMap[status] || '#6b7280';
+  }
+
+  private formatPrice(price: number, currency: string, type: string): string {
+    const formatted = `${currency === 'EUR' ? '€' : currency}${price.toLocaleString('it-IT')}`;
+    return type === 'RENT' ? `${formatted}/mese` : formatted;
+  }
 
   navigateToAgents(): void {
-    // TODO: Navigate to agents page
     console.log('Navigate to agents');
   }
 
   navigateToProperties(): void {
-    // TODO: Navigate to properties page
     console.log('Navigate to properties');
   }
 }

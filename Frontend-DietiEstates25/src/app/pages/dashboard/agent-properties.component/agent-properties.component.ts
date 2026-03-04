@@ -164,11 +164,25 @@ export class AgentPropertiesComponent implements OnInit {
   }
 
   updateProperty(updatedData: any): void {
-    this.closeEditModal();
-    this.loadMyProperties(); // Ricarica la lista dopo l'aggiornamento
+    const propertyId = this.selectedProperty()?.id;
+    if (!propertyId) {
+      console.error('ID proprietà non trovato');
+      return;
+    }
+
+    console.log('Aggiornamento immobile:', updatedData);
     
-    console.log('Immobile aggiornato:', updatedData);
-    // TODO: Implementare l'aggiornamento reale al backend
+    this.listingService.updateListing(propertyId, updatedData).subscribe({
+      next: (response: any) => {
+        console.log('Immobile aggiornato con successo:', response);
+        this.closeEditModal();
+        this.loadMyProperties();
+      },
+      error: (err: any) => {
+        console.error('Errore nell\'aggiornamento dell\'immobile:', err);
+        this.error.set('Errore nell\'aggiornamento dell\'immobile. Riprova più tardi.');
+      }
+    });
   }
 
   // ===== HELPERS =====

@@ -1,7 +1,7 @@
 import { Component, input, output, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { AuthService } from '../../../auth/auth.service';
+import { AuthService } from '../../../shared/services/auth.service';
 import { ChangePasswordModalComponent, PasswordChangeData } from '../change-password-modal.component/change-password-modal.component';
 
 type MenuItem = {
@@ -25,17 +25,13 @@ export class DashboardSidebarComponent {
 
   private authService = inject(AuthService);
 
-  // Sync currentUser dal BehaviorSubject al signal
-  currentUser = signal<any>(this.authService['currentUserSubject']?.value ?? null);
+  // ✅ USA DIRETTAMENTE il signal di AuthService invece di crearne uno locale
+  currentUser = this.authService.currentUser;
 
   // Modal state
   showChangePasswordModal = signal(false);
   isChangingPassword = signal(false);
   passwordError = signal<string | null>(null);
-
-  constructor() {
-    this.authService.currentUser$.subscribe(user => this.currentUser.set(user));
-  }
 
   get userName(): string {
     const user = this.currentUser();
