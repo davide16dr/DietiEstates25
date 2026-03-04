@@ -3,11 +3,11 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 export interface AgentEdit {
-  id: number;
+  id: string;
   name: string;
   email: string;
   phone: string;
-  status: 'attivo' | 'disattivato' | 'inattivo';
+  status: 'attivo' | 'inattivo'; // ✅ Semplificato: solo due stati
 }
 
 @Component({
@@ -26,8 +26,7 @@ export class EditAgentModalComponent implements OnInit {
   editName = signal('');
   editEmail = signal('');
   editPhone = signal('');
-  editStatus = signal<'attivo' | 'disattivato' | 'inattivo'>('attivo');
-  inactiveStatusLabel = signal<'disattivato' | 'inattivo'>('disattivato');
+  editStatus = signal<'attivo' | 'inattivo'>('attivo'); // ✅ Semplificato
 
   ngOnInit(): void {
     // Inizializza i valori del form con i dati dell'agente
@@ -36,12 +35,6 @@ export class EditAgentModalComponent implements OnInit {
     this.editEmail.set(agentData.email);
     this.editPhone.set(agentData.phone);
     this.editStatus.set(agentData.status);
-    // Imposta il label corretto per lo stato inattivo
-    if (agentData.status === 'inattivo') {
-      this.inactiveStatusLabel.set('inattivo');
-    } else {
-      this.inactiveStatusLabel.set('disattivato');
-    }
   }
 
   onClose(): void {
@@ -76,7 +69,7 @@ export class EditAgentModalComponent implements OnInit {
 
   updateStatus(event: Event): void {
     const select = event.target as HTMLSelectElement;
-    this.editStatus.set(select.value as 'attivo' | 'disattivato' | 'inattivo');
+    this.editStatus.set(select.value as 'attivo' | 'inattivo');
   }
 
   isFormValid(): boolean {

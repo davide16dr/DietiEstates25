@@ -53,7 +53,30 @@ export class LoginComponent {
     this.auth.login({ email, password })
       .pipe(finalize(() => this.isSubmitting.set(false)))
       .subscribe({
-        next: () => this.router.navigateByUrl('/dashboard'),
+        next: () => {
+          // ✅ Reindirizza alla dashboard corretta in base al ruolo
+          const user = this.auth.currentUser();
+          const role = user?.role?.toLowerCase();
+          
+          let dashboardRoute = '/dashboard/home';
+          switch (role) {
+            case 'admin':
+              dashboardRoute = '/dashboard/admin-home';
+              break;
+            case 'agency_manager':
+              dashboardRoute = '/dashboard/manager-home';
+              break;
+            case 'agent':
+              dashboardRoute = '/dashboard/agent-properties';
+              break;
+            case 'client':
+              dashboardRoute = '/dashboard/home';
+              break;
+          }
+          
+          console.log(`✅ Login riuscito come ${role}, reindirizzo a ${dashboardRoute}`);
+          this.router.navigateByUrl(dashboardRoute);
+        },
         error: (err) => {
           if (err?.status === 0) {
             this.errorMessage.set('Backend non raggiungibile. Verifica che il server sia avviato su http://localhost:8080');

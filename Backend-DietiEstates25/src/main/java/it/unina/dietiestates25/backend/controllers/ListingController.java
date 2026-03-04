@@ -7,6 +7,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -52,6 +53,37 @@ public class ListingController {
         System.out.println("Recupero proprietà per agentId: " + agentId);
         List<ListingResponse> listings = listingService.getListingsByAgentId(agentId);
         return ResponseEntity.ok(listings);
+    }
+
+    /**
+     * Recupera tutti gli immobili dell'agenzia (per i manager)
+     */
+    @GetMapping("/agency/all")
+    public ResponseEntity<List<ListingResponse>> getAllAgencyListings(Authentication authentication) {
+        System.out.println("🏢 Recupero tutti gli immobili dell'agenzia");
+        
+        if (authentication == null || authentication.getPrincipal() == null) {
+            return ResponseEntity.status(401).build();
+        }
+        
+        var principal = authentication.getPrincipal();
+        java.util.UUID userId = null;
+        
+        if (principal instanceof it.unina.dietiestates25.backend.security.UserPrincipal) {
+            userId = ((it.unina.dietiestates25.backend.security.UserPrincipal) principal).getId();
+        } else {
+            return ResponseEntity.status(400).build();
+        }
+        
+        try {
+            List<ListingResponse> listings = listingService.getAllAgencyListings(userId);
+            System.out.println("✅ Recuperati " + listings.size() + " immobili dell'agenzia");
+            return ResponseEntity.ok(listings);
+        } catch (Exception e) {
+            System.err.println("❌ Errore nel recupero immobili agenzia: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).build();
+        }
     }
 
     @PostMapping("/search")
@@ -147,6 +179,46 @@ public class ListingController {
             return ResponseEntity.status(400).body(null);
         } catch (Exception e) {
             System.err.println("Errore inaspettato durante la creazione dell'annuncio: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(null);
+        }
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ListingResponse> updateListing(
+            @PathVariable("id") java.util.UUID id,
+            Authentication authentication,
+            @RequestBody it.unina.dietiestates25.backend.dto.listing.UpdateListingRequest request) {
+        
+        System.out.println("=== UPDATE LISTING REQUEST ===");
+        System.out.println("Listing ID: " + id);
+        System.out.println("Request body: " + request);
+        System.out.println("==============================");
+        
+        if (authentication == null || authentication.getPrincipal() == null) {
+            return ResponseEntity.status(401).build();
+        }
+        
+        var principal = authentication.getPrincipal();
+        java.util.UUID userId = null;
+        
+        if (principal instanceof it.unina.dietiestates25.backend.security.UserPrincipal) {
+            userId = ((it.unina.dietiestates25.backend.security.UserPrincipal) principal).getId();
+        } else {
+            return ResponseEntity.status(400).build();
+        }
+        
+        try {
+            ListingResponse response = listingService.updateListing(id, userId, request);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            System.err.println("❌ Errore durante l'aggiornamento dell'annuncio: " + e.getMessage());
+            return ResponseEntity.status(400).body(null);
+        } catch (SecurityException e) {
+            System.err.println("❌ Accesso negato: " + e.getMessage());
+            return ResponseEntity.status(403).body(null);
+        } catch (Exception e) {
+            System.err.println("❌ Errore inaspettato durante l'aggiornamento: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.status(500).body(null);
         }

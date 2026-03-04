@@ -29,12 +29,24 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
+        String method = request.getMethod();
+        
         // Salta il filtro JWT SOLO per gli endpoint pubblici specifici
-        return path.startsWith("/auth/") || 
-               path.equals("/api/listings") || // Solo GET senza ID
-               path.matches("^/api/listings/[a-f0-9-]{36}$") || // GET per UUID specifico
-               path.startsWith("/v3/api-docs/") ||
-               path.startsWith("/swagger-ui/");
+        if (path.startsWith("/auth/") || 
+            path.startsWith("/v3/api-docs/") ||
+            path.startsWith("/swagger-ui/")) {
+            return true;
+        }
+        
+        // Per i listings, salta il filtro JWT SOLO se è una richiesta GET
+        if ("GET".equals(method)) {
+            return path.equals("/api/listings") || 
+                   path.startsWith("/api/listings/search") ||
+                   path.matches("^/api/listings/[a-f0-9-]{36}$");
+        }
+        
+        // Per PUT, DELETE, POST sui listings, NON saltare il filtro JWT
+        return false;
     }
 
     @Override

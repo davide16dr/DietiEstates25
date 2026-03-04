@@ -36,6 +36,21 @@ export class DashboardHomeComponent {
     return user?.role?.toLowerCase() === 'agent';
   }
 
+  get isAdmin(): boolean {
+    const user = this.currentUser();
+    return user?.role?.toLowerCase() === 'admin';
+  }
+
+  get isManager(): boolean {
+    const user = this.currentUser();
+    return user?.role?.toLowerCase() === 'agency_manager';
+  }
+
+  get isClient(): boolean {
+    const user = this.currentUser();
+    return user?.role?.toLowerCase() === 'client';
+  }
+
   // Stats per clienti
   get clientStats() {
     return [
@@ -56,7 +71,30 @@ export class DashboardHomeComponent {
     ];
   }
 
+  // Stats per manager
+  get managerStats() {
+    return [
+      { label: 'Agenti Attivi', value: 3, pillIcon: '👥', pillBg: '#e9f7ef', pillColor: '#0f7a55' },
+      { label: 'Immobili Totali', value: 12, pillIcon: '🏠', pillBg: '#eaf2ff', pillColor: '#2563eb' },
+      { label: 'Visite del Mese', value: 8, pillIcon: '📅', pillBg: '#fff4e5', pillColor: '#b45309' },
+      { label: 'Vendite del Mese', value: 3, pillIcon: '✓', pillBg: '#f3e8ff', pillColor: '#7c3aed' },
+    ];
+  }
+
+  // Stats per admin
+  get adminStats() {
+    return [
+      { label: 'Gestori', value: 2, pillIcon: '👔', pillBg: '#e9f7ef', pillColor: '#0f7a55' },
+      { label: 'Agenti', value: 5, pillIcon: '👥', pillBg: '#eaf2ff', pillColor: '#2563eb' },
+      { label: 'Immobili Totali', value: 15, pillIcon: '🏠', pillBg: '#fff4e5', pillColor: '#b45309' },
+      { label: 'Fatturato Mensile', value: '€25k', pillIcon: '💰', pillBg: '#f3e8ff', pillColor: '#7c3aed' },
+    ];
+  }
+
   get stats() {
-    return this.isAgent ? this.agentStats : this.clientStats;
+    if (this.isAdmin) return this.adminStats;
+    if (this.isManager) return this.managerStats;
+    if (this.isAgent) return this.agentStats;
+    return this.clientStats;
   }
 }

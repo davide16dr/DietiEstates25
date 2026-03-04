@@ -79,4 +79,11 @@ export class UserService {
   deleteUser(userId: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${userId}`);
   }
+
+  /**
+   * Recupera le statistiche per la dashboard del manager
+   */
+  getManagerStats(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/manager/stats`);
+  }
 }

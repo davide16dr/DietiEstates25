@@ -135,8 +135,8 @@ export class PropertiesPageComponent implements OnInit {
       city: listing.city,
       mapX: 50, // Non più necessario con coordinate reali
       mapY: 50,
-      lat: listing.latitude,
-      lng: listing.longitude,
+      lat: listing.latitude ?? 0, // Default 0 se non disponibile
+      lng: listing.longitude ?? 0, // Default 0 se non disponibile
     };
   }
 
