@@ -51,6 +51,13 @@
         (input)="onSearch($event)"
       />
     </div>
+    
+    <!-- ✅ Filtro per stato -->
+    <select class="filter-select" [value]="statusFilter()" (change)="onStatusFilterChange($event)">
+      <option value="tutti">Tutti i gestori</option>
+      <option value="attivi">Solo attivi</option>
+      <option value="inattivi">Solo inattivi</option>
+    </select>
   </section>
 
   <!-- Loading State -->

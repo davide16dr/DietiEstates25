@@ -7,132 +7,163 @@
     </div>
   </section>
 
-  <!-- Info Card -->
-  <section class="info-card">
-    <div class="card-header">
-      <div class="card-title">
-        <span class="card-icon">🏢</span>
-        <h3>Dati Agenzia</h3>
+  @if (isLoading()) {
+    <div class="loading-state">Caricamento informazioni agenzia...</div>
+  } @else if (error()) {
+    <div class="error-state">{{ error() }}</div>
+  } @else {
+    <!-- Info Card -->
+    <section class="info-card">
+      <div class="card-header">
+        <div class="card-title">
+          <span class="card-icon">🏢</span>
+          <h3>Dati Agenzia</h3>
+        </div>
+        <p class="card-subtitle">Le informazioni saranno visibili ai tuoi gestori e agenti</p>
       </div>
-      <p class="card-subtitle">Le informazioni saranno visibili ai tuoi gestori e agenti</p>
-    </div>
 
-    <div class="card-body">
-      <form (ngSubmit)="saveChanges()">
-        <div class="form-grid">
-          <!-- Nome Agenzia -->
-          <div class="form-group">
-            <label for="name">Nome Agenzia</label>
-            <div class="input-wrapper">
-              <span class="input-icon">🏢</span>
-              <input
-                type="text"
-                id="name"
-                [value]="agencyInfo().name"
-                (input)="updateField('name', $any($event.target).value)"
-                placeholder="Nome della tua agenzia"
-              />
+      <div class="card-body">
+        <form (ngSubmit)="saveChanges()">
+          <div class="form-grid">
+            <!-- Nome Agenzia -->
+            <div class="form-group">
+              <label for="name">Nome Agenzia *</label>
+              <div class="input-wrapper">
+                <span class="input-icon">🏢</span>
+                <input
+                  type="text"
+                  id="name"
+                  [value]="agencyInfo().name"
+                  (input)="updateField('name', $any($event.target).value)"
+                  placeholder="Nome della tua agenzia"
+                  required
+                />
+              </div>
+            </div>
+
+            <!-- Partita IVA -->
+            <div class="form-group">
+              <label for="partitaIVA">Partita IVA</label>
+              <div class="input-wrapper">
+                <span class="input-icon">📄</span>
+                <input
+                  type="text"
+                  id="partitaIVA"
+                  [value]="agencyInfo().partitaIVA"
+                  (input)="updateField('partitaIVA', $any($event.target).value)"
+                  placeholder="IT12345678901"
+                />
+              </div>
+            </div>
+
+            <!-- Email -->
+            <div class="form-group">
+              <label for="email">Email *</label>
+              <div class="input-wrapper">
+                <span class="input-icon">📧</span>
+                <input
+                  type="email"
+                  id="email"
+                  [value]="agencyInfo().email"
+                  (input)="updateField('email', $any($event.target).value)"
+                  placeholder="email@agenzia.it"
+                  required
+                />
+              </div>
+            </div>
+
+            <!-- Telefono -->
+            <div class="form-group">
+              <label for="phone">Telefono</label>
+              <div class="input-wrapper">
+                <span class="input-icon">📱</span>
+                <input
+                  type="tel"
+                  id="phone"
+                  [value]="agencyInfo().phone"
+                  (input)="updateField('phone', $any($event.target).value)"
+                  placeholder="+39 02 1234567"
+                />
+              </div>
+            </div>
+
+            <!-- Indirizzo -->
+            <div class="form-group">
+              <label for="address">Indirizzo</label>
+              <div class="input-wrapper">
+                <span class="input-icon">📍</span>
+                <input
+                  type="text"
+                  id="address"
+                  [value]="agencyInfo().address"
+                  (input)="updateField('address', $any($event.target).value)"
+                  placeholder="Via, Numero Civico"
+                />
+              </div>
+            </div>
+
+            <!-- Città -->
+            <div class="form-group">
+              <label for="city">Città *</label>
+              <div class="input-wrapper">
+                <span class="input-icon">🏙️</span>
+                <input
+                  type="text"
+                  id="city"
+                  [value]="agencyInfo().city"
+                  (input)="updateField('city', $any($event.target).value)"
+                  placeholder="Milano"
+                  required
+                />
+              </div>
             </div>
           </div>
 
-          <!-- Partita IVA -->
-          <div class="form-group">
-            <label for="partitaIVA">Partita IVA</label>
-            <div class="input-wrapper">
-              <span class="input-icon">📄</span>
-              <input
-                type="text"
-                id="partitaIVA"
-                [value]="agencyInfo().partitaIVA"
-                (input)="updateField('partitaIVA', $any($event.target).value)"
-                placeholder="IT12345678901"
-              />
-            </div>
+          <!-- Submit Button -->
+          <div class="form-actions">
+            <button type="submit" class="btn-primary" [disabled]="isSaving()">
+              @if (isSaving()) {
+                Salvataggio in corso...
+              } @else {
+                Salva Modifiche
+              }
+            </button>
           </div>
-
-          <!-- Email -->
-          <div class="form-group">
-            <label for="email">Email</label>
-            <div class="input-wrapper">
-              <span class="input-icon">📧</span>
-              <input
-                type="email"
-                id="email"
-                [value]="agencyInfo().email"
-                (input)="updateField('email', $any($event.target).value)"
-                placeholder="email@agenzia.it"
-              />
-            </div>
-          </div>
-
-          <!-- Telefono -->
-          <div class="form-group">
-            <label for="phone">Telefono</label>
-            <div class="input-wrapper">
-              <span class="input-icon">📱</span>
-              <input
-                type="tel"
-                id="phone"
-                [value]="agencyInfo().phone"
-                (input)="updateField('phone', $any($event.target).value)"
-                placeholder="+39 02 1234567"
-              />
-            </div>
-          </div>
-
-          <!-- Indirizzo -->
-          <div class="form-group">
-            <label for="address">Indirizzo</label>
-            <div class="input-wrapper">
-              <span class="input-icon">📍</span>
-              <input
-                type="text"
-                id="address"
-                [value]="agencyInfo().address"
-                (input)="updateField('address', $any($event.target).value)"
-                placeholder="Via, Numero Civico"
-              />
-            </div>
-          </div>
-
-          <!-- Città -->
-          <div class="form-group">
-            <label for="city">Città</label>
-            <div class="input-wrapper">
-              <span class="input-icon">🏙️</span>
-              <input
-                type="text"
-                id="city"
-                [value]="agencyInfo().city"
-                (input)="updateField('city', $any($event.target).value)"
-                placeholder="Milano"
-              />
-            </div>
-          </div>
-
-          <!-- Sito Web (full width) -->
-          <div class="form-group full-width">
-            <label for="website">Sito Web</label>
-            <div class="input-wrapper">
-              <span class="input-icon">🌐</span>
-              <input
-                type="text"
-                id="website"
-                [value]="agencyInfo().website"
-                (input)="updateField('website', $any($event.target).value)"
-                placeholder="www.mia-agenzia.it"
-              />
-            </div>
-          </div>
-        </div>
-
-        <!-- Submit Button -->
-        <div class="form-actions">
-          <button type="submit" class="btn-primary">
-            Salva Modifiche
-          </button>
-        </div>
-      </form>
-    </div>
-  </section>
+        </form>
+      </div>
+    </section>
+  }
 </div>
+
+<!-- Toast Notification per Successo/Errore - Posizionato fuori dal card -->
+@if (successMessage()) {
+  <div class="toast-notification success">
+    <div class="toast-icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="10" fill="#10b981" opacity="0.2"/>
+        <path d="M9 12l2 2 4-4" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="toast-content">
+      <h4 class="toast-title">Successo!</h4>
+      <p class="toast-message">{{ successMessage() }}</p>
+    </div>
+    <button class="toast-close" (click)="successMessage.set(null)">×</button>
+  </div>
+}
+
+@if (error()) {
+  <div class="toast-notification error">
+    <div class="toast-icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="10" fill="#ef4444" opacity="0.2"/>
+        <path d="M12 8v4m0 4h.01" stroke="#ef4444" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="toast-content">
+      <h4 class="toast-title">Errore</h4>
+      <p class="toast-message">{{ error() }}</p>
+    </div>
+    <button class="toast-close" (click)="error.set(null)">×</button>
+  </div>
+}

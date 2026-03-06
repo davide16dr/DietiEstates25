@@ -12,6 +12,10 @@ interface Agent {
   phone: string;
   status: 'attivo' | 'inattivo'; // ✅ Standardizzato su 'inattivo'
   avatar: string;
+  totalProperties?: number;
+  activeProperties?: number;
+  soldProperties?: number;
+  rentedProperties?: number;
 }
 
 @Component({
@@ -44,9 +48,10 @@ export class AdminAgentsComponent implements OnInit {
     this.isLoading.set(true);
     this.error.set(null);
 
-    this.userService.getUsersByRole('AGENT').subscribe({
+    // ✅ Usa il nuovo endpoint che include le statistiche
+    this.userService.getAgentsWithStats().subscribe({
       next: (users: User[]) => {
-        console.log('📋 Agenti ricevuti (Admin):', users);
+        console.log('📋 Agenti con statistiche ricevuti (Admin):', users);
 
         // Mappa gli utenti del backend in Agent per il frontend
         const mappedAgents: Agent[] = users.map(user => ({
@@ -54,8 +59,12 @@ export class AdminAgentsComponent implements OnInit {
           name: `${user.firstName} ${user.lastName}`,
           email: user.email,
           phone: user.phoneE164 || 'N/A',
-          status: user.active ? 'attivo' : 'inattivo', // ✅ Usa 'inattivo'
-          avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(user.firstName + ' ' + user.lastName)}&background=0f7a55&color=fff`
+          status: user.active ? 'attivo' : 'inattivo',
+          avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(user.firstName + ' ' + user.lastName)}&background=0f7a55&color=fff`,
+          totalProperties: user.totalProperties || 0,
+          activeProperties: user.activeProperties || 0,
+          soldProperties: user.soldProperties || 0,
+          rentedProperties: user.rentedProperties || 0
         }));
 
         this.agents.set(mappedAgents);
@@ -113,13 +122,13 @@ export class AdminAgentsComponent implements OnInit {
   }
 
   addNewAgent(newAgent: NewAgent): void {
-    // Prepara i dati per il backend
+    // Prepara i dati per il backend includendo il ruolo AGENT
     const agentData = {
       name: newAgent.name,
       email: newAgent.email,
       phone: newAgent.phone,
       status: newAgent.status,
-      password: 'Password123!' // Password default
+      role: 'AGENT'  // ✅ Specifica esplicitamente che si tratta di un agente
     };
 
     console.log('➕ Creazione nuovo agente:', agentData);

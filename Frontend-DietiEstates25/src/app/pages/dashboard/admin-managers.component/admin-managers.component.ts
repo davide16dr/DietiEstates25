@@ -24,6 +24,7 @@ export class AdminManagersComponent implements OnInit {
   private userService = inject(UserService);
   
   searchQuery = signal('');
+  statusFilter = signal<'tutti' | 'attivi' | 'inattivi'>('tutti'); // ✅ Nuovo filtro
   managers = signal<Manager[]>([]);
   isLoading = signal(true);
   error = signal<string | null>(null);
@@ -76,7 +77,17 @@ export class AdminManagersComponent implements OnInit {
 
   get filteredManagers(): Manager[] {
     const query = this.searchQuery().toLowerCase();
-    const mgrs = this.managers();
+    const statusFilter = this.statusFilter();
+    let mgrs = this.managers();
+
+    // ✅ Applica filtro per stato
+    if (statusFilter === 'attivi') {
+      mgrs = mgrs.filter(m => m.status === 'attivo');
+    } else if (statusFilter === 'inattivi') {
+      mgrs = mgrs.filter(m => m.status === 'inattivo');
+    }
+
+    // Applica filtro di ricerca testuale
     if (!query) return mgrs;
 
     return mgrs.filter(m => 
@@ -91,6 +102,11 @@ export class AdminManagersComponent implements OnInit {
     this.searchQuery.set(input.value);
   }
 
+  onStatusFilterChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    this.statusFilter.set(select.value as 'tutti' | 'attivi' | 'inattivi');
+  }
+
   editManager(manager: Manager): void {
     this.selectedManager.set(manager);
     this.showEditModal.set(true);
@@ -102,14 +118,28 @@ export class AdminManagersComponent implements OnInit {
   }
 
   saveManager(updatedManager: ManagerEdit): void {
-    const managers = this.managers();
-    const index = managers.findIndex(m => m.id === updatedManager.id);
-    if (index !== -1) {
-      managers[index] = updatedManager as Manager;
-      this.managers.set([...managers]);
-    }
-    this.closeEditModal();
-    this.loadManagers(); // Ricarica i dati dal backend
+    // Prepara i dati da inviare al backend
+    const updateData = {
+      firstName: updatedManager.name.split(' ')[0], // Prende il primo nome
+      lastName: updatedManager.name.split(' ').slice(1).join(' '), // Prende il cognome
+      phoneE164: updatedManager.phone,
+      active: updatedManager.status === 'attivo'
+    };
+
+    console.log('🔄 Aggiornamento gestore:', updatedManager.id, updateData);
+
+    this.userService.updateUser(updatedManager.id, updateData).subscribe({
+      next: (updatedUser) => {
+        console.log('✅ Gestore aggiornato con successo:', updatedUser);
+        this.closeEditModal();
+        // Ricarica la lista per mostrare i dati aggiornati
+        this.loadManagers();
+      },
+      error: (err: any) => {
+        console.error('❌ Errore nell\'aggiornamento del gestore:', err);
+        alert('Errore durante l\'aggiornamento del gestore. Riprova.');
+      }
+    });
   }
 
   toggleManagerStatus(manager: Manager): void {
@@ -135,8 +165,33 @@ export class AdminManagersComponent implements OnInit {
   }
 
   saveNewManager(newManager: NewManager): void {
-    this.closeAddModal();
-    this.loadManagers(); // Ricarica i dati dopo aver aggiunto un nuovo manager
+    // Prepara i dati per il backend includendo il ruolo AGENCY_MANAGER
+    const managerData = {
+      name: newManager.name,
+      email: newManager.email,
+      phone: newManager.phone,
+      status: newManager.status,
+      role: 'AGENCY_MANAGER'  // ✅ Specifica che si tratta di un gestore
+    };
+
+    console.log('➕ Creazione nuovo gestore:', managerData);
+
+    this.userService.createUser(managerData as any).subscribe({
+      next: (createdManager) => {
+        console.log('✅ Gestore creato con successo:', createdManager);
+        this.closeAddModal();
+        // Ricarica la lista per mostrare il nuovo gestore
+        this.loadManagers();
+      },
+      error: (err: any) => {
+        console.error('❌ Errore nella creazione del gestore:', err);
+        if (err.status === 409) {
+          alert('Errore: L\'email è già in uso da un altro utente.');
+        } else {
+          alert('Errore durante la creazione del gestore. Riprova.');
+        }
+      }
+    });
   }
 
   getStatusClass(status: string): string {

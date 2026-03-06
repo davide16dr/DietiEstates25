@@ -178,3 +178,129 @@
     justify-content: center;
   }
 }
+
+// Toast Notification - Moderno e Animato 🎨
+.toast-notification {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  min-width: 320px;
+  max-width: 400px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15), 
+              0 0 0 1px rgba(0, 0, 0, 0.05);
+  z-index: 9999;
+  animation: slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &.success {
+    border-left: 4px solid #10b981;
+  }
+
+  &.error {
+    border-left: 4px solid #ef4444;
+  }
+
+  .toast-icon {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+
+    svg {
+      animation: scaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+    }
+  }
+
+  &.error .toast-icon {
+    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  }
+
+  .toast-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .toast-title {
+    margin: 0 0 4px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #111827;
+  }
+
+  .toast-message {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 500;
+    color: #6b7280;
+    line-height: 1.4;
+  }
+
+  .toast-close {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    color: #9ca3af;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s;
+    font-family: inherit;
+
+    &:hover {
+      background: #f3f4f6;
+      color: #374151;
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
+  }
+}
+
+// Animazioni
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+// Toast responsive
+@media (max-width: 480px) {
+  .toast-notification {
+    left: 16px;
+    right: 16px;
+    min-width: unset;
+    max-width: unset;
+  }
+}

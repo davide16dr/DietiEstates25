@@ -14,6 +14,9 @@ public class ListingResponse {
     
     // Dati dell'agente
     private String agentName;
+    private String agentEmail;
+    private String agentPhone;
+    private String agencyName;
     
     // Dati della proprietà
     private String address;
@@ -59,6 +62,15 @@ public class ListingResponse {
 
     public String getAgentName() { return agentName; }
     public void setAgentName(String agentName) { this.agentName = agentName; }
+
+    public String getAgentEmail() { return agentEmail; }
+    public void setAgentEmail(String agentEmail) { this.agentEmail = agentEmail; }
+
+    public String getAgentPhone() { return agentPhone; }
+    public void setAgentPhone(String agentPhone) { this.agentPhone = agentPhone; }
+
+    public String getAgencyName() { return agencyName; }
+    public void setAgencyName(String agencyName) { this.agencyName = agencyName; }
 
     public String getAddress() { return address; }
     public void setAddress(String address) { this.address = address; }

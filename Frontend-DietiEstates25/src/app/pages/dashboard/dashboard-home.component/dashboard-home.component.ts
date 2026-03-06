@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../../shared/services/auth.service';
@@ -16,8 +16,8 @@ export class DashboardHomeComponent implements OnInit {
   private dashboardService = inject(DashboardService);
   currentUser = this.authService.currentUser;
 
-  clientStatsData: ClientStats | null = null;
-  agentStatsData: AgentStats | null = null;
+  clientStatsData = signal<ClientStats | null>(null);
+  agentStatsData = signal<AgentStats | null>(null);
 
   ngOnInit() {
     // Load stats based on user role
@@ -31,7 +31,7 @@ export class DashboardHomeComponent implements OnInit {
   private loadClientStats() {
     this.dashboardService.getClientStats().subscribe({
       next: (stats) => {
-        this.clientStatsData = stats;
+        this.clientStatsData.set(stats);
       },
       error: (err) => {
         console.error('Error loading client stats:', err);
@@ -42,7 +42,7 @@ export class DashboardHomeComponent implements OnInit {
   private loadAgentStats() {
     this.dashboardService.getAgentStats().subscribe({
       next: (stats) => {
-        this.agentStatsData = stats;
+        this.agentStatsData.set(stats);
       },
       error: (err) => {
         console.error('Error loading agent stats:', err);
@@ -89,7 +89,7 @@ export class DashboardHomeComponent implements OnInit {
 
   // Stats per clienti
   get clientStats() {
-    const stats = this.clientStatsData;
+    const stats = this.clientStatsData();
     return [
       { label: 'Visite Programmate', value: stats?.pendingVisits || 0, pillIcon: '📅', pillBg: '#eaf2ff', pillColor: '#2563eb' },
       { label: 'Visite Completate', value: stats?.completedVisits || 0, pillIcon: '✓', pillBg: '#e9f7ef', pillColor: '#0f7a55' },
@@ -99,7 +99,7 @@ export class DashboardHomeComponent implements OnInit {
 
   // Stats per agenti
   get agentStats() {
-    const stats = this.agentStatsData;
+    const stats = this.agentStatsData();
     return [
       { label: 'Immobili Attivi', value: stats?.totalProperties || 0, pillIcon: '🏠', pillBg: '#e9f7ef', pillColor: '#0f7a55' },
       { label: 'Visite in Attesa', value: stats?.pendingVisits || 0, pillIcon: '📅', pillBg: '#fff4e5', pillColor: '#b45309' },

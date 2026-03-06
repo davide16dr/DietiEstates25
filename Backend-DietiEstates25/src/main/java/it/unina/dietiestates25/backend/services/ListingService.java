@@ -326,6 +326,15 @@ public class ListingService {
         if (listing.getAgent() != null) {
             String agentName = listing.getAgent().getFirstName() + " " + listing.getAgent().getLastName();
             response.setAgentName(agentName);
+            response.setAgentEmail(listing.getAgent().getEmail());
+            response.setAgentPhone(listing.getAgent().getPhoneE164());
+            
+            // Dati dell'agenzia
+            if (listing.getAgent().getAgencyId() != null) {
+                agencyRepository.findById(listing.getAgent().getAgencyId()).ifPresent(agency -> {
+                    response.setAgencyName(agency.getName());
+                });
+            }
         }
 
         // Dati della proprietà

@@ -54,11 +54,14 @@
 // Search Section
 .search-section {
   margin-bottom: 24px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
 }
 
 .search-box {
   position: relative;
-  max-width: 500px;
+  flex: 1; // ✅ Occupa tutto lo spazio disponibile
 
   .search-icon {
     position: absolute;
@@ -90,6 +93,31 @@
     &::placeholder {
       color: #9ca3af;
     }
+  }
+}
+
+// ✅ Stile per il dropdown di filtro
+.filter-select {
+  padding: 14px 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #111827;
+  background: #fff;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+  min-width: 180px;
+
+  &:hover {
+    border-color: #0f7a55;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: #0f7a55;
+    box-shadow: 0 0 0 3px rgba(15, 122, 85, 0.1);
   }
 }
 
@@ -370,8 +398,17 @@
     }
   }
 
+  .search-section {
+    flex-direction: column;
+    gap: 12px;
+  }
+
   .search-box {
     max-width: 100%;
+  }
+
+  .filter-select {
+    width: 100%;
   }
 
   .manager-card {
