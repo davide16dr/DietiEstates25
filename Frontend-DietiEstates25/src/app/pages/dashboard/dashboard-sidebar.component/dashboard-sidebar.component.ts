@@ -1,7 +1,8 @@
-import { Component, input, output, inject, signal, computed } from '@angular/core';
+import { Component, input, output, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../../shared/services/auth.service';
+import { DashboardService, AgentStats } from '../../../shared/services/dashboard.service';
 import { ChangePasswordModalComponent, PasswordChangeData } from '../change-password-modal.component/change-password-modal.component';
 
 type MenuItem = {
@@ -18,20 +19,34 @@ type MenuItem = {
   templateUrl: './dashboard-sidebar.component.html',
   styleUrl: './dashboard-sidebar.component.scss',
 })
-export class DashboardSidebarComponent {
+export class DashboardSidebarComponent implements OnInit {
   // Modern Angular: input()/output() invece di @Input()/@Output()
   collapsed = input.required<boolean>();
   toggle = output<void>();
 
   private authService = inject(AuthService);
+  private dashboardService = inject(DashboardService);
 
   // ✅ USA DIRETTAMENTE il signal di AuthService invece di crearne uno locale
   currentUser = this.authService.currentUser;
+
+  // Stats for badges
+  agentStats = signal<AgentStats | null>(null);
 
   // Modal state
   showChangePasswordModal = signal(false);
   isChangingPassword = signal(false);
   passwordError = signal<string | null>(null);
+
+  ngOnInit(): void {
+    // Load stats if user is agent
+    if (this.isAgent) {
+      this.dashboardService.getAgentStats().subscribe({
+        next: (stats) => this.agentStats.set(stats),
+        error: (err) => console.error('Error loading agent stats:', err)
+      });
+    }
+  }
 
   get userName(): string {
     const user = this.currentUser();
@@ -60,6 +75,7 @@ export class DashboardSidebarComponent {
 
   menu = computed<MenuItem[]>(() => {
     const role = this.currentUser()?.role?.toLowerCase();
+    const stats = this.agentStats();
 
     if (role === 'admin') return [
       { label: 'Dashboard', icon: '▦', route: '/dashboard/admin-home' },
@@ -76,9 +92,9 @@ export class DashboardSidebarComponent {
 
     if (role === 'agent') return [
       { label: 'Dashboard', icon: '▦', route: '/dashboard/home' },
-      { label: 'I Miei Immobili', icon: '🏠', route: '/dashboard/agent-properties', badge: 6 },
-      { label: 'Visite', icon: '📅', route: '/dashboard/agent-visits', badge: 2 },
-      { label: 'Offerte', icon: '🤝', route: '/dashboard/agent-offers', badge: 2 },
+      { label: 'I Miei Immobili', icon: '🏠', route: '/dashboard/agent-properties', badge: stats?.totalProperties },
+      { label: 'Visite', icon: '📅', route: '/dashboard/agent-visits', badge: stats?.pendingVisits },
+      { label: 'Offerte', icon: '🤝', route: '/dashboard/agent-offers', badge: stats?.pendingOffers },
     ];
 
     return [

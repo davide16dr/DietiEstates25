@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { AdminService, AdminStats } from '../../../shared/services/admin.service';
 
 interface AgencyStat {
   gestori: { totali: number; attivi: number };
@@ -11,17 +12,17 @@ interface AgencyStat {
 }
 
 interface Manager {
-  id: number;
+  id: string;
   name: string;
   email: string;
   status: 'attivo' | 'inattivo';
 }
 
 interface Agent {
-  id: number;
+  id: string;
   name: string;
   email: string;
-  status: 'attivo' | 'disattivato';
+  status: 'attivo' | 'inattivo';
 }
 
 @Component({
@@ -31,49 +32,72 @@ interface Agent {
   templateUrl: './admin-dashboard.component.html',
   styleUrl: './admin-dashboard.component.scss',
 })
-export class AdminDashboardComponent {
-  agencyName = 'DietiEstates Milano Centro';
-  
-  stats: AgencyStat = {
-    gestori: { totali: 1, attivi: 1 },
-    agenti: { totali: 3, attivi: 2 },
-    citta: 'Milano',
-    indirizzo: 'Via Roma 100',
+export class AdminDashboardComponent implements OnInit {
+  private adminService = inject(AdminService);
+
+  agencyName = signal<string>('Caricamento...');
+  stats = signal<AgencyStat>({
+    gestori: { totali: 0, attivi: 0 },
+    agenti: { totali: 0, attivi: 0 },
+    citta: '',
+    indirizzo: '',
     stato: 'Attiva'
-  };
+  });
+  recentManagers = signal<Manager[]>([]);
+  recentAgents = signal<Agent[]>([]);
+  isLoading = signal(true);
+  error = signal<string | null>(null);
 
-  recentManagers: Manager[] = [
-    {
-      id: 1,
-      name: 'Giuseppe Verdi',
-      email: 'manager@dietiestates.it',
-      status: 'attivo'
-    }
-  ];
+  ngOnInit(): void {
+    this.loadAdminStats();
+  }
 
-  recentAgents: Agent[] = [
-    {
-      id: 1,
-      name: 'Lucia Bianchi',
-      email: 'agent@dietiestates.it',
-      status: 'attivo'
-    },
-    {
-      id: 2,
-      name: 'Marco Colombo',
-      email: 'agent2@dietiestates.it',
-      status: 'attivo'
-    },
-    {
-      id: 3,
-      name: 'Sara Romano',
-      email: 'agent3@dietiestates.it',
-      status: 'disattivato'
-    }
-  ];
+  loadAdminStats(): void {
+    this.isLoading.set(true);
+    this.error.set(null);
+
+    this.adminService.getAdminStats().subscribe({
+      next: (data: AdminStats) => {
+        console.log('📊 Statistiche admin ricevute:', data);
+
+        // Aggiorna nome agenzia
+        this.agencyName.set(data.agencyInfo.name);
+
+        // Aggiorna statistiche
+        this.stats.set({
+          gestori: data.gestori,
+          agenti: data.agenti,
+          citta: data.agencyInfo.city,
+          indirizzo: data.agencyInfo.address,
+          stato: data.agencyInfo.status
+        });
+
+        // Aggiorna liste recenti
+        this.recentManagers.set(data.recentManagers.map(m => ({
+          id: m.id,
+          name: m.name,
+          email: m.email,
+          status: m.status as 'attivo' | 'inattivo'
+        })));
+
+        this.recentAgents.set(data.recentAgents.map(a => ({
+          id: a.id,
+          name: a.name,
+          email: a.email,
+          status: a.status as 'attivo' | 'inattivo'
+        })));
+
+        this.isLoading.set(false);
+      },
+      error: (err: any) => {
+        console.error('❌ Errore nel caricamento delle statistiche admin:', err);
+        this.error.set('Errore nel caricamento delle statistiche. Riprova più tardi.');
+        this.isLoading.set(false);
+      }
+    });
+  }
 
   navigateToManagers(): void {
-    
     console.log('Navigate to managers');
   }
 

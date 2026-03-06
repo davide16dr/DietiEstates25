@@ -3,15 +3,18 @@ package it.unina.dietiestates25.backend.services;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
 import it.unina.dietiestates25.backend.dto.dashboard.AgentStatsResponse;
 import it.unina.dietiestates25.backend.dto.dashboard.ClientStatsResponse;
-import it.unina.dietiestates25.backend.entities.User;
+import it.unina.dietiestates25.backend.entities.Listing;
+import it.unina.dietiestates25.backend.entities.enums.OfferStatus;
 import it.unina.dietiestates25.backend.entities.enums.VisitStatus;
 import it.unina.dietiestates25.backend.repositories.ListingRepository;
+import it.unina.dietiestates25.backend.repositories.OfferRepository;
 import it.unina.dietiestates25.backend.repositories.UserRepository;
 import it.unina.dietiestates25.backend.repositories.VisitRepository;
 
@@ -21,14 +24,17 @@ public class DashboardStatsService {
     private final VisitRepository visitRepository;
     private final ListingRepository listingRepository;
     private final UserRepository userRepository;
+    private final OfferRepository offerRepository;
 
     public DashboardStatsService(
             VisitRepository visitRepository,
             ListingRepository listingRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            OfferRepository offerRepository) {
         this.visitRepository = visitRepository;
         this.listingRepository = listingRepository;
         this.userRepository = userRepository;
+        this.offerRepository = offerRepository;
     }
 
     public ClientStatsResponse getClientStats(UUID clientId) {
@@ -60,7 +66,14 @@ public class DashboardStatsService {
                 .count();
         
         long totalProperties = listingRepository.findAllByAgent_Id(agentId).size();
+        
+        // Count pending offers for agent's properties
+        List<Listing> agentListings = listingRepository.findAllByAgent_Id(agentId);
+        long pendingOffers = agentListings.stream()
+                .flatMap(listing -> offerRepository.findAllByListing_Id(listing.getId()).stream())
+                .filter(offer -> offer.getStatus() == OfferStatus.SUBMITTED)
+                .count();
 
-        return new AgentStatsResponse((int)totalProperties, (int)pendingVisits, (int)todayVisits, (int)completedVisits);
+        return new AgentStatsResponse((int)totalProperties, (int)pendingVisits, (int)todayVisits, (int)completedVisits, (int)pendingOffers);
     }
 }

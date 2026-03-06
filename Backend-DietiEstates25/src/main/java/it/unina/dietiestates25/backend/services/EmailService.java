@@ -150,4 +150,75 @@ public class EmailService {
             e.printStackTrace();
         }
     }
+
+    /**
+     * Invia un'email di benvenuto a un nuovo gestore con le credenziali di accesso
+     */
+    public void sendManagerCreationConfirmation(String toEmail, String agencyName,
+                                                 String firstName, String lastName,
+                                                 String temporaryPassword,
+                                                 String createdByName) {
+        // Se l'invio email è disabilitato, mostra il messaggio in console
+        if (!emailEnabled) {
+            System.out.println("[EMAIL DISABILITATO IN SVILUPPO]");
+            System.out.println("To: " + toEmail);
+            System.out.println("Subject: Benvenuto in DietiEstates25 - Account Gestore Creato");
+            System.out.println("Body:");
+            System.out.println("---");
+            System.out.println(String.format(
+                "Caro/a %s %s,\n\n" +
+                "Il tuo account gestore per l'agenzia \"%s\" è stato creato con successo da %s!\n\n" +
+                "Ecco i tuoi dati di accesso:\n" +
+                "Email: %s\n" +
+                "Password Temporanea: %s\n\n" +
+                "⚠️ IMPORTANTE: Per motivi di sicurezza, ti consigliamo di cambiare la password temporanea al primo accesso.\n\n" +
+                "Accedi qui: https://dietiestates25.it/auth/login\n\n" +
+                "Una volta effettuato l'accesso potrai:\n" +
+                "• Gestire gli agenti della tua agenzia\n" +
+                "• Monitorare le performance e le statistiche\n" +
+                "• Supervisionare gli immobili in vendita\n" +
+                "• Visualizzare report dettagliati\n\n" +
+                "Se hai domande o hai bisogno di assistenza, contattaci a support@dietiestates25.it\n\n" +
+                "Cordiali saluti,\n" +
+                "Il Team di DietiEstates25",
+                firstName, lastName, agencyName, createdByName, toEmail, temporaryPassword
+            ));
+            System.out.println("---");
+            return;
+        }
+
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(toEmail);
+            message.setSubject("Benvenuto in DietiEstates25 - Account Gestore Creato");
+
+            String body = String.format(
+                "Caro/a %s %s,\n\n" +
+                "Il tuo account gestore per l'agenzia \"%s\" è stato creato con successo da %s!\n\n" +
+                "Ecco i tuoi dati di accesso:\n" +
+                "Email: %s\n" +
+                "Password Temporanea: %s\n\n" +
+                "⚠️ IMPORTANTE: Per motivi di sicurezza, ti consigliamo di cambiare la password temporanea al primo accesso.\n\n" +
+                "Accedi qui: https://dietiestates25.it/auth/login\n\n" +
+                "Una volta effettuato l'accesso potrai:\n" +
+                "• Gestire gli agenti della tua agenzia\n" +
+                "• Monitorare le performance e le statistiche\n" +
+                "• Supervisionare gli immobili in vendita\n" +
+                "• Visualizzare report dettagliati\n\n" +
+                "Se hai domande o hai bisogno di assistenza, contattaci a support@dietiestates25.it\n\n" +
+                "Cordiali saluti,\n" +
+                "Il Team di DietiEstates25",
+                firstName, lastName, agencyName, createdByName, toEmail, temporaryPassword
+            );
+
+            message.setText(body);
+            mailSender.send(message);
+            
+            System.out.println("✅ Email di benvenuto gestore inviata con successo a: " + toEmail);
+        } catch (Exception e) {
+            System.err.println("❌ Errore nell'invio dell'email al gestore: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
 }

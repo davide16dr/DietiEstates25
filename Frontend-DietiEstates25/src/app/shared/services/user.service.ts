@@ -12,6 +12,10 @@ export interface User {
   role: 'ADMIN' | 'AGENCY_MANAGER' | 'AGENT' | 'CLIENT';
   active: boolean;
   agencyId?: string;
+  totalProperties?: number;
+  activeProperties?: number;
+  soldProperties?: number;
+  rentedProperties?: number;
 }
 
 export interface CreateUserRequest {
@@ -36,7 +40,7 @@ export interface UpdateUserRequest {
 })
 export class UserService {
   private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/api/users`;
+  private apiUrl = `${environment.apiUrl}/users`;
 
   /**
    * Recupera tutti gli utenti di un'agenzia filtrati per ruolo
@@ -85,5 +89,12 @@ export class UserService {
    */
   getManagerStats(): Observable<any> {
     return this.http.get(`${this.apiUrl}/manager/stats`);
+  }
+
+  /**
+   * Recupera tutti gli agenti con le loro statistiche di immobili
+   */
+  getAgentsWithStats(): Observable<User[]> {
+    return this.http.get<User[]>(`${this.apiUrl}/agents-with-stats`);
   }
 }

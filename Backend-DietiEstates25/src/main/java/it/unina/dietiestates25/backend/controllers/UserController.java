@@ -11,8 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -127,15 +127,15 @@ public class UserController {
     }
 
     /**
-     * Crea un nuovo agente
+     * Crea un nuovo utente (agente o gestore)
      */
     @PostMapping
-    public ResponseEntity<User> createAgent(
-            @RequestBody Map<String, Object> agentData,
+    public ResponseEntity<User> createUser(
+            @RequestBody Map<String, Object> userData,
             Authentication authentication) {
         try {
-            System.out.println("➕ [UserController] Creazione nuovo agente");
-            System.out.println("📋 [UserController] Dati ricevuti: " + agentData);
+            System.out.println("➕ [UserController] Creazione nuovo utente");
+            System.out.println("📋 [UserController] Dati ricevuti: " + userData);
             
             // Recupera l'utente loggato (gestore o admin)
             String email = authentication.getName();
@@ -153,58 +153,74 @@ public class UserController {
                     .orElseThrow(() -> new RuntimeException("Agenzia non trovata"));
             
             // Estrai i dati dal body
-            String fullName = (String) agentData.get("name");
+            String fullName = (String) userData.get("name");
             String[] nameParts = fullName.split(" ", 2);
             String firstName = nameParts[0];
             String lastName = nameParts.length > 1 ? nameParts[1] : "";
             
-            String agentEmail = (String) agentData.get("email");
-            String phone = (String) agentData.get("phone");
+            String userEmail = (String) userData.get("email");
+            String phone = (String) userData.get("phone");
+            
+            // Determina il ruolo (default AGENT, ma può essere AGENCY_MANAGER)
+            String roleStr = (String) userData.getOrDefault("role", "AGENT");
+            UserRole role = UserRole.valueOf(roleStr);
             
             // Genera una password casuale sicura
             String temporaryPassword = PasswordGenerator.generateTemporaryPassword();
             System.out.println("🔐 [UserController] Password temporanea generata");
             
-            boolean active = "attivo".equals(agentData.get("status"));
+            boolean active = "attivo".equals(userData.get("status"));
             
             // Verifica che l'email non esista già
-            if (userRepository.findByEmail(agentEmail).isPresent()) {
-                System.err.println("❌ Email già esistente: " + agentEmail);
+            if (userRepository.findByEmail(userEmail).isPresent()) {
+                System.err.println("❌ Email già esistente: " + userEmail);
                 return ResponseEntity.status(409).build(); // Conflict
             }
             
-            // Crea il nuovo agente
-            User newAgent = new User();
-            newAgent.setEmail(agentEmail);
-            newAgent.setFirstName(firstName);
-            newAgent.setLastName(lastName);
-            newAgent.setPhoneE164(phone);
-            newAgent.setRole(UserRole.AGENT);
-            newAgent.setAgencyId(currentUser.getAgencyId());
-            newAgent.setActive(active);
+            // Crea il nuovo utente
+            User newUser = new User();
+            newUser.setEmail(userEmail);
+            newUser.setFirstName(firstName);
+            newUser.setLastName(lastName);
+            newUser.setPhoneE164(phone);
+            newUser.setRole(role);
+            newUser.setAgencyId(currentUser.getAgencyId());
+            newUser.setActive(active);
             
-            // Salva l'agente usando il servizio (che gestisce l'hash della password)
-            User savedAgent = userService.createUserWithPassword(newAgent, temporaryPassword);
+            // Salva l'utente usando il servizio (che gestisce l'hash della password)
+            User savedUser = userService.createUserWithPassword(newUser, temporaryPassword);
             
-            System.out.println("✅ [UserController] Agente creato con successo: " + savedAgent.getId());
+            System.out.println("✅ [UserController] Utente creato con successo: " + savedUser.getId() + " con ruolo " + role);
             
             // Invia l'email di benvenuto con le credenziali
             String createdByName = currentUser.getFirstName() + " " + currentUser.getLastName();
-            emailService.sendAgentCreationConfirmation(
-                agentEmail, 
-                agency.getName(), 
-                firstName, 
-                lastName, 
-                temporaryPassword,
-                createdByName
-            );
             
-            System.out.println("📧 [UserController] Email di benvenuto inviata all'agente");
+            if (role == UserRole.AGENT) {
+                emailService.sendAgentCreationConfirmation(
+                    userEmail, 
+                    agency.getName(), 
+                    firstName, 
+                    lastName, 
+                    temporaryPassword,
+                    createdByName
+                );
+            } else if (role == UserRole.AGENCY_MANAGER) {
+                emailService.sendManagerCreationConfirmation(
+                    userEmail, 
+                    agency.getName(), 
+                    firstName, 
+                    lastName, 
+                    temporaryPassword,
+                    createdByName
+                );
+            }
             
-            return ResponseEntity.status(201).body(savedAgent); // 201 Created
+            System.out.println("📧 [UserController] Email di benvenuto inviata");
+            
+            return ResponseEntity.status(201).body(savedUser); // 201 Created
             
         } catch (Exception e) {
-            System.err.println("❌ [UserController] Errore nella creazione dell'agente: " + e.getMessage());
+            System.err.println("❌ [UserController] Errore nella creazione dell'utente: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.internalServerError().build();
         }
@@ -353,6 +369,72 @@ public class UserController {
             
         } catch (Exception e) {
             System.err.println("❌ Errore nel recupero statistiche manager: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * Recupera tutti gli agenti con le loro statistiche di immobili
+     */
+    @GetMapping("/agents-with-stats")
+    public ResponseEntity<List<Map<String, Object>>> getAgentsWithStats(Authentication authentication) {
+        try {
+            // Recupera l'utente loggato
+            String email = authentication.getName();
+            User currentUser = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("Utente non trovato"));
+            
+            if (currentUser.getAgencyId() == null) {
+                return ResponseEntity.status(403).build();
+            }
+            
+            UUID agencyId = currentUser.getAgencyId();
+            
+            // Recupera tutti gli agenti dell'agenzia
+            List<User> agents = userRepository.findByAgencyIdAndRole(agencyId, UserRole.AGENT);
+            
+            // Mappa ogni agente con le sue statistiche
+            List<Map<String, Object>> agentsWithStats = agents.stream()
+                    .map(agent -> {
+                        // Recupera gli immobili dell'agente usando il metodo corretto
+                        List<Listing> agentListings = listingRepository.findAllByAgent_Id(agent.getId());
+                        
+                        int totalProperties = agentListings.size();
+                        int activeProperties = (int) agentListings.stream()
+                                .filter(l -> l.getStatus() == ListingStatus.ACTIVE)
+                                .count();
+                        int soldProperties = (int) agentListings.stream()
+                                .filter(l -> l.getStatus() == ListingStatus.SOLD)
+                                .count();
+                        int rentedProperties = (int) agentListings.stream()
+                                .filter(l -> l.getStatus() == ListingStatus.RENTED)
+                                .count();
+                        
+                        // Costruisci l'oggetto con i dati dell'agente e le statistiche
+                        Map<String, Object> agentData = new HashMap<>();
+                        agentData.put("id", agent.getId().toString());
+                        agentData.put("email", agent.getEmail());
+                        agentData.put("firstName", agent.getFirstName());
+                        agentData.put("lastName", agent.getLastName());
+                        agentData.put("phoneE164", agent.getPhoneE164());
+                        agentData.put("active", agent.isActive());
+                        agentData.put("agencyId", agent.getAgencyId().toString());
+                        agentData.put("totalProperties", totalProperties);
+                        agentData.put("activeProperties", activeProperties);
+                        agentData.put("soldProperties", soldProperties);
+                        agentData.put("rentedProperties", rentedProperties);
+                        
+                        return agentData;
+                    })
+                    .collect(Collectors.toList());
+            
+            System.out.println("✅ Recuperati " + agentsWithStats.size() + " agenti con statistiche");
+            
+            return ResponseEntity.ok(agentsWithStats);
+            
+        } catch (Exception e) {
+            System.err.println("❌ Errore nel recupero agenti con statistiche: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.internalServerError().build();
         }

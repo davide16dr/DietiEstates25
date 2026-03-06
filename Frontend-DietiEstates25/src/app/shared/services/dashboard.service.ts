@@ -76,6 +76,7 @@ export interface AgentStats {
   completedVisits: number;
   todayVisits: number;
   totalProperties: number;
+  pendingOffers: number;
 }
 
 @Injectable({
@@ -165,7 +166,7 @@ export class DashboardService {
   getAgentStats(): Observable<AgentStats> {
     return this.http.get<AgentStats>(`${this.apiUrl}/dashboard/agent/stats`).pipe(
       timeout(3000),
-      catchError(() => of({ totalVisits: 0, pendingVisits: 0, completedVisits: 0, todayVisits: 0, totalProperties: 0 }))
+      catchError(() => of({ totalVisits: 0, pendingVisits: 0, completedVisits: 0, todayVisits: 0, totalProperties: 0, pendingOffers: 0 }))
     );
   }
 
