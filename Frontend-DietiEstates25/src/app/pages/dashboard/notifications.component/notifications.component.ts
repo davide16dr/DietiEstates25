@@ -1,78 +1,110 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { DashboardService, Notification } from '../../../shared/services/dashboard.service';
+import { FormsModule } from '@angular/forms';
+import { DashboardService, Notification, NotificationPreferences } from '../../../shared/services/dashboard.service';
+import { AuthService } from '../../../shared/services/auth.service';
+import { WebSocketService, WebSocketNotification } from '../../../shared/services/websocket.service';
 
 @Component({
   selector: 'app-notifications',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './notifications.component.html',
   styleUrl: './notifications.component.scss'
 })
-export class NotificationsComponent implements OnInit {
+export class NotificationsComponent implements OnInit, OnDestroy {
   private dashboardService = inject(DashboardService);
   private router = inject(Router);
+  private authService = inject(AuthService);
+  private webSocketService = inject(WebSocketService);
+  private notificationCallback?: (notification: WebSocketNotification) => void;
 
   notifications = signal<Notification[]>([]);
   loading = signal(true);
+  error = signal<string | null>(null);
 
-  unreadCount = computed(() => this.notifications().filter(n => !n.isRead).length);
+  // Settings modal state
+  showSettingsModal = signal(false);
+  preferences = signal<NotificationPreferences>({
+    emailEnabled: true,
+    inappEnabled: true,
+    notifyNewMatching: true,
+    notifyPriceChange: true,
+    notifyListingUpdates: true,
+    notifyVisitUpdates: true,
+    notifyOfferUpdates: true
+  });
+  savingPreferences = signal(false);
 
-  private mockNotifications: Notification[] = [
-    {
-      id: 1, type: 'PROPERTY_MATCH', title: 'Nuovo immobile corrispondente',
-      message: 'Un nuovo appartamento a Milano Centro corrisponde alla tua ricerca salvata.',
-      createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-      isRead: false, listingId: 101
-    },
-    {
-      id: 2, type: 'VISIT_CONFIRMED', title: 'Visita confermata',
-      message: "La tua visita all'immobile in Via Monte Napoleone è stata confermata per il 25 Gennaio alle 10:00.",
-      createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-      isRead: false, listingId: 102
-    },
-    {
-      id: 3, type: 'SPECIAL_OFFER', title: 'Offerta speciale',
-      message: 'Scopri i nuovi immobili di prestigio appena arrivati nel nostro catalogo!',
-      createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-      isRead: true
-    },
-    {
-      id: 4, type: 'COUNTEROFFER', title: 'Controproposta ricevuta',
-      message: "L'agente ha inviato una controproposta per l'immobile in Piazza Duomo.",
-      createdAt: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
-      isRead: true, listingId: 103
-    }
-  ];
+  unreadCount = computed(() => this.notifications().filter(n => !n.read).length);
 
   ngOnInit(): void {
     this.loadNotifications();
+    this.loadPreferences();
+    
+    // 🔴 REAL-TIME: Ascolta le notifiche WebSocket per aggiornamenti in tempo reale
+    this.notificationCallback = (notification: WebSocketNotification) => {
+      console.log('🔔 Nuova notifica WebSocket ricevuta:', notification);
+      
+      // Ricarica immediatamente la lista delle notifiche quando arriva una nuova notifica
+      this.loadNotifications();
+    };
+    
+    this.webSocketService.onNotification(this.notificationCallback);
+  }
+  
+  ngOnDestroy(): void {
+    // 🧹 Rimuove il listener WebSocket quando il componente viene distrutto
+    if (this.notificationCallback) {
+      this.webSocketService.removeNotificationCallback(this.notificationCallback);
+    }
   }
 
   loadNotifications(): void {
-    this.notifications.set(this.mockNotifications);
-    this.loading.set(false);
-
+    this.loading.set(true);
+    this.error.set(null);
+    
     this.dashboardService.getNotifications().subscribe({
       next: (notifications) => {
-        if (notifications.length > 0) this.notifications.set(notifications);
+        this.notifications.set(notifications);
+        this.loading.set(false);
+      },
+      error: (err) => {
+        console.error('Errore caricamento notifiche:', err);
+        this.error.set('Errore nel caricamento delle notifiche');
+        this.loading.set(false);
       }
+    });
+  }
+
+  loadPreferences(): void {
+    this.dashboardService.getNotificationPreferences().subscribe({
+      next: (prefs) => this.preferences.set(prefs),
+      error: (err) => console.error('Errore caricamento preferenze:', err)
     });
   }
 
   getNotificationIcon(type: string): string {
     const icons: Record<string, string> = {
-      PROPERTY_MATCH: 'home', VISIT_CONFIRMED: 'calendar_today',
-      OFFER_UPDATE: 'local_offer', COUNTEROFFER: 'description', SPECIAL_OFFER: 'sell'
+      NEW_MATCHING_LISTING: 'home',
+      PRICE_CHANGED: 'attach_money',
+      LISTING_UPDATED: 'update',
+      LISTING_REMOVED: 'delete',
+      VISIT_STATUS_CHANGED: 'calendar_today',
+      OFFER_STATUS_CHANGED: 'local_offer'
     };
     return icons[type] ?? 'notifications';
   }
 
   getNotificationIconClass(type: string): string {
     const classes: Record<string, string> = {
-      PROPERTY_MATCH: 'icon-property', VISIT_CONFIRMED: 'icon-visit',
-      OFFER_UPDATE: 'icon-offer', COUNTEROFFER: 'icon-counter', SPECIAL_OFFER: 'icon-special'
+      NEW_MATCHING_LISTING: 'icon-property',
+      PRICE_CHANGED: 'icon-price',
+      LISTING_UPDATED: 'icon-update',
+      LISTING_REMOVED: 'icon-removed',
+      VISIT_STATUS_CHANGED: 'icon-visit',
+      OFFER_STATUS_CHANGED: 'icon-offer'
     };
     return classes[type] ?? 'icon-default';
   }
@@ -94,31 +126,137 @@ export class NotificationsComponent implements OnInit {
   }
 
   markAsRead(notification: Notification): void {
-    if (notification.isRead) return;
+    if (notification.read) return;
+    
     this.dashboardService.markNotificationAsRead(notification.id).subscribe({
-      next: () => this.notifications.update(list =>
-        list.map(n => n.id === notification.id ? { ...n, isRead: true } : n)
-      )
+      next: () => {
+        this.notifications.update(list =>
+          list.map(n => n.id === notification.id ? { ...n, read: true } : n)
+        );
+      },
+      error: (err) => console.error('Errore marcatura notifica come letta:', err)
     });
   }
 
   markAllAsRead(): void {
-    const doMark = () => this.notifications.update(list => list.map(n => ({ ...n, isRead: true })));
-    this.dashboardService.markAllNotificationsAsRead().subscribe({ next: doMark, error: doMark });
+    this.dashboardService.markAllNotificationsAsRead().subscribe({
+      next: () => {
+        this.notifications.update(list => list.map(n => ({ ...n, read: true })));
+      },
+      error: (err) => {
+        console.error('Errore marcatura tutte come lette:', err);
+        // Anche in caso di errore, aggiorna localmente per UX migliore
+        this.notifications.update(list => list.map(n => ({ ...n, read: true })));
+      }
+    });
   }
 
   openNotification(notification: Notification): void {
     this.markAsRead(notification);
-    if (notification.listingId) this.router.navigate(['/properties', notification.listingId]);
+    
+    // Determina la rotta in base al tipo di notifica
+    const route = this.getNotificationRoute(notification);
+    
+    if (route) {
+      this.router.navigate([route]);
+    }
+  }
+
+  /**
+   * Determina la rotta corretta in base al tipo di notifica
+   */
+  private getNotificationRoute(notification: Notification): string | null {
+    const currentUser = this.authService.currentUser();
+    const isAgent = currentUser?.role?.toLowerCase() === 'agent';
+    
+    // 💰 PRIORITÀ 1: Se è relativa a offerte/controproposte (controllo sul type e title)
+    if (notification.type === 'OFFER_STATUS_CHANGED' ||
+        notification.title?.toLowerCase().includes('offerta') ||
+        notification.title?.toLowerCase().includes('controproposta')) {
+      
+      // Agente → pagina offerte agente
+      if (isAgent) {
+        return '/dashboard/agent-offers';
+      }
+      // Cliente → pagina le mie offerte
+      return '/dashboard/offers';
+    }
+    
+    // 📅 PRIORITÀ 2: Se è relativa a visite
+    if (notification.type === 'VISIT_STATUS_CHANGED' ||
+        notification.title?.toLowerCase().includes('visita')) {
+      
+      // Agente → pagina visite agente
+      if (isAgent) {
+        return '/dashboard/agent-visits';
+      }
+      // Cliente → pagina le mie visite
+      return '/dashboard/visits';
+    }
+    
+    // 🏠 PRIORITÀ 3: Se c'è un listingId specifico → vai al dettaglio dell'immobile
+    if (notification.listingId) {
+      return `/pages/property-detail/${notification.listingId}`;
+    }
+    
+    // 🏘️ PRIORITÀ 4: Notifiche generiche sugli immobili → vai alla ricerca
+    if (notification.type === 'NEW_MATCHING_LISTING' ||
+        notification.type === 'PRICE_CHANGED' ||
+        notification.type === 'LISTING_UPDATED' ||
+        notification.type === 'LISTING_REMOVED' ||
+        notification.title?.toLowerCase().includes('immobile')) {
+      return '/pages/properties-page';
+    }
+    
+    // Default: resta sulla pagina notifiche
+    return null;
   }
 
   deleteNotification(notification: Notification, event: Event): void {
     event.stopPropagation();
-    const doDelete = () => this.notifications.update(list => list.filter(n => n.id !== notification.id));
-    this.dashboardService.deleteNotification(notification.id).subscribe({ next: doDelete, error: doDelete });
+    
+    this.dashboardService.deleteNotification(notification.id).subscribe({
+      next: () => {
+        this.notifications.update(list => list.filter(n => n.id !== notification.id));
+      },
+      error: (err) => {
+        console.error('Errore eliminazione notifica:', err);
+        // Anche in caso di errore, rimuovi localmente per UX migliore
+        this.notifications.update(list => list.filter(n => n.id !== notification.id));
+      }
+    });
   }
 
   openSettings(): void {
-    console.log('Open notification settings');
+    this.showSettingsModal.set(true);
+  }
+
+  closeSettings(): void {
+    this.showSettingsModal.set(false);
+  }
+
+  savePreferences(): void {
+    this.savingPreferences.set(true);
+    
+    this.dashboardService.updateNotificationPreferences(this.preferences()).subscribe({
+      next: (updated) => {
+        this.preferences.set(updated);
+        this.savingPreferences.set(false);
+        this.closeSettings();
+        alert('✅ Impostazioni salvate con successo!');
+      },
+      error: (err) => {
+        console.error('Errore salvataggio preferenze:', err);
+        this.savingPreferences.set(false);
+        alert('❌ Errore nel salvataggio delle impostazioni');
+      }
+    });
+  }
+
+  togglePreference(key: keyof NotificationPreferences): void {
+    this.preferences.update(prefs => ({
+      ...prefs,
+      [key]: !prefs[key]
+    }));
   }
 }

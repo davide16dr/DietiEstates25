@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import it.unina.dietiestates25.backend.dto.visit.CreateVisitRequest;
 import it.unina.dietiestates25.backend.dto.visit.VisitResponse;
+import it.unina.dietiestates25.backend.dto.visits.VisitResponseDto;
 import it.unina.dietiestates25.backend.security.UserPrincipal;
 import it.unina.dietiestates25.backend.services.VisitService;
 
@@ -36,9 +37,9 @@ public class ClientVisitController {
      * Get all visits for the current client
      */
     @GetMapping
-    public ResponseEntity<List<VisitResponse>> getMyVisits(
+    public ResponseEntity<List<VisitResponseDto>> getMyVisits(
             @AuthenticationPrincipal UserPrincipal principal) {
-        List<VisitResponse> visits = visitService.getClientVisits(principal.getId());
+        List<VisitResponseDto> visits = visitService.getClientVisits(principal.getId());
         return ResponseEntity.ok(visits);
     }
 

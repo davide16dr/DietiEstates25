@@ -1,6 +1,7 @@
 package it.unina.dietiestates25.backend.services;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -14,8 +15,10 @@ import it.unina.dietiestates25.backend.entities.Property;
 import it.unina.dietiestates25.backend.entities.enums.ListingStatus;
 import it.unina.dietiestates25.backend.repositories.AgencyRepository;
 import it.unina.dietiestates25.backend.repositories.ListingRepository;
+import it.unina.dietiestates25.backend.repositories.OfferRepository;
 import it.unina.dietiestates25.backend.repositories.PropertyRepository;
 import it.unina.dietiestates25.backend.repositories.UserRepository;
+import it.unina.dietiestates25.backend.repositories.VisitRepository;
 
 @Service
 public class ListingService {
@@ -24,12 +27,21 @@ public class ListingService {
     private final PropertyRepository propertyRepository;
     private final UserRepository userRepository;
     private final AgencyRepository agencyRepository;
+    private final NotificationService notificationService;
+    private final OfferRepository offerRepository;
+    private final VisitRepository visitRepository;
 
-    public ListingService(ListingRepository listingRepository, PropertyRepository propertyRepository, UserRepository userRepository, AgencyRepository agencyRepository) {
+    public ListingService(ListingRepository listingRepository, PropertyRepository propertyRepository, 
+                         UserRepository userRepository, AgencyRepository agencyRepository,
+                         NotificationService notificationService, OfferRepository offerRepository,
+                         VisitRepository visitRepository) {
         this.listingRepository = listingRepository;
         this.propertyRepository = propertyRepository;
         this.userRepository = userRepository;
         this.agencyRepository = agencyRepository;
+        this.notificationService = notificationService;
+        this.offerRepository = offerRepository;
+        this.visitRepository = visitRepository;
     }
 
     @Transactional(readOnly = true)
@@ -191,6 +203,9 @@ public class ListingService {
         // Salva l'annuncio
         listing = listingRepository.save(listing);
         
+        // 📧 Verifica se il nuovo immobile corrisponde a ricerche salvate e invia notifiche
+        notificationService.checkMatchingSearchesAndNotify(listing);
+        
         return mapToResponse(listing);
     }
 
@@ -232,6 +247,10 @@ public class ListingService {
             throw new SecurityException("User does not have permission to update this listing");
         }
         
+        // Salva il prezzo originale per rilevare variazioni
+        int oldPrice = listing.getPriceAmount();
+        boolean priceChanged = false;
+        
         // Aggiorna i dati del listing
         if (request.getListing() != null) {
             it.unina.dietiestates25.backend.dto.listing.UpdateListingRequest.ListingUpdate listingUpdate = request.getListing();
@@ -242,7 +261,8 @@ public class ListingService {
             if (listingUpdate.getType() != null) {
                 listing.setType(it.unina.dietiestates25.backend.entities.enums.ListingType.valueOf(listingUpdate.getType()));
             }
-            if (listingUpdate.getPriceAmount() != null) {
+            if (listingUpdate.getPriceAmount() != null && listingUpdate.getPriceAmount() != oldPrice) {
+                priceChanged = true;
                 listing.setPriceAmount(listingUpdate.getPriceAmount());
             }
             if (listingUpdate.getCurrency() != null) {
@@ -306,8 +326,53 @@ public class ListingService {
         // Salva il listing aggiornato
         listing = listingRepository.save(listing);
         
+        // 📧 Se il prezzo è cambiato, invia notifiche ai clienti interessati
+        if (priceChanged) {
+            notifyInterestedClients(listing, oldPrice, listing.getPriceAmount());
+        }
+        
         System.out.println("✅ Listing aggiornato con successo");
         return mapToResponse(listing);
+    }
+    
+    /**
+     * Invia notifiche ai clienti interessati quando cambia il prezzo di un immobile
+     */
+    private void notifyInterestedClients(Listing listing, int oldPrice, int newPrice) {
+        System.out.println("📧 Variazione prezzo rilevata: da €" + oldPrice + " a €" + newPrice);
+        
+        // Recupera clienti con offerte attive per questo immobile
+        List<it.unina.dietiestates25.backend.entities.Offer> offers = offerRepository.findAllByListing_Id(listing.getId());
+        Set<java.util.UUID> notifiedClients = new java.util.HashSet<>();
+        
+        // Invia notifica ai clienti con offerte attive
+        offers.stream()
+            .filter(offer -> offer.getStatus() == it.unina.dietiestates25.backend.entities.enums.OfferStatus.SUBMITTED || 
+                            offer.getStatus() == it.unina.dietiestates25.backend.entities.enums.OfferStatus.COUNTEROFFER)
+            .forEach(offer -> {
+                java.util.UUID clientId = offer.getClient().getId();
+                if (!notifiedClients.contains(clientId)) {
+                    notificationService.createPriceChangeNotification(clientId, listing, oldPrice, newPrice);
+                    notifiedClients.add(clientId);
+                }
+            });
+        
+        // Recupera clienti con visite programmate per questo immobile
+        List<it.unina.dietiestates25.backend.entities.Visit> visits = visitRepository.findAllByListing_Id(listing.getId());
+        
+        // Invia notifica ai clienti con visite future
+        visits.stream()
+            .filter(visit -> visit.getStatus() == it.unina.dietiestates25.backend.entities.enums.VisitStatus.REQUESTED || 
+                            visit.getStatus() == it.unina.dietiestates25.backend.entities.enums.VisitStatus.CONFIRMED)
+            .forEach(visit -> {
+                java.util.UUID clientId = visit.getClient().getId();
+                if (!notifiedClients.contains(clientId)) {
+                    notificationService.createPriceChangeNotification(clientId, listing, oldPrice, newPrice);
+                    notifiedClients.add(clientId);
+                }
+            });
+        
+        System.out.println("✅ Inviate " + notifiedClients.size() + " notifiche per variazione prezzo");
     }
 
     private ListingResponse mapToResponse(Listing listing) {
@@ -348,7 +413,7 @@ public class ListingService {
             response.setEnergyClass(property.getEnergyClass());
             response.setHasElevator(property.isElevator());
             
-            // Converti BigDecimal a Double per le coordinate
+            // Converti BigDecimal a Double per les coordinate
             response.setLatitude(property.getLatitude() != null ? property.getLatitude().doubleValue() : null);
             response.setLongitude(property.getLongitude() != null ? property.getLongitude().doubleValue() : null);
         }

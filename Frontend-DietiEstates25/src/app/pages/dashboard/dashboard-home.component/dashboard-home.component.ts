@@ -14,6 +14,7 @@ import { DashboardService, ClientStats, AgentStats } from '../../../shared/servi
 export class DashboardHomeComponent implements OnInit {
   private authService = inject(AuthService);
   private dashboardService = inject(DashboardService);
+
   currentUser = this.authService.currentUser;
 
   clientStatsData = signal<ClientStats | null>(null);

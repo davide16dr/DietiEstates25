@@ -16,12 +16,30 @@
     </div>
   </div>
 
-  @if (!loading()) {
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Caricamento notifiche...</p>
+    </div>
+  }
+
+  @if (error()) {
+    <div class="error-state">
+      <span class="material-icons">error_outline</span>
+      <h3>{{ error() }}</h3>
+      <button class="btn-primary" (click)="loadNotifications()">
+        <span class="material-icons">refresh</span>
+        Riprova
+      </button>
+    </div>
+  }
+
+  @if (!loading() && !error()) {
     <div class="notifications-list">
       @for (notification of notifications(); track notification.id) {
         <div 
           class="notification-card"
-          [class.unread]="!notification.isRead"
+          [class.unread]="!notification.read"
           (click)="openNotification(notification)"
         >
           <div class="notification-icon" [ngClass]="getNotificationIconClass(notification.type)">
@@ -30,12 +48,12 @@
           
           <div class="notification-content">
             <h3 class="notification-title">{{ notification.title }}</h3>
-            <p class="notification-message">{{ notification.message }}</p>
+            <p class="notification-message">{{ notification.body }}</p>
             <span class="notification-time">{{ formatTimeAgo(notification.createdAt) }}</span>
           </div>
 
           <div class="notification-actions">
-            @if (!notification.isRead) {
+            @if (!notification.read) {
               <span class="badge-new">Nuovo</span>
             }
             <button class="btn-icon" title="Apri" (click)="openNotification(notification); $event.stopPropagation()">
@@ -57,11 +75,165 @@
       }
     </div>
   }
-
-  @if (loading()) {
-    <div class="loading-state">
-      <div class="spinner"></div>
-      <p>Caricamento notifiche...</p>
-    </div>
-  }
 </div>
+
+<!-- Settings Modal -->
+@if (showSettingsModal()) {
+  <div class="modal-overlay" (click)="closeSettings()">
+    <div class="modal-container" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Impostazioni Notifiche</h2>
+        <button class="btn-close" (click)="closeSettings()">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="settings-section">
+          <h3>Canali di Notifica</h3>
+          <div class="setting-item">
+            <div class="setting-info">
+              <span class="material-icons">email</span>
+              <div>
+                <strong>Email</strong>
+                <p>Ricevi notifiche via email</p>
+              </div>
+            </div>
+            <label class="toggle-switch">
+              <input 
+                type="checkbox" 
+                [checked]="preferences().emailEnabled"
+                (change)="togglePreference('emailEnabled')"
+              />
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-info">
+              <span class="material-icons">notifications</span>
+              <div>
+                <strong>Notifiche In-App</strong>
+                <p>Mostra notifiche nell'applicazione</p>
+              </div>
+            </div>
+            <label class="toggle-switch">
+              <input 
+                type="checkbox" 
+                [checked]="preferences().inappEnabled"
+                (change)="togglePreference('inappEnabled')"
+              />
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h3>Tipologie di Notifica</h3>
+          
+          <div class="setting-item">
+            <div class="setting-info">
+              <span class="material-icons">home</span>
+              <div>
+                <strong>Nuovi Immobili Corrispondenti</strong>
+                <p>Notificami quando un nuovo immobile corrisponde alle mie ricerche salvate</p>
+              </div>
+            </div>
+            <label class="toggle-switch">
+              <input 
+                type="checkbox" 
+                [checked]="preferences().notifyNewMatching"
+                (change)="togglePreference('notifyNewMatching')"
+              />
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-info">
+              <span class="material-icons">attach_money</span>
+              <div>
+                <strong>Variazioni di Prezzo</strong>
+                <p>Notificami quando cambia il prezzo di un immobile che mi interessa</p>
+              </div>
+            </div>
+            <label class="toggle-switch">
+              <input 
+                type="checkbox" 
+                [checked]="preferences().notifyPriceChange"
+                (change)="togglePreference('notifyPriceChange')"
+              />
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-info">
+              <span class="material-icons">update</span>
+              <div>
+                <strong>Aggiornamenti Immobili</strong>
+                <p>Notificami quando vengono aggiornate le informazioni di un immobile</p>
+              </div>
+            </div>
+            <label class="toggle-switch">
+              <input 
+                type="checkbox" 
+                [checked]="preferences().notifyListingUpdates"
+                (change)="togglePreference('notifyListingUpdates')"
+              />
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-info">
+              <span class="material-icons">calendar_today</span>
+              <div>
+                <strong>Stato Visite</strong>
+                <p>Notificami quando lo stato di una mia visita cambia</p>
+              </div>
+            </div>
+            <label class="toggle-switch">
+              <input 
+                type="checkbox" 
+                [checked]="preferences().notifyVisitUpdates"
+                (change)="togglePreference('notifyVisitUpdates')"
+              />
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-info">
+              <span class="material-icons">local_offer</span>
+              <div>
+                <strong>Stato Offerte</strong>
+                <p>Notificami quando lo stato di una mia offerta cambia</p>
+              </div>
+            </div>
+            <label class="toggle-switch">
+              <input 
+                type="checkbox" 
+                [checked]="preferences().notifyOfferUpdates"
+                (change)="togglePreference('notifyOfferUpdates')"
+              />
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeSettings()" [disabled]="savingPreferences()">
+          Annulla
+        </button>
+        <button class="btn-primary" (click)="savePreferences()" [disabled]="savingPreferences()">
+          @if (savingPreferences()) {
+            <span class="spinner-small"></span>
+          }
+          {{ savingPreferences() ? 'Salvataggio...' : 'Salva Impostazioni' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

@@ -51,7 +51,7 @@ export interface OfferStats {
 })
 export class OfferService {
   private http = inject(HttpClient);
-  private apiUrl = environment.apiUrl + '/api';
+  private apiUrl = environment.apiUrl; // ✅ CORRETTO: rimosso il '/api' duplicato
 
   // ============ CLIENT OPERATIONS ============
 
@@ -159,6 +159,13 @@ export class OfferService {
       timeout(5000),
       catchError(() => of([]))
     );
+  }
+
+  /**
+   * Agent: Get all offers received (alias for getAgentOffers)
+   */
+  getReceivedOffers(): Observable<OfferResponse[]> {
+    return this.getAgentOffers();
   }
 
   /**
