@@ -1,8 +1,10 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { OfferService, OfferResponse, OfferStats } from '../../../shared/services/offer.service';
+import { ToastService } from '../../../shared/services/toast.service';
+import { WebSocketService, WebSocketNotification } from '../../../shared/services/websocket.service';
 
 @Component({
   selector: 'app-agent-offers',
@@ -11,9 +13,12 @@ import { OfferService, OfferResponse, OfferStats } from '../../../shared/service
   templateUrl: './agent-offers.component.html',
   styleUrl: './agent-offers.component.scss',
 })
-export class AgentOffersComponent implements OnInit {
+export class AgentOffersComponent implements OnInit, OnDestroy {
   private offerService = inject(OfferService);
   private router = inject(Router);
+  private toast = inject(ToastService);
+  private webSocketService = inject(WebSocketService);
+  private notificationCallback?: (notification: WebSocketNotification) => void;
 
   offers = signal<OfferResponse[]>([]);
   stats = signal<OfferStats>({ total: 0, pending: 0, accepted: 0, rejected: 0, counteroffers: 0 });
@@ -30,22 +35,62 @@ export class AgentOffersComponent implements OnInit {
   rejectReason = signal<string>('');
 
   ngOnInit(): void {
+    console.log('🎯 AgentOffersComponent inizializzato - setup WebSocket listener');
     this.loadOffers();
-    this.loadStats();
+    
+    // 🔴 REAL-TIME: Ascolta le notifiche WebSocket per aggiornamenti in tempo reale
+    this.notificationCallback = (notification: WebSocketNotification) => {
+      console.log('🔔 Notifica WebSocket ricevuta (agente):', notification);
+      console.log('   - Type:', notification.type);
+      console.log('   - Title:', notification.title);
+      console.log('   - OfferId:', notification.offerId);
+      
+      // Ricarica SEMPRE quando arriva una notifica con offerId O tipo relativo alle offerte
+      if (notification.offerId || this.isOfferNotification(notification.type)) {
+        console.log('💰 ✅ RICARICA offerte in tempo reale (agente)...');
+        this.loadOffers();
+      } else {
+        console.log('💰 ⏭️ Notifica ignorata - non relativa alle offerte');
+      }
+    };
+    
+    this.webSocketService.onNotification(this.notificationCallback);
+    console.log('✅ WebSocket listener registrato per AgentOffersComponent');
+  }
+
+  ngOnDestroy(): void {
+    console.log('🧹 AgentOffersComponent distrutto - rimozione WebSocket listener');
+    // 🧹 Rimuove il listener WebSocket quando il componente viene distrutto
+    if (this.notificationCallback) {
+      this.webSocketService.removeNotificationCallback(this.notificationCallback);
+    }
+  }
+  
+  /**
+   * Verifica se la notifica è relativa alle offerte
+   * Ora più flessibile: accetta qualsiasi tipo che contiene "OFFER" o "COUNTER"
+   */
+  private isOfferNotification(type: string): boolean {
+    if (!type) return false;
+    
+    const typeUpper = type.toUpperCase();
+    
+    // Accetta qualsiasi notifica che contiene OFFER o COUNTER
+    return typeUpper.includes('OFFER') || typeUpper.includes('COUNTER');
   }
 
   loadOffers(): void {
+    console.log('📥 Caricamento offerte ricevute...');
     this.loading.set(true);
-    this.offerService.getAgentOffers().subscribe({
+    this.offerService.getReceivedOffers().subscribe({
       next: (offers) => {
+        console.log('✅ Offerte ricevute caricate:', offers.length, 'offerte');
         this.offers.set(offers);
         this.loading.set(false);
       },
       error: (error) => {
-        console.error('Error loading offers:', error);
+        console.error('❌ Errore caricamento offerte ricevute:', error);
         this.loading.set(false);
-        // Use mock data for development
-        this.offers.set(this.getMockOffers());
       }
     });
   }
@@ -169,16 +214,20 @@ export class AgentOffersComponent implements OnInit {
     if (confirm(`Sei sicuro di voler accettare l'offerta di ${this.formatCurrency(offer.amount)} da ${offer.clientName}?`)) {
       this.offerService.acceptOffer(offer.id).subscribe({
         next: () => {
-          // Update local state
-          const updated = this.offers().map(o => 
-            o.id === offer.id ? { ...o, status: 'ACCEPTED' as const, updatedAt: new Date().toISOString() } : o
+          // ✅ Ricarica i dati dal server
+          this.loadOffers();
+          this.loadStats();
+          this.toast.success(
+            'Offerta Accettata!',
+            `L'offerta di ${offer.clientName} è stata accettata. Il cliente ha ricevuto una notifica.`
           );
-          this.offers.set(updated);
-          this.updateStatsFromOffers();
         },
         error: (error) => {
           console.error('Error accepting offer:', error);
-          alert('Errore nell\'accettazione dell\'offerta. Riprova più tardi.');
+          this.toast.error(
+            'Errore',
+            'Impossibile accettare l\'offerta. Riprova più tardi.'
+          );
         }
       });
     }
@@ -204,17 +253,22 @@ export class AgentOffersComponent implements OnInit {
 
     this.offerService.rejectOffer(offer.id, reason || undefined).subscribe({
       next: () => {
-        // Update local state
-        const updated = this.offers().map(o => 
-          o.id === offer.id ? { ...o, status: 'REJECTED' as const, updatedAt: new Date().toISOString() } : o
-        );
-        this.offers.set(updated);
-        this.updateStatsFromOffers();
+        // ✅ Ricarica i dati dal server
+        this.loadOffers();
+        this.loadStats();
         this.closeRejectModal();
+        this.toast.success(
+          'Offerta Rifiutata',
+          `L'offerta di ${offer.clientName} è stata rifiutata. Il cliente ha ricevuto una notifica.`
+        );
       },
       error: (error) => {
         console.error('Error rejecting offer:', error);
-        alert('Errore nel rifiuto dell\'offerta. Riprova più tardi.');
+        this.toast.error(
+          'Errore',
+          'Impossibile rifiutare l\'offerta. Riprova più tardi.'
+        );
+        this.closeRejectModal();
       }
     });
   }
@@ -244,36 +298,39 @@ export class AgentOffersComponent implements OnInit {
 
     // Validate counter offer amount
     if (amount <= offer.amount) {
-      alert('La controproposta deve essere maggiore dell\'offerta ricevuta.');
+      this.toast.warning(
+        'Importo non valido',
+        'La controproposta deve essere maggiore dell\'offerta ricevuta.'
+      );
       return;
     }
 
     if (amount > offer.propertyPrice) {
-      alert('La controproposta non può essere maggiore del prezzo richiesto.');
+      this.toast.warning(
+        'Importo non valido',
+        'La controproposta non può essere maggiore del prezzo richiesto.'
+      );
       return;
     }
 
     this.offerService.makeCounterOffer(offer.id, amount, message || undefined).subscribe({
       next: () => {
-        // Update local state
-        const updated = this.offers().map(o => 
-          o.id === offer.id 
-            ? { 
-                ...o, 
-                status: 'COUNTEROFFER' as const, 
-                counterOfferAmount: amount,
-                counterMessage: message,
-                updatedAt: new Date().toISOString() 
-              }
-            : o
-        );
-        this.offers.set(updated);
-        this.updateStatsFromOffers();
+        // ✅ Ricarica i dati dal server
+        this.loadOffers();
+        this.loadStats();
         this.closeCounterModal();
+        this.toast.success(
+          'Controproposta Inviata!',
+          `La tua controproposta di ${this.formatCurrency(amount)} è stata inviata a ${offer.clientName}.`
+        );
       },
       error: (error) => {
         console.error('Error making counter offer:', error);
-        alert('Errore nell\'invio della controproposta. Riprova più tardi.');
+        this.toast.error(
+          'Errore',
+          'Impossibile inviare la controproposta. Riprova più tardi.'
+        );
+        this.closeCounterModal();
       }
     });
   }

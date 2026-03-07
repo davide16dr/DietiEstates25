@@ -40,6 +40,12 @@ public class NotificationPreferences {
     @Column(name = "notify_listing_updates", nullable = false)
     private boolean notifyListingUpdates = true;
 
+    @Column(name = "notify_visit_updates", nullable = false)
+    private boolean notifyVisitUpdates = true;
+
+    @Column(name = "notify_offer_updates", nullable = false)
+    private boolean notifyOfferUpdates = true;
+
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
@@ -76,6 +82,12 @@ public class NotificationPreferences {
 
     public boolean isNotifyListingUpdates() { return notifyListingUpdates; }
     public void setNotifyListingUpdates(boolean notifyListingUpdates) { this.notifyListingUpdates = notifyListingUpdates; }
+
+    public boolean isNotifyVisitUpdates() { return notifyVisitUpdates; }
+    public void setNotifyVisitUpdates(boolean notifyVisitUpdates) { this.notifyVisitUpdates = notifyVisitUpdates; }
+
+    public boolean isNotifyOfferUpdates() { return notifyOfferUpdates; }
+    public void setNotifyOfferUpdates(boolean notifyOfferUpdates) { this.notifyOfferUpdates = notifyOfferUpdates; }
 
     public Instant getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }

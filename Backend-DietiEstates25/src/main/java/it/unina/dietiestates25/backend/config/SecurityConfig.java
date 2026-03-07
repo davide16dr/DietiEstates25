@@ -66,7 +66,8 @@ public class SecurityConfig {
                     "/error",
                     "/v3/api-docs/**",
                     "/swagger-ui/**",
-                    "/swagger-ui.html"
+                    "/swagger-ui.html",
+                    "/ws/**"  // 🔌 Permetti connessioni WebSocket
                 ).permitAll()
                 // Endpoint pubblici solo GET per listings
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/listings", "/api/listings/search", "/api/listings/*").permitAll()

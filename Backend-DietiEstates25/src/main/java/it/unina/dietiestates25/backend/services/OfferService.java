@@ -28,16 +28,22 @@ public class OfferService {
     private final OfferStatusHistoryRepository offerStatusHistoryRepository;
     private final ListingRepository listingRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
+    private final WebSocketNotificationService webSocketNotificationService;
 
     public OfferService(
             OfferRepository offerRepository,
             OfferStatusHistoryRepository offerStatusHistoryRepository,
             ListingRepository listingRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            NotificationService notificationService,
+            WebSocketNotificationService webSocketNotificationService) {
         this.offerRepository = offerRepository;
         this.offerStatusHistoryRepository = offerStatusHistoryRepository;
         this.listingRepository = listingRepository;
         this.userRepository = userRepository;
+        this.notificationService = notificationService;
+        this.webSocketNotificationService = webSocketNotificationService;
     }
 
     // ============ CLIENT OPERATIONS ============
@@ -78,6 +84,31 @@ public class OfferService {
         // Create status history
         createStatusHistory(offer, OfferStatus.SUBMITTED, "Offer submitted by client");
 
+        // 📧 Send notification to agent
+        notificationService.createAgentNotification(
+            listing.getAgent().getId(),
+            listing,
+            "💰 Nuova Offerta Ricevuta",
+            String.format("Il cliente %s %s ha inviato un'offerta di €%,d per '%s'",
+                client.getFirstName(),
+                client.getLastName(),
+                request.getAmount(),
+                listing.getTitle())
+        );
+        
+        // 🔴 Send REAL-TIME WebSocket notification to agent
+        webSocketNotificationService.sendOfferNotification(
+            listing.getAgent().getId(),
+            "NEW_OFFER",
+            "💰 Nuova Offerta Ricevuta",
+            String.format("Il cliente %s %s ha inviato un'offerta di €%,d",
+                client.getFirstName(),
+                client.getLastName(),
+                request.getAmount()),
+            listing.getId(),
+            offer.getId()
+        );
+
         return mapToResponse(offer);
     }
 
@@ -107,6 +138,31 @@ public class OfferService {
         offerRepository.save(offer);
 
         createStatusHistory(offer, OfferStatus.ACCEPTED, "Counter-offer accepted by client");
+        
+        // 📧 Send notification to agent
+        notificationService.createAgentNotification(
+            offer.getListing().getAgent().getId(),
+            offer.getListing(),
+            "✅ Controproposta Accettata",
+            String.format("Il cliente %s %s ha accettato la tua controproposta di €%,d per '%s'",
+                offer.getClient().getFirstName(),
+                offer.getClient().getLastName(),
+                offer.getAmount(),
+                offer.getListing().getTitle())
+        );
+        
+        // 🔴 Send REAL-TIME WebSocket notification to agent
+        webSocketNotificationService.sendOfferNotification(
+            offer.getListing().getAgent().getId(),
+            "OFFER_ACCEPTED",
+            "✅ Controproposta Accettata",
+            String.format("Il cliente %s %s ha accettato la tua controproposta di €%,d",
+                offer.getClient().getFirstName(),
+                offer.getClient().getLastName(),
+                offer.getAmount()),
+            offer.getListing().getId(),
+            offer.getId()
+        );
     }
 
     @Transactional
@@ -126,6 +182,31 @@ public class OfferService {
         offerRepository.save(offer);
 
         createStatusHistory(offer, OfferStatus.SUBMITTED, "Client submitted new counter-offer");
+        
+        // 📧 Send notification to agent
+        notificationService.createAgentNotification(
+            offer.getListing().getAgent().getId(),
+            offer.getListing(),
+            "🔄 Nuova Controproposta Ricevuta",
+            String.format("Il cliente %s %s ha inviato una nuova controproposta di €%,d per '%s'",
+                offer.getClient().getFirstName(),
+                offer.getClient().getLastName(),
+                request.getAmount(),
+                offer.getListing().getTitle())
+        );
+        
+        // 🔴 Send REAL-TIME WebSocket notification to agent
+        webSocketNotificationService.sendOfferNotification(
+            offer.getListing().getAgent().getId(),
+            "COUNTER_TO_COUNTER",
+            "🔄 Nuova Controproposta Ricevuta",
+            String.format("Il cliente %s %s ha inviato una nuova controproposta di €%,d",
+                offer.getClient().getFirstName(),
+                offer.getClient().getLastName(),
+                request.getAmount()),
+            offer.getListing().getId(),
+            offer.getId()
+        );
     }
 
     @Transactional
@@ -142,6 +223,29 @@ public class OfferService {
         offerRepository.save(offer);
 
         createStatusHistory(offer, OfferStatus.WITHDRAWN, "Offer withdrawn by client");
+        
+        // 📧 Send notification to agent
+        notificationService.createAgentNotification(
+            offer.getListing().getAgent().getId(),
+            offer.getListing(),
+            "❌ Offerta Ritirata",
+            String.format("Il cliente %s %s ha ritirato la sua offerta per '%s'",
+                offer.getClient().getFirstName(),
+                offer.getClient().getLastName(),
+                offer.getListing().getTitle())
+        );
+        
+        // 🔴 Send REAL-TIME WebSocket notification to agent
+        webSocketNotificationService.sendOfferNotification(
+            offer.getListing().getAgent().getId(),
+            "OFFER_WITHDRAWN",
+            "❌ Offerta Ritirata",
+            String.format("Il cliente %s %s ha ritirato la sua offerta",
+                offer.getClient().getFirstName(),
+                offer.getClient().getLastName()),
+            offer.getListing().getId(),
+            offer.getId()
+        );
     }
 
     // ============ AGENT OPERATIONS ============
@@ -186,6 +290,26 @@ public class OfferService {
         offerRepository.save(offer);
 
         createStatusHistory(offer, OfferStatus.ACCEPTED, "Offer accepted by agent");
+        
+        // 📧 Send notification to client
+        notificationService.createOfferStatusNotification(
+            offer.getClient().getId(), 
+            offer.getListing(), 
+            "ACCEPTED", 
+            null
+        );
+        
+        // 🔴 Send REAL-TIME WebSocket notification to client
+        webSocketNotificationService.sendOfferNotification(
+            offer.getClient().getId(),
+            "OFFER_ACCEPTED",
+            "✅ Offerta Accettata",
+            String.format("L'agente ha accettato la tua offerta di €%,d per '%s'",
+                offer.getAmount(),
+                offer.getListing().getTitle()),
+            offer.getListing().getId(),
+            offer.getId()
+        );
     }
 
     @Transactional
@@ -203,6 +327,26 @@ public class OfferService {
 
         String note = reason != null ? "Offer rejected: " + reason : "Offer rejected by agent";
         createStatusHistory(offer, OfferStatus.REJECTED, note);
+        
+        // 📧 Send notification to client
+        notificationService.createOfferStatusNotification(
+            offer.getClient().getId(), 
+            offer.getListing(), 
+            "REJECTED", 
+            null
+        );
+        
+        // 🔴 Send REAL-TIME WebSocket notification to client
+        webSocketNotificationService.sendOfferNotification(
+            offer.getClient().getId(),
+            "OFFER_REJECTED",
+            "❌ Offerta Rifiutata",
+            String.format("L'agente ha rifiutato la tua offerta per '%s'%s",
+                offer.getListing().getTitle(),
+                reason != null ? ". Motivo: " + reason : ""),
+            offer.getListing().getId(),
+            offer.getId()
+        );
     }
 
     @Transactional
@@ -227,6 +371,26 @@ public class OfferService {
 
         createStatusHistory(offer, OfferStatus.COUNTEROFFER, 
             "Agent made counter-offer: €" + request.getAmount());
+        
+        // 📧 Send notification to client
+        notificationService.createOfferStatusNotification(
+            offer.getClient().getId(), 
+            offer.getListing(), 
+            "COUNTEROFFER", 
+            request.getAmount()
+        );
+        
+        // 🔴 Send REAL-TIME WebSocket notification to client
+        webSocketNotificationService.sendOfferNotification(
+            offer.getClient().getId(),
+            "COUNTEROFFER",
+            "💰 Controproposta Ricevuta",
+            String.format("L'agente ha fatto una controproposta di €%,d per '%s'",
+                request.getAmount(),
+                offer.getListing().getTitle()),
+            offer.getListing().getId(),
+            offer.getId()
+        );
     }
 
     public OfferStatsResponse getOfferStats(UUID agentId) {

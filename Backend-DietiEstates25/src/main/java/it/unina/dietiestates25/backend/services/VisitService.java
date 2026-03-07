@@ -1,233 +1,437 @@
 package it.unina.dietiestates25.backend.services;
 
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.LocalDate;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-
+import it.unina.dietiestates25.backend.dto.dashboard.ClientStatsResponse;
+import it.unina.dietiestates25.backend.dto.visits.VisitRequestDto;
+import it.unina.dietiestates25.backend.dto.visits.VisitResponseDto;
+import it.unina.dietiestates25.backend.dto.visits.VisitUpdateDto;
+import it.unina.dietiestates25.backend.entities.Listing;
+import it.unina.dietiestates25.backend.entities.User;
+import it.unina.dietiestates25.backend.entities.Visit;
+import it.unina.dietiestates25.backend.entities.enums.ListingStatus;
+import it.unina.dietiestates25.backend.entities.enums.VisitStatus;
+import it.unina.dietiestates25.backend.exceptions.BadRequestException;
+import it.unina.dietiestates25.backend.exceptions.ForbiddenException;
+import it.unina.dietiestates25.backend.exceptions.NotFoundException;
+import it.unina.dietiestates25.backend.repositories.ListingRepository;
+import it.unina.dietiestates25.backend.repositories.VisitRepository;
+import it.unina.dietiestates25.backend.repositories.UserRepository;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import it.unina.dietiestates25.backend.dto.visit.VisitResponse;
-import it.unina.dietiestates25.backend.dto.dashboard.ClientStatsResponse;
-import it.unina.dietiestates25.backend.dto.dashboard.AgentStatsResponse;
-import it.unina.dietiestates25.backend.entities.Visit;
-import it.unina.dietiestates25.backend.entities.enums.VisitStatus;
-import it.unina.dietiestates25.backend.repositories.VisitRepository;
-import it.unina.dietiestates25.backend.entities.User;
-import it.unina.dietiestates25.backend.entities.Listing;
-import it.unina.dietiestates25.backend.repositories.UserRepository;
-import it.unina.dietiestates25.backend.repositories.ListingRepository;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class VisitService {
 
     private final VisitRepository visitRepository;
-    private final UserRepository userRepository;
     private final ListingRepository listingRepository;
+    private final UserRepository userRepository;
+    private final NotificationService notificationService;
+    private final WebSocketNotificationService webSocketNotificationService;
 
-    public VisitService(VisitRepository visitRepository, UserRepository userRepository, ListingRepository listingRepository) {
+    @Autowired
+    public VisitService(VisitRepository visitRepository, 
+                       ListingRepository listingRepository,
+                       UserRepository userRepository,
+                       NotificationService notificationService,
+                       WebSocketNotificationService webSocketNotificationService) {
         this.visitRepository = visitRepository;
-        this.userRepository = userRepository;
         this.listingRepository = listingRepository;
-    }
-
-    // ============ CLIENT OPERATIONS ============
-
-    public List<VisitResponse> getClientVisits(UUID clientId) {
-        List<Visit> visits = visitRepository.findAllByClient_Id(clientId);
-        return visits.stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+        this.userRepository = userRepository;
+        this.notificationService = notificationService;
+        this.webSocketNotificationService = webSocketNotificationService;
     }
 
     @Transactional
-    public VisitResponse createVisit(UUID clientId, UUID listingId, Instant scheduledFor, String notes) {
-        User client = userRepository.findById(clientId)
-                .orElseThrow(() -> new RuntimeException("Client not found"));
-        
-        Listing listing = listingRepository.findById(listingId)
-                .orElseThrow(() -> new RuntimeException("Listing not found"));
-        
-        // Create new visit
+    public VisitResponseDto requestVisit(VisitRequestDto visitRequestDto, User client) {
+        Listing listing = listingRepository.findById(visitRequestDto.getListingId())
+                .orElseThrow(() -> new NotFoundException("Listing not found"));
+
+        if (listing.getStatus() != ListingStatus.ACTIVE) {
+            throw new BadRequestException("Cannot request visit for inactive listing");
+        }
+
+        Instant scheduledFor = convertToInstant(visitRequestDto.getScheduledFor());
+        if (scheduledFor.isBefore(Instant.now())) {
+            throw new BadRequestException("Cannot schedule visit in the past");
+        }
+
         Visit visit = new Visit();
-        visit.setClient(client);
         visit.setListing(listing);
-        visit.setAgent(listing.getAgent());
+        visit.setClient(client);
         visit.setScheduledFor(scheduledFor);
-        visit.setNote(notes);
         visit.setStatus(VisitStatus.REQUESTED);
+        visit.setNote(visitRequestDto.getNotes());
+
+        Visit savedVisit = visitRepository.save(visit);
+
+        // Send notification to agent
+        if (listing.getAgent() != null) {
+            String propertyAddress = listing.getProperty().getAddress();
+            notificationService.createAgentNotification(
+                listing.getAgent().getId(),
+                listing,
+                "Nuova Richiesta di Visita",
+                String.format("Nuova richiesta di visita per la proprietà in %s", propertyAddress)
+            );
+            
+            webSocketNotificationService.sendVisitNotification(
+                listing.getAgent().getId(),
+                "NEW_VISIT_REQUEST",
+                "Nuova Richiesta di Visita",
+                String.format("Nuova richiesta di visita per %s", propertyAddress),
+                listing.getId(),
+                savedVisit.getId()
+            );
+        }
+
+        log.info("Visit requested: ID={}, Client={}, Listing={}", savedVisit.getId(), client.getId(), listing.getId());
+        return toDto(savedVisit);
+    }
+
+    @Transactional
+    public VisitResponseDto updateVisitStatus(UUID visitId, VisitUpdateDto updateDto, User agent) {
+        Visit visit = visitRepository.findById(visitId)
+                .orElseThrow(() -> new NotFoundException("Visit not found"));
+
+        Listing listing = visit.getListing();
+        if (listing.getAgent() == null || !listing.getAgent().getId().equals(agent.getId())) {
+            throw new ForbiddenException("You are not authorized to update this visit");
+        }
+
+        VisitStatus newStatus = updateDto.getStatus();
+        if (!isValidStatusTransition(visit.getStatus(), newStatus)) {
+            throw new BadRequestException("Invalid status transition from " + visit.getStatus() + " to " + newStatus);
+        }
+
+        visit.setStatus(newStatus);
+        if (updateDto.getScheduledFor() != null) {
+            Instant scheduledFor = convertToInstant(updateDto.getScheduledFor());
+            if (scheduledFor.isBefore(Instant.now())) {
+                throw new BadRequestException("Cannot schedule visit in the past");
+            }
+            visit.setScheduledFor(scheduledFor);
+        }
+        if (updateDto.getNotes() != null) {
+            visit.setNote(updateDto.getNotes());
+        }
+
+        Visit updatedVisit = visitRepository.save(visit);
+
+        // Send notification to client
+        String statusMessage = getStatusMessage(newStatus);
+        String propertyAddress = listing.getProperty().getAddress();
         
-        visit = visitRepository.save(visit);
+        notificationService.createVisitStatusNotification(
+            visit.getClient().getId(),
+            listing,
+            newStatus.name()
+        );
         
-        return mapToResponse(visit);
+        webSocketNotificationService.sendVisitNotification(
+            visit.getClient().getId(),
+            "VISIT_STATUS_CHANGED",
+            "Aggiornamento Visita",
+            String.format("La tua visita per %s è stata %s", propertyAddress, statusMessage),
+            listing.getId(),
+            updatedVisit.getId()
+        );
+
+        log.info("Visit status updated: ID={}, Status={}", visitId, newStatus);
+        return toDto(updatedVisit);
+    }
+
+    @Transactional(readOnly = true)
+    public List<VisitResponseDto> getClientVisits(UUID clientId) {
+        List<Visit> visits = visitRepository.findAllByClient_Id(clientId);
+        return visits.stream().map(this::toDto).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<VisitResponseDto> getAgentVisits(UUID agentId) {
+        List<Visit> visits = visitRepository.findAllByAgent_Id(agentId);
+        return visits.stream().map(this::toDto).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public VisitResponseDto getVisitById(UUID visitId, User user) {
+        Visit visit = visitRepository.findById(visitId)
+                .orElseThrow(() -> new NotFoundException("Visit not found"));
+
+        Listing listing = visit.getListing();
+        boolean isClient = visit.getClient().getId().equals(user.getId());
+        boolean isAgent = listing.getAgent() != null && listing.getAgent().getId().equals(user.getId());
+
+        if (!isClient && !isAgent) {
+            throw new ForbiddenException("You are not authorized to view this visit");
+        }
+
+        return toDto(visit);
     }
 
     @Transactional
     public void cancelVisit(UUID clientId, UUID visitId) {
         Visit visit = visitRepository.findById(visitId)
-                .orElseThrow(() -> new RuntimeException("Visit not found"));
-        
-        // Verify client owns this visit
+                .orElseThrow(() -> new NotFoundException("Visit not found"));
+
         if (!visit.getClient().getId().equals(clientId)) {
-            throw new RuntimeException("Unauthorized");
+            throw new ForbiddenException("You are not authorized to cancel this visit");
         }
-        
-        // Can only cancel if status is REQUESTED or CONFIRMED
-        if (visit.getStatus() != VisitStatus.REQUESTED && visit.getStatus() != VisitStatus.CONFIRMED) {
-            throw new RuntimeException("Cannot cancel this visit");
+
+        if (visit.getStatus() == VisitStatus.DONE || visit.getStatus() == VisitStatus.CANCELLED) {
+            throw new BadRequestException("Cannot cancel visit with status: " + visit.getStatus());
         }
-        
+
         visit.setStatus(VisitStatus.CANCELLED);
         visitRepository.save(visit);
-    }
 
-    // ============ AGENT OPERATIONS ============
+        // Notify agent
+        Listing listing = visit.getListing();
+        if (listing.getAgent() != null) {
+            String propertyAddress = listing.getProperty().getAddress();
+            notificationService.createAgentNotification(
+                listing.getAgent().getId(),
+                listing,
+                "Visita Cancellata",
+                String.format("La visita per %s è stata cancellata dal cliente", propertyAddress)
+            );
+            
+            webSocketNotificationService.sendVisitNotification(
+                listing.getAgent().getId(),
+                "VISIT_CANCELLED_BY_CLIENT",
+                "Visita Cancellata",
+                String.format("Visita cancellata per %s", propertyAddress),
+                listing.getId(),
+                visit.getId()
+            );
+        }
 
-    public List<VisitResponse> getAgentVisits(UUID agentId) {
-        List<Visit> visits = visitRepository.findAllByAgent_Id(agentId);
-        return visits.stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+        log.info("Visit cancelled: ID={}", visitId);
     }
 
     @Transactional
     public void confirmVisit(UUID agentId, UUID visitId) {
         Visit visit = visitRepository.findById(visitId)
-                .orElseThrow(() -> new RuntimeException("Visit not found"));
-        
-        // Verify agent owns this visit
-        if (visit.getAgent() == null || !visit.getAgent().getId().equals(agentId)) {
-            throw new RuntimeException("Unauthorized");
+                .orElseThrow(() -> new NotFoundException("Visit not found"));
+
+        Listing listing = visit.getListing();
+        if (listing.getAgent() == null || !listing.getAgent().getId().equals(agentId)) {
+            throw new ForbiddenException("Unauthorized");
         }
-        
+
+        if (visit.getStatus() != VisitStatus.REQUESTED) {
+            throw new BadRequestException("Can only confirm requested visits");
+        }
+
         visit.setStatus(VisitStatus.CONFIRMED);
         visitRepository.save(visit);
+
+        notificationService.createVisitStatusNotification(
+            visit.getClient().getId(),
+            listing,
+            "CONFIRMED"
+        );
+        
+        webSocketNotificationService.sendVisitNotification(
+            visit.getClient().getId(),
+            "VISIT_CONFIRMED",
+            "Visita Confermata",
+            String.format("La tua visita per %s è stata confermata", listing.getProperty().getAddress()),
+            listing.getId(),
+            visit.getId()
+        );
+
+        log.info("Visit confirmed: ID={}", visitId);
     }
 
     @Transactional
     public void completeVisit(UUID agentId, UUID visitId) {
         Visit visit = visitRepository.findById(visitId)
-                .orElseThrow(() -> new RuntimeException("Visit not found"));
-        
-        // Verify agent owns this visit
-        if (visit.getAgent() == null || !visit.getAgent().getId().equals(agentId)) {
-            throw new RuntimeException("Unauthorized");
+                .orElseThrow(() -> new NotFoundException("Visit not found"));
+
+        Listing listing = visit.getListing();
+        if (listing.getAgent() == null || !listing.getAgent().getId().equals(agentId)) {
+            throw new ForbiddenException("Unauthorized");
         }
-        
+
+        if (visit.getStatus() != VisitStatus.CONFIRMED) {
+            throw new BadRequestException("Can only complete confirmed visits");
+        }
+
         visit.setStatus(VisitStatus.DONE);
         visitRepository.save(visit);
+
+        log.info("Visit completed: ID={}", visitId);
     }
 
     @Transactional
     public void rejectVisit(UUID agentId, UUID visitId, String reason) {
         Visit visit = visitRepository.findById(visitId)
-                .orElseThrow(() -> new RuntimeException("Visit not found"));
-        
-        // Verify agent owns this visit
-        if (visit.getAgent() == null || !visit.getAgent().getId().equals(agentId)) {
-            throw new RuntimeException("Unauthorized");
+                .orElseThrow(() -> new NotFoundException("Visit not found"));
+
+        Listing listing = visit.getListing();
+        if (listing.getAgent() == null || !listing.getAgent().getId().equals(agentId)) {
+            throw new ForbiddenException("Unauthorized");
         }
-        
+
+        if (visit.getStatus() != VisitStatus.REQUESTED) {
+            throw new BadRequestException("Can only reject requested visits");
+        }
+
         visit.setStatus(VisitStatus.CANCELLED);
-        visit.setNote(reason != null ? reason : "Rejected by agent");
+        if (reason != null && !reason.isEmpty()) {
+            visit.setNote(reason);
+        }
         visitRepository.save(visit);
+
+        notificationService.createVisitStatusNotification(
+            visit.getClient().getId(),
+            listing,
+            "REJECTED"
+        );
+        
+        webSocketNotificationService.sendVisitNotification(
+            visit.getClient().getId(),
+            "VISIT_REJECTED",
+            "Visita Rifiutata",
+            String.format("La tua richiesta di visita per %s è stata rifiutata", listing.getProperty().getAddress()),
+            listing.getId(),
+            visit.getId()
+        );
+
+        log.info("Visit rejected: ID={}", visitId);
     }
 
-    // ============ STATISTICS ============
+    @Transactional
+    public it.unina.dietiestates25.backend.dto.visit.VisitResponse createVisit(UUID clientId, UUID listingId, Instant scheduledFor, String notes) {
+        User client = userRepository.findById(clientId)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+        
+        Listing listing = listingRepository.findById(listingId)
+                .orElseThrow(() -> new NotFoundException("Listing not found"));
 
-    public ClientStatsResponse getClientStats(UUID clientId) {
-        List<Visit> visits = visitRepository.findAllByClient_Id(clientId);
+        if (listing.getStatus() != ListingStatus.ACTIVE) {
+            throw new BadRequestException("Cannot request visit for inactive listing");
+        }
+
+        if (scheduledFor.isBefore(Instant.now())) {
+            throw new BadRequestException("Cannot schedule visit in the past");
+        }
+
+        Visit visit = new Visit();
+        visit.setListing(listing);
+        visit.setClient(client);
+        visit.setScheduledFor(scheduledFor);
+        visit.setStatus(VisitStatus.REQUESTED);
+        visit.setNote(notes);
+
+        Visit savedVisit = visitRepository.save(visit);
+
+        // Send notification to agent
+        if (listing.getAgent() != null) {
+            String propertyAddress = listing.getProperty().getAddress();
+            notificationService.createAgentNotification(
+                listing.getAgent().getId(),
+                listing,
+                "Nuova Richiesta di Visita",
+                String.format("Nuova richiesta di visita per la proprietà in %s", propertyAddress)
+            );
+            
+            webSocketNotificationService.sendVisitNotification(
+                listing.getAgent().getId(),
+                "NEW_VISIT_REQUEST",
+                "Nuova Richiesta di Visita",
+                String.format("Nuova richiesta di visita per %s", propertyAddress),
+                listing.getId(),
+                savedVisit.getId()
+            );
+        }
+
+        log.info("Visit created: ID={}, Client={}, Listing={}", savedVisit.getId(), client.getId(), listing.getId());
+        return toVisitResponse(savedVisit);
+    }
+
+    @Transactional(readOnly = true)
+    public ClientStatsResponse getClientStats(User client) {
+        List<Visit> allVisits = visitRepository.findAllByClient_Id(client.getId());
         
-        int pendingVisits = (int) visits.stream()
-                .filter(v -> v.getStatus() == VisitStatus.REQUESTED || v.getStatus() == VisitStatus.CONFIRMED)
-                .count();
-        
-        int completedVisits = (int) visits.stream()
+        int totalVisits = allVisits.size();
+        int completedVisits = (int) allVisits.stream()
                 .filter(v -> v.getStatus() == VisitStatus.DONE)
                 .count();
-        
-        int totalVisits = visits.size();
-        
+        int pendingVisits = (int) allVisits.stream()
+                .filter(v -> v.getStatus() == VisitStatus.REQUESTED || v.getStatus() == VisitStatus.CONFIRMED)
+                .count();
+
         return new ClientStatsResponse(pendingVisits, completedVisits, totalVisits);
     }
 
-    public AgentStatsResponse getAgentStats(UUID agentId) {
-        List<Visit> visits = visitRepository.findAllByAgent_Id(agentId);
-        List<Listing> listings = listingRepository.findAllByAgent_Id(agentId);
-        
-        int totalProperties = listings.size();
-        
-        int pendingVisits = (int) visits.stream()
-                .filter(v -> v.getStatus() == VisitStatus.REQUESTED)
-                .count();
-        
-        // Count visits scheduled for today
-        LocalDate today = LocalDate.now();
-        int todayVisits = (int) visits.stream()
-                .filter(v -> {
-                    if (v.getScheduledFor() == null) return false;
-                    LocalDate visitDate = ZonedDateTime.ofInstant(v.getScheduledFor(), ZoneId.systemDefault()).toLocalDate();
-                    return visitDate.equals(today) && 
-                           (v.getStatus() == VisitStatus.REQUESTED || v.getStatus() == VisitStatus.CONFIRMED);
-                })
-                .count();
-        
-        int completedVisits = (int) visits.stream()
-                .filter(v -> v.getStatus() == VisitStatus.DONE)
-                .count();
-        
-        return new AgentStatsResponse(totalProperties, pendingVisits, todayVisits, completedVisits);
+    private boolean isValidStatusTransition(VisitStatus currentStatus, VisitStatus newStatus) {
+        return switch (currentStatus) {
+            case REQUESTED -> newStatus == VisitStatus.CONFIRMED || newStatus == VisitStatus.CANCELLED;
+            case CONFIRMED -> newStatus == VisitStatus.DONE || newStatus == VisitStatus.CANCELLED;
+            case CANCELLED, DONE -> false;
+        };
     }
 
-    // ============ HELPER METHODS ============
+    private String getStatusMessage(VisitStatus status) {
+        return switch (status) {
+            case CONFIRMED -> "confermata";
+            case CANCELLED -> "cancellata";
+            case DONE -> "completata";
+            default -> "aggiornata";
+        };
+    }
 
-    private VisitResponse mapToResponse(Visit visit) {
-        VisitResponse response = new VisitResponse();
+    private Instant convertToInstant(LocalDateTime localDateTime) {
+        if (localDateTime == null) return null;
+        return localDateTime.atZone(ZoneId.systemDefault()).toInstant();
+    }
+
+    private LocalDateTime convertToLocalDateTime(Instant instant) {
+        if (instant == null) return null;
+        return LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+    }
+
+    private VisitResponseDto toDto(Visit visit) {
+        VisitResponseDto dto = new VisitResponseDto();
+        dto.setId(visit.getId());
+        dto.setListingId(visit.getListing().getId());
+        dto.setClientId(visit.getClient().getId());
+        dto.setClientName(visit.getClient().getFirstName() + " " + visit.getClient().getLastName());
+        dto.setScheduledFor(convertToLocalDateTime(visit.getScheduledFor()));
+        dto.setStatus(visit.getStatus());
+        dto.setNotes(visit.getNote());
+        dto.setCreatedAt(convertToLocalDateTime(visit.getCreatedAt()));
+        dto.setUpdatedAt(convertToLocalDateTime(visit.getUpdatedAt()));
+        return dto;
+    }
+
+    private it.unina.dietiestates25.backend.dto.visit.VisitResponse toVisitResponse(Visit visit) {
+        it.unina.dietiestates25.backend.dto.visit.VisitResponse response = new it.unina.dietiestates25.backend.dto.visit.VisitResponse();
         response.setId(visit.getId());
-        
-        // Property info
-        response.setPropertyId(visit.getListing().getId());
+        response.setPropertyId(visit.getListing().getProperty().getId());
         response.setPropertyTitle(visit.getListing().getTitle());
         response.setPropertyAddress(visit.getListing().getProperty().getAddress());
-        
-        // Property image
-        if (visit.getListing().getImages() != null && !visit.getListing().getImages().isEmpty()) {
-            response.setPropertyImage(visit.getListing().getImages().get(0).getUrl());
-        }
-        
-        // Client info
         response.setClientId(visit.getClient().getId());
         response.setClientName(visit.getClient().getFirstName() + " " + visit.getClient().getLastName());
         response.setClientEmail(visit.getClient().getEmail());
-        
-        // Agent info
         if (visit.getAgent() != null) {
             response.setAgentId(visit.getAgent().getId());
             response.setAgentName(visit.getAgent().getFirstName() + " " + visit.getAgent().getLastName());
         }
-        
-        // Visit details
         response.setRequestedAt(visit.getRequestedAt());
         response.setScheduledFor(visit.getScheduledFor());
         response.setStatus(visit.getStatus().name());
         response.setNote(visit.getNote());
-        
-        // Format date and time for frontend
-        if (visit.getScheduledFor() != null) {
-            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-                    .withZone(ZoneId.systemDefault());
-            DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
-                    .withZone(ZoneId.systemDefault());
-            
-            response.setScheduledDate(dateFormatter.format(visit.getScheduledFor()));
-            response.setScheduledTime(timeFormatter.format(visit.getScheduledFor()));
-        }
-        
         return response;
     }
 }

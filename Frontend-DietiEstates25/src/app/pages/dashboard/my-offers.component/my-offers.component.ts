@@ -1,8 +1,10 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { OfferService, OfferResponse } from '../../../shared/services/offer.service';
+import { ToastService } from '../../../shared/services/toast.service';
+import { WebSocketService, WebSocketNotification } from '../../../shared/services/websocket.service';
 
 @Component({
   selector: 'app-my-offers',
@@ -11,9 +13,12 @@ import { OfferService, OfferResponse } from '../../../shared/services/offer.serv
   templateUrl: './my-offers.component.html',
   styleUrl: './my-offers.component.scss'
 })
-export class MyOffersComponent implements OnInit {
+export class MyOffersComponent implements OnInit, OnDestroy {
   private offerService = inject(OfferService);
   private router = inject(Router);
+  private toast = inject(ToastService);
+  private webSocketService = inject(WebSocketService);
+  private notificationCallback?: (notification: WebSocketNotification) => void;
 
   offers = signal<OfferResponse[]>([]);
   loading = signal(true);
@@ -26,18 +31,48 @@ export class MyOffersComponent implements OnInit {
   counterMessage = signal<string>('');
 
   ngOnInit(): void {
+    console.log('🎯 MyOffersComponent inizializzato - setup WebSocket listener');
     this.loadOffers();
+    
+    // 🔴 REAL-TIME: Ascolta le notifiche WebSocket per aggiornamenti in tempo reale
+    this.notificationCallback = (notification: WebSocketNotification) => {
+      console.log('🔔 Notifica WebSocket ricevuta (cliente):', notification);
+      console.log('   - Type:', notification.type);
+      console.log('   - Title:', notification.title);
+      console.log('   - OfferId:', notification.offerId);
+      
+      // Ricarica SEMPRE quando arriva una notifica con offerId O tipo relativo alle offerte
+      if (notification.offerId || this.isOfferNotification(notification.type)) {
+        console.log('💰 ✅ RICARICA offerte in tempo reale (cliente)...');
+        this.loadOffers();
+      } else {
+        console.log('💰 ⏭️ Notifica ignorata - non relativa alle offerte');
+      }
+    };
+    
+    this.webSocketService.onNotification(this.notificationCallback);
+    console.log('✅ WebSocket listener registrato per MyOffersComponent');
+  }
+  
+  ngOnDestroy(): void {
+    console.log('🧹 MyOffersComponent distrutto - rimozione WebSocket listener');
+    // 🧹 Rimuove il listener WebSocket quando il componente viene distrutto
+    if (this.notificationCallback) {
+      this.webSocketService.removeNotificationCallback(this.notificationCallback);
+    }
   }
 
   loadOffers(): void {
+    console.log('📥 Caricamento offerte...');
     this.loading.set(true);
     this.offerService.getMyOffers().subscribe({
       next: (offers) => {
+        console.log('✅ Offerte caricate:', offers.length, 'offerte');
         this.offers.set(offers);
         this.loading.set(false);
       },
       error: (error) => {
-        console.error('Error loading offers:', error);
+        console.error('❌ Errore caricamento offerte:', error);
         this.loading.set(false);
         // Use mock data for development
         this.offers.set(this.getMockOffers());
@@ -137,15 +172,18 @@ export class MyOffersComponent implements OnInit {
     if (confirm(`Sei sicuro di voler accettare la controproposta di ${this.formatCurrency(offer.counterOfferAmount)}?`)) {
       this.offerService.acceptCounterOffer(offer.id).subscribe({
         next: () => {
-          // Update local state
-          const updated = this.offers().map(o => 
-            o.id === offer.id ? { ...o, status: 'ACCEPTED' as const } : o
+          this.loadOffers();
+          this.toast.success(
+            'Controproposta Accettata!',
+            `Hai accettato la controproposta di ${this.formatCurrency(offer.counterOfferAmount!)}. L'agente ha ricevuto una notifica.`
           );
-          this.offers.set(updated);
         },
         error: (error) => {
           console.error('Error accepting counter offer:', error);
-          alert('Errore nell\'accettazione della controproposta. Riprova più tardi.');
+          this.toast.error(
+            'Errore',
+            'Impossibile accettare la controproposta. Riprova più tardi.'
+          );
         }
       });
     }
@@ -174,18 +212,20 @@ export class MyOffersComponent implements OnInit {
 
     this.offerService.submitCounterToCounter(offer.id, amount, message || undefined).subscribe({
       next: () => {
-        // Update local state
-        const updated = this.offers().map(o => 
-          o.id === offer.id 
-            ? { ...o, amount, message, status: 'SUBMITTED' as const, updatedAt: new Date().toISOString() }
-            : o
-        );
-        this.offers.set(updated);
+        this.loadOffers();
         this.closeCounterModal();
+        this.toast.success(
+          'Controproposta Inviata!',
+          `La tua controproposta di ${this.formatCurrency(amount)} è stata inviata. L'agente riceverà una notifica.`
+        );
       },
       error: (error) => {
         console.error('Error submitting counter offer:', error);
-        alert('Errore nell\'invio della controproposta. Riprova più tardi.');
+        this.toast.error(
+          'Errore',
+          'Impossibile inviare la controproposta. Riprova più tardi.'
+        );
+        this.closeCounterModal();
       }
     });
   }
@@ -194,15 +234,18 @@ export class MyOffersComponent implements OnInit {
     if (confirm('Sei sicuro di voler ritirare questa offerta? Questa azione non può essere annullata.')) {
       this.offerService.withdrawOffer(offer.id).subscribe({
         next: () => {
-          // Update local state
-          const updated = this.offers().map(o => 
-            o.id === offer.id ? { ...o, status: 'WITHDRAWN' as const } : o
+          this.loadOffers();
+          this.toast.success(
+            'Offerta Ritirata',
+            'La tua offerta è stata ritirata con successo.'
           );
-          this.offers.set(updated);
         },
         error: (error) => {
           console.error('Error withdrawing offer:', error);
-          alert('Errore nel ritiro dell\'offerta. Riprova più tardi.');
+          this.toast.error(
+            'Errore',
+            'Impossibile ritirare l\'offerta. Riprova più tardi.'
+          );
         }
       });
     }
@@ -214,5 +257,18 @@ export class MyOffersComponent implements OnInit {
 
   goToSearch(): void {
     this.router.navigate(['/pages/properties-page']);
+  }
+
+  /**
+   * Verifica se la notifica è relativa alle offerte
+   * Ora più flessibile: accetta qualsiasi tipo che contiene "OFFER" o "COUNTER"
+   */
+  private isOfferNotification(type: string): boolean {
+    if (!type) return false;
+    
+    const typeUpper = type.toUpperCase();
+    
+    // Accetta qualsiasi notifica che contiene OFFER o COUNTER
+    return typeUpper.includes('OFFER') || typeUpper.includes('COUNTER');
   }
 }

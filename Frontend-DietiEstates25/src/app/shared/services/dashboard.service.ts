@@ -5,14 +5,25 @@ import { catchError, timeout } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 
 export interface Notification {
-  id: number;
-  type: 'PROPERTY_MATCH' | 'VISIT_CONFIRMED' | 'OFFER_UPDATE' | 'COUNTEROFFER' | 'SPECIAL_OFFER';
+  id: string;  // UUID dal backend
+  type: 'NEW_MATCHING_LISTING' | 'PRICE_CHANGED' | 'LISTING_UPDATED' | 'LISTING_REMOVED' | 'VISIT_STATUS_CHANGED' | 'OFFER_STATUS_CHANGED';
   title: string;
-  message: string;
+  body: string;  // Il backend usa 'body' invece di 'message'
+  read: boolean; // Il backend usa 'read' invece di 'isRead'
   createdAt: string;
-  isRead: boolean;
-  listingId?: number;
-  savedSearchId?: number;
+  listingId?: string;
+  listingTitle?: string;
+  savedSearchId?: string;
+}
+
+export interface NotificationPreferences {
+  emailEnabled: boolean;
+  inappEnabled: boolean;
+  notifyNewMatching: boolean;
+  notifyPriceChange: boolean;
+  notifyListingUpdates: boolean;
+  notifyVisitUpdates: boolean;
+  notifyOfferUpdates: boolean;
 }
 
 export interface Visit {
@@ -87,22 +98,36 @@ export class DashboardService {
   private apiUrl = environment.apiUrl;
 
   getNotifications(): Observable<Notification[]> {
-    return this.http.get<Notification[]>(`${this.apiUrl}/client/notifications`).pipe(
+    return this.http.get<Notification[]>(`${this.apiUrl}/notifications`).pipe(
       timeout(3000),
       catchError(() => of([]))
     );
   }
 
-  markNotificationAsRead(id: number): Observable<void> {
-    return this.http.patch<void>(`${this.apiUrl}/client/notifications/${id}/read`, {});
+  getUnreadNotifications(): Observable<Notification[]> {
+    return this.http.get<Notification[]>(`${this.apiUrl}/notifications/unread`).pipe(
+      timeout(3000),
+      catchError(() => of([]))
+    );
+  }
+
+  getUnreadNotificationsCount(): Observable<number> {
+    return this.http.get<number>(`${this.apiUrl}/notifications/unread/count`).pipe(
+      timeout(3000),
+      catchError(() => of(0))
+    );
+  }
+
+  markNotificationAsRead(id: string): Observable<void> {
+    return this.http.patch<void>(`${this.apiUrl}/notifications/${id}/read`, {});
   }
 
   markAllNotificationsAsRead(): Observable<void> {
-    return this.http.patch<void>(`${this.apiUrl}/client/notifications/read-all`, {});
+    return this.http.patch<void>(`${this.apiUrl}/notifications/read-all`, {});
   }
 
-  deleteNotification(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/client/notifications/${id}`);
+  deleteNotification(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/notifications/${id}`);
   }
 
   getVisits(): Observable<Visit[]> {
@@ -208,5 +233,26 @@ export class DashboardService {
 
   rejectVisit(id: number, reason?: string): Observable<void> {
     return this.http.patch<void>(`${this.apiUrl}/agent/visits/${id}/reject`, { reason });
+  }
+
+  // ============ NOTIFICATION PREFERENCES ============
+
+  getNotificationPreferences(): Observable<NotificationPreferences> {
+    return this.http.get<NotificationPreferences>(`${this.apiUrl}/notifications/preferences`).pipe(
+      timeout(3000),
+      catchError(() => of({
+        emailEnabled: true,
+        inappEnabled: true,
+        notifyNewMatching: true,
+        notifyPriceChange: true,
+        notifyListingUpdates: true,
+        notifyVisitUpdates: true,
+        notifyOfferUpdates: true
+      }))
+    );
+  }
+
+  updateNotificationPreferences(preferences: NotificationPreferences): Observable<NotificationPreferences> {
+    return this.http.put<NotificationPreferences>(`${this.apiUrl}/notifications/preferences`, preferences);
   }
 }
