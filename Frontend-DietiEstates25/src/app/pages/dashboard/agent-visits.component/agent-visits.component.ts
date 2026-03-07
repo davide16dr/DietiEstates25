@@ -1,6 +1,8 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DashboardService, Visit } from '../../../shared/services/dashboard.service';
+import { WebSocketService } from '../../../shared/services/websocket.service';
+import { ToastService } from '../../../shared/services/toast.service';
 
 type FilterType = 'all' | 'confirmed' | 'cancelled' | 'past';
 
@@ -11,12 +13,25 @@ type FilterType = 'all' | 'confirmed' | 'cancelled' | 'past';
   templateUrl: './agent-visits.component.html',
   styleUrl: './agent-visits.component.scss',
 })
-export class AgentVisitsComponent implements OnInit {
+export class AgentVisitsComponent implements OnInit, OnDestroy {
   private dashboardService = inject(DashboardService);
+  private websocketService = inject(WebSocketService);
+  private toast = inject(ToastService);
   
   loading = signal(true);
   visits = signal<Visit[]>([]);
   activeFilter = signal<FilterType>('all');
+
+  // Callback per le notifiche WebSocket
+  private notificationCallback = (notification: any) => {
+    console.log('📅 Agent ricevuto notifica visita:', notification);
+    
+    // Ricarica le visite quando arriva una nuova notifica
+    if (notification.type?.includes('VISIT') || notification.type?.includes('NEW_VISIT_REQUEST')) {
+      console.log('🔄 Ricarico le visite...');
+      this.loadVisits();
+    }
+  };
 
   stats = computed(() => {
     const allVisits = this.visits();
@@ -47,6 +62,16 @@ export class AgentVisitsComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadVisits();
+    
+    // Registra il callback per le notifiche WebSocket
+    console.log('📡 Registrazione callback per notifiche visite agent');
+    this.websocketService.onNotification(this.notificationCallback);
+  }
+
+  ngOnDestroy(): void {
+    // Rimuovi il callback quando il componente viene distrutto
+    console.log('🔌 Rimozione callback notifiche visite agent');
+    this.websocketService.removeNotificationCallback(this.notificationCallback);
   }
 
   setFilter(filter: FilterType): void {

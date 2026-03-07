@@ -1,8 +1,9 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../../shared/services/auth.service';
 import { DashboardService, ClientStats, AgentStats } from '../../../shared/services/dashboard.service';
+import { WebSocketService } from '../../../shared/services/websocket.service';
 
 @Component({
   selector: 'app-dashboard-home',
@@ -11,14 +12,30 @@ import { DashboardService, ClientStats, AgentStats } from '../../../shared/servi
   templateUrl: './dashboard-home.component.html',
   styleUrl: './dashboard-home.component.scss',
 })
-export class DashboardHomeComponent implements OnInit {
+export class DashboardHomeComponent implements OnInit, OnDestroy {
   private authService = inject(AuthService);
   private dashboardService = inject(DashboardService);
+  private websocketService = inject(WebSocketService);
 
   currentUser = this.authService.currentUser;
 
   clientStatsData = signal<ClientStats | null>(null);
   agentStatsData = signal<AgentStats | null>(null);
+
+  // Callback per le notifiche WebSocket
+  private notificationCallback = (notification: any) => {
+    console.log('📊 Dashboard ricevuto notifica:', notification);
+    
+    // Ricarica le statistiche quando arriva una notifica relativa alle visite
+    if (notification.type?.includes('VISIT')) {
+      console.log('🔄 Ricarico le statistiche...');
+      if (this.isClient) {
+        this.loadClientStats();
+      } else if (this.isAgent) {
+        this.loadAgentStats();
+      }
+    }
+  };
 
   ngOnInit() {
     // Load stats based on user role
@@ -27,6 +44,16 @@ export class DashboardHomeComponent implements OnInit {
     } else if (this.isAgent) {
       this.loadAgentStats();
     }
+    
+    // Registra il callback per le notifiche WebSocket
+    console.log('📡 Registrazione callback per notifiche dashboard');
+    this.websocketService.onNotification(this.notificationCallback);
+  }
+
+  ngOnDestroy(): void {
+    // Rimuovi il callback quando il componente viene distrutto
+    console.log('🔌 Rimozione callback notifiche dashboard');
+    this.websocketService.removeNotificationCallback(this.notificationCallback);
   }
 
   private loadClientStats() {

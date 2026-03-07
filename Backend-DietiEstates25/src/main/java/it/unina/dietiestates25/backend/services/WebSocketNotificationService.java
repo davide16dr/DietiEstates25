@@ -119,25 +119,30 @@ public class WebSocketNotificationService {
      * @param userId ID dell'utente destinatario
      * @param type Tipo di notifica (VISIT_CONFIRMED, VISIT_CANCELLED_BY_CLIENT, etc.)
      * @param title Titolo della notifica
-     * @param body Corpo della notifica
+     * @param message Corpo della notifica
      * @param listingId ID del listing
      * @param visitId ID della visita
      */
     public void sendVisitNotification(UUID userId, String type, String title, String message, UUID listingId, UUID visitId) {
-        Map<String, Object> notification = new HashMap<>();
-        notification.put("type", type);
-        notification.put("title", title);
-        notification.put("message", message);
-        notification.put("listingId", listingId);
-        notification.put("visitId", visitId);
-        notification.put("timestamp", LocalDateTime.now());
+        try {
+            Map<String, Object> notification = new HashMap<>();
+            notification.put("id", UUID.randomUUID().toString());
+            notification.put("type", type);
+            notification.put("title", title);
+            notification.put("message", message);
+            notification.put("body", message);  // Aggiungi anche 'body' per compatibilità
+            notification.put("listingId", listingId.toString());
+            notification.put("visitId", visitId.toString());
+            notification.put("timestamp", LocalDateTime.now().toString());
+            notification.put("createdAt", java.time.Instant.now().toString());
 
-        messagingTemplate.convertAndSendToUser(
-            userId.toString(),
-            "/queue/notifications",
-            notification
-        );
-
-        log.info("📬 Notifica visita inviata a utente {} - Tipo: {}", userId, type);
+            // Invia al topic visite specifico dell'utente
+            String destination = "/topic/visits/" + userId.toString();
+            messagingTemplate.convertAndSend(destination, notification);
+            
+            log.info("📬 Notifica visita {} inviata a utente {} su topic {}", visitId, userId, destination);
+        } catch (Exception e) {
+            log.error("❌ Errore invio notifica visita WebSocket a utente {}: {}", userId, e.getMessage());
+        }
     }
 }
