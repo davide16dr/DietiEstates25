@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -150,15 +151,15 @@ public class VisitService {
     }
 
     @Transactional(readOnly = true)
-    public List<VisitResponseDto> getClientVisits(UUID clientId) {
+    public List<it.unina.dietiestates25.backend.dto.visit.VisitResponse> getClientVisits(UUID clientId) {
         List<Visit> visits = visitRepository.findAllByClient_Id(clientId);
-        return visits.stream().map(this::toDto).collect(Collectors.toList());
+        return visits.stream().map(this::toVisitResponse).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public List<VisitResponseDto> getAgentVisits(UUID agentId) {
+    public List<it.unina.dietiestates25.backend.dto.visit.VisitResponse> getAgentVisits(UUID agentId) {
         List<Visit> visits = visitRepository.findAllByAgent_Id(agentId);
-        return visits.stream().map(this::toDto).collect(Collectors.toList());
+        return visits.stream().map(this::toVisitResponse).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
@@ -418,18 +419,28 @@ public class VisitService {
     private it.unina.dietiestates25.backend.dto.visit.VisitResponse toVisitResponse(Visit visit) {
         it.unina.dietiestates25.backend.dto.visit.VisitResponse response = new it.unina.dietiestates25.backend.dto.visit.VisitResponse();
         response.setId(visit.getId());
+        response.setListingId(visit.getListing().getId().toString());
         response.setPropertyId(visit.getListing().getProperty().getId());
         response.setPropertyTitle(visit.getListing().getTitle());
         response.setPropertyAddress(visit.getListing().getProperty().getAddress());
         response.setClientId(visit.getClient().getId());
         response.setClientName(visit.getClient().getFirstName() + " " + visit.getClient().getLastName());
         response.setClientEmail(visit.getClient().getEmail());
-        if (visit.getAgent() != null) {
+        if (visit.getListing().getAgent() != null) {
+            response.setAgentId(visit.getListing().getAgent().getId());
+            response.setAgentName(visit.getListing().getAgent().getFirstName() + " " + visit.getListing().getAgent().getLastName());
+        } else if (visit.getAgent() != null) {
             response.setAgentId(visit.getAgent().getId());
             response.setAgentName(visit.getAgent().getFirstName() + " " + visit.getAgent().getLastName());
         }
         response.setRequestedAt(visit.getRequestedAt());
         response.setScheduledFor(visit.getScheduledFor());
+        // Formatted date and time for frontend (Europe/Rome timezone)
+        if (visit.getScheduledFor() != null) {
+            LocalDateTime ldt = visit.getScheduledFor().atZone(ZoneId.of("Europe/Rome")).toLocalDateTime();
+            response.setScheduledDate(ldt.format(DateTimeFormatter.ISO_LOCAL_DATE));
+            response.setScheduledTime(ldt.format(DateTimeFormatter.ofPattern("HH:mm")));
+        }
         response.setStatus(visit.getStatus().name());
         response.setNote(visit.getNote());
         return response;

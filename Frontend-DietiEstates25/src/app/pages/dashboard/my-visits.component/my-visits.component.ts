@@ -2,6 +2,7 @@ import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { DashboardService, Visit } from '../../../shared/services/dashboard.service';
+import { ToastService } from '../../../shared/services/toast.service';
 
 @Component({
   selector: 'app-my-visits',
@@ -13,6 +14,7 @@ import { DashboardService, Visit } from '../../../shared/services/dashboard.serv
 export class MyVisitsComponent {
   private dashboardService = inject(DashboardService);
   private router = inject(Router);
+  private toast = inject(ToastService);
 
   activeTab = signal<'upcoming' | 'past'>('upcoming');
   loading = signal(true);
@@ -23,7 +25,7 @@ export class MyVisitsComponent {
     return this.visits().filter(v =>
       new Date(v.scheduledDate) >= now &&
       v.status !== 'CANCELLED' &&
-      v.status !== 'COMPLETED'
+      v.status !== 'DONE'
     );
   });
 
@@ -32,7 +34,7 @@ export class MyVisitsComponent {
     return this.visits().filter(v =>
       new Date(v.scheduledDate) < now ||
       v.status === 'CANCELLED' ||
-      v.status === 'COMPLETED'
+      v.status === 'DONE'
     );
   });
 
@@ -63,8 +65,8 @@ export class MyVisitsComponent {
   getStatusClass(status: string): string {
     const map: Record<string, string> = {
       CONFIRMED: 'status-confirmed',
-      PENDING: 'status-pending',
-      COMPLETED: 'status-completed',
+      REQUESTED: 'status-pending',
+      DONE: 'status-completed',
       CANCELLED: 'status-cancelled'
     };
     return map[status] ?? 'status-pending';
@@ -73,8 +75,8 @@ export class MyVisitsComponent {
   getStatusLabel(status: string): string {
     const map: Record<string, string> = {
       CONFIRMED: 'Confermata',
-      PENDING: 'In Attesa',
-      COMPLETED: 'Completata',
+      REQUESTED: 'In Attesa',
+      DONE: 'Completata',
       CANCELLED: 'Annullata'
     };
     return map[status] ?? status;
@@ -99,11 +101,9 @@ export class MyVisitsComponent {
   }
 
   cancelVisit(visit: Visit): void {
-    if (!confirm('Sei sicuro di voler annullare questa visita?')) return;
-
     const doCancel = () => {
       this.visits.update(list =>
-        list.map(v => v.id === visit.id ? { ...v, status: 'CANCELLED' } : v)
+        list.map(v => v.id === visit.id ? { ...v, status: 'CANCELLED' as const } : v)
       );
     };
 
@@ -113,8 +113,10 @@ export class MyVisitsComponent {
     });
   }
 
-  goToProperty(propertyId: number): void {
-    this.router.navigate(['/property', propertyId]);
+  goToProperty(propertyId: string | undefined): void {
+    if (propertyId) {
+      this.router.navigate(['/pages/property-detail', propertyId]);
+    }
   }
 
   goToSearch(): void {

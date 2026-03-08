@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { DashboardService, Notification, NotificationPreferences } from '../../../shared/services/dashboard.service';
 import { AuthService } from '../../../shared/services/auth.service';
 import { WebSocketService, WebSocketNotification } from '../../../shared/services/websocket.service';
+import { ToastService } from '../../../shared/services/toast.service';
 
 @Component({
   selector: 'app-notifications',
@@ -18,6 +19,7 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private authService = inject(AuthService);
   private webSocketService = inject(WebSocketService);
+  private toast = inject(ToastService);
   private notificationCallback?: (notification: WebSocketNotification) => void;
 
   notifications = signal<Notification[]>([]);
@@ -248,12 +250,12 @@ export class NotificationsComponent implements OnInit, OnDestroy {
         this.preferences.set(updated);
         this.savingPreferences.set(false);
         this.closeSettings();
-        alert('✅ Impostazioni salvate con successo!');
+        this.toast.success('Impostazioni salvate');
       },
       error: (err) => {
         console.error('Errore salvataggio preferenze:', err);
         this.savingPreferences.set(false);
-        alert('❌ Errore nel salvataggio delle impostazioni');
+        this.toast.error('Errore', 'Errore nel salvataggio delle impostazioni');
       }
     });
   }

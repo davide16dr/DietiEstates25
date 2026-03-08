@@ -52,6 +52,11 @@ import { ToastService } from '../../services/toast.service';
             @if (toast.message) {
               <div class="toast-message">{{ toast.message }}</div>
             }
+            @if (toast.action) {
+              <button class="toast-action" (click)="runAction(toast); $event.stopPropagation()">
+                {{ toast.action.label }}
+              </button>
+            }
           </div>
           
           <button class="toast-close" (click)="remove(toast.id); $event.stopPropagation()">
@@ -158,6 +163,24 @@ import { ToastService } from '../../services/toast.service';
       margin-top: 4px;
     }
 
+    .toast-action {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 5px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      border: none;
+      border-radius: 6px;
+      background: rgba(0, 0, 0, 0.07);
+      color: #111827;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .toast-action:hover {
+      background: rgba(0, 0, 0, 0.13);
+    }
+
     .toast-close {
       flex-shrink: 0;
       width: 28px;
@@ -222,5 +245,10 @@ export class ToastComponent {
 
   remove(id: string): void {
     this.toastService.remove(id);
+  }
+
+  runAction(toast: any): void {
+    toast.action?.handler();
+    this.toastService.remove(toast.id);
   }
 }

@@ -323,6 +323,39 @@
   font-weight: 900;
 }
 
+.auth-required-banner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  padding: 20px 16px;
+  background: #faf7f2;
+  border: 1px solid #efe7dd;
+  border-radius: 12px;
+  margin-top: 4px;
+
+  .auth-required-icon {
+    font-size: 28px;
+  }
+
+  p {
+    font-size: 14px;
+    color: #6b7280;
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  .cta {
+    width: 100%;
+    margin-top: 4px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
 
 @media (max-width: 1100px) {
   .content-grid {

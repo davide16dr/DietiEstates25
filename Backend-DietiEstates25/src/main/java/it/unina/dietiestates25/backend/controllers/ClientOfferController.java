@@ -74,10 +74,10 @@ public class ClientOfferController {
             offerService.acceptCounterOffer(principal.getId(), offerId);
             return ResponseEntity.ok().build();
         } catch (RuntimeException e) {
-            if (e.getMessage().contains("Unauthorized")) {
+            if (e.getMessage() != null && e.getMessage().contains("Unauthorized")) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
-            if (e.getMessage().contains("not found")) {
+            if (e.getMessage() != null && e.getMessage().contains("not found")) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
@@ -96,10 +96,10 @@ public class ClientOfferController {
             offerService.submitCounterToCounter(principal.getId(), offerId, request);
             return ResponseEntity.ok().build();
         } catch (RuntimeException e) {
-            if (e.getMessage().contains("Unauthorized")) {
+            if (e.getMessage() != null && e.getMessage().contains("Unauthorized")) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
-            if (e.getMessage().contains("not found")) {
+            if (e.getMessage() != null && e.getMessage().contains("not found")) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
@@ -117,10 +117,10 @@ public class ClientOfferController {
             offerService.withdrawOffer(principal.getId(), offerId);
             return ResponseEntity.ok().build();
         } catch (RuntimeException e) {
-            if (e.getMessage().contains("Unauthorized")) {
+            if (e.getMessage() != null && e.getMessage().contains("Unauthorized")) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
-            if (e.getMessage().contains("not found")) {
+            if (e.getMessage() != null && e.getMessage().contains("not found")) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();

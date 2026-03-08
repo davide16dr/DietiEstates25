@@ -211,8 +211,7 @@ export class AgentOffersComponent implements OnInit, OnDestroy {
   }
 
   acceptOffer(offer: OfferResponse): void {
-    if (confirm(`Sei sicuro di voler accettare l'offerta di ${this.formatCurrency(offer.amount)} da ${offer.clientName}?`)) {
-      this.offerService.acceptOffer(offer.id).subscribe({
+    this.offerService.acceptOffer(offer.id).subscribe({
         next: () => {
           // ✅ Ricarica i dati dal server
           this.loadOffers();
@@ -230,7 +229,6 @@ export class AgentOffersComponent implements OnInit, OnDestroy {
           );
         }
       });
-    }
   }
 
   openRejectModal(offer: OfferResponse): void {

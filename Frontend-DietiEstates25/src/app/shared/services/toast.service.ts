@@ -2,12 +2,18 @@ import { Injectable, signal } from '@angular/core';
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info';
 
+export interface ToastAction {
+  label: string;
+  handler: () => void;
+}
+
 export interface Toast {
   id: string;
   type: ToastType;
   title: string;
   message?: string;
   duration?: number;
+  action?: ToastAction;
   timestamp: Date;
 }
 
@@ -22,8 +28,8 @@ export class ToastService {
   /**
    * Mostra una notifica di successo
    */
-  success(title: string, message?: string, duration: number = 4000): void {
-    this.show('success', title, message, duration);
+  success(title: string, message?: string, duration: number = 4000, action?: ToastAction): void {
+    this.show('success', title, message, duration, action);
   }
 
   /**
@@ -50,13 +56,14 @@ export class ToastService {
   /**
    * Mostra una notifica generica
    */
-  private show(type: ToastType, title: string, message?: string, duration?: number): void {
+  private show(type: ToastType, title: string, message?: string, duration?: number, action?: ToastAction): void {
     const toast: Toast = {
       id: `toast-${++this.nextId}`,
       type,
       title,
       message,
       duration,
+      action,
       timestamp: new Date()
     };
 

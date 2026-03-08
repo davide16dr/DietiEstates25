@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { SavedSearchService } from '../../../shared/services/saved-search.service';
+import { ToastService } from '../../../shared/services/toast.service';
 import { SavedSearch } from '../../../shared/models/SavedSearch';
 import { PropertyFiltersValue } from '../../../shared/models/Property';
 
@@ -18,6 +19,7 @@ export class SavedSearchesComponent implements OnInit {
   private savedSearchService = inject(SavedSearchService);
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
+  private toast = inject(ToastService);
 
   loading = signal(true);
   savedSearches = signal<SavedSearch[]>([]);
@@ -128,15 +130,13 @@ export class SavedSearchesComponent implements OnInit {
   }
 
   deleteSearch(search: SavedSearch): void {
-    if (!confirm(`Sei sicuro di voler eliminare la ricerca "${search.name}"?`)) return;
-
     this.savedSearchService.deleteSavedSearch(search.id)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => this.savedSearches.update(list => list.filter(s => s.id !== search.id)),
         error: (err) => {
           console.error('Error deleting saved search:', err);
-          alert('Errore durante l\'eliminazione della ricerca salvata');
+          this.toast.error('Errore', 'Errore durante l\'eliminazione della ricerca salvata');
         }
       });
   }

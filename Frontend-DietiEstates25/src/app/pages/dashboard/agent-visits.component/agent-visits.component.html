@@ -127,7 +127,7 @@
             ✓ Segna Completata
           </button>
         }
-        @if (visit.status !== 'COMPLETED' && visit.status !== 'CANCELLED') {
+        @if (visit.status !== 'DONE' && visit.status !== 'CANCELLED') {
           <button class="action-btn secondary" (click)="rejectVisit(visit.id)">
             ✕ Rifiuta
           </button>

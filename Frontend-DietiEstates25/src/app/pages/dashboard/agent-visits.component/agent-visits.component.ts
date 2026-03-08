@@ -37,7 +37,7 @@ export class AgentVisitsComponent implements OnInit, OnDestroy {
     const allVisits = this.visits();
     const inAttesa = allVisits.filter(v => v.status === 'REQUESTED').length;
     const confermate = allVisits.filter(v => v.status === 'CONFIRMED').length;
-    const completate = allVisits.filter(v => v.status === 'COMPLETED').length;
+    const completate = allVisits.filter(v => v.status === 'DONE').length;
     const rifiutate = allVisits.filter(v => v.status === 'CANCELLED').length;
     const passate = allVisits.filter(v => this.isPastVisit(v)).length;
     
@@ -106,7 +106,7 @@ export class AgentVisitsComponent implements OnInit, OnDestroy {
     const classes: { [key: string]: string } = {
       'REQUESTED': 'status-pending',
       'CONFIRMED': 'status-confirmed',
-      'COMPLETED': 'status-completed',
+      'DONE': 'status-completed',
       'CANCELLED': 'status-cancelled'
     };
     return classes[status] || 'status-pending';
@@ -116,57 +116,50 @@ export class AgentVisitsComponent implements OnInit, OnDestroy {
     const labels: { [key: string]: string } = {
       'REQUESTED': 'In Attesa',
       'CONFIRMED': 'Confermata',
-      'COMPLETED': 'Completata',
+      'DONE': 'Completata',
       'CANCELLED': 'Annullata'
     };
     return labels[status] || status;
   }
 
-  confirmVisit(visitId: number): void {
-    if (!confirm('Confermare questa visita?')) return;
-
+  confirmVisit(visitId: string): void {
     this.dashboardService.confirmVisit(visitId).subscribe({
       next: () => {
         this.visits.update(list =>
-          list.map(v => v.id === visitId ? { ...v, status: 'CONFIRMED' } : v)
+          list.map(v => v.id === visitId ? { ...v, status: 'CONFIRMED' as const } : v)
         );
       },
       error: (err) => {
         console.error('Error confirming visit:', err);
-        alert('Errore durante la conferma della visita');
+        this.toast.error('Errore', 'Errore durante la conferma della visita');
       }
     });
   }
 
-  completeVisit(visitId: number): void {
-    if (!confirm('Segnare questa visita come completata?')) return;
-
+  completeVisit(visitId: string): void {
     this.dashboardService.completeVisit(visitId).subscribe({
       next: () => {
         this.visits.update(list =>
-          list.map(v => v.id === visitId ? { ...v, status: 'COMPLETED' } : v)
+          list.map(v => v.id === visitId ? { ...v, status: 'DONE' as const } : v)
         );
       },
       error: (err) => {
         console.error('Error completing visit:', err);
-        alert('Errore durante il completamento della visita');
+        this.toast.error('Errore', 'Errore durante il completamento della visita');
       }
     });
   }
 
-  rejectVisit(visitId: number): void {
-    const reason = prompt('Motivo del rifiuto (facoltativo):');
-    if (reason === null) return; // User cancelled
-
-    this.dashboardService.rejectVisit(visitId, reason || undefined).subscribe({
+  rejectVisit(visitId: string): void {
+    this.dashboardService.rejectVisit(visitId, undefined).subscribe({
       next: () => {
         this.visits.update(list =>
-          list.map(v => v.id === visitId ? { ...v, status: 'CANCELLED' } : v)
+          list.map(v => v.id === visitId ? { ...v, status: 'CANCELLED' as const } : v)
         );
       },
       error: (err) => {
         console.error('Error rejecting visit:', err);
-        alert('Errore durante il rifiuto della visita');
+        this.toast.error('Errore', 'Errore durante il rifiuto della visita');
       }
     });
   }

@@ -22,6 +22,7 @@ public class VisitResponse {
     // Formatted fields for frontend
     private String scheduledDate;
     private String scheduledTime;
+    private String listingId;
 
     public VisitResponse() {}
 
@@ -72,4 +73,7 @@ public class VisitResponse {
 
     public String getScheduledTime() { return scheduledTime; }
     public void setScheduledTime(String scheduledTime) { this.scheduledTime = scheduledTime; }
+
+    public String getListingId() { return listingId; }
+    public void setListingId(String listingId) { this.listingId = listingId; }
 }

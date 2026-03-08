@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 import { EditManagerModalComponent, ManagerEdit } from '../edit-manager-modal.component/edit-manager-modal.component';
 import { AddManagerModalComponent, NewManager } from '../add-manager-modal.component/add-manager-modal.component';
 import { UserService, User } from '../../../shared/services/user.service';
+import { ToastService } from '../../../shared/services/toast.service';
 
 interface Manager {
   id: string;
@@ -22,6 +23,7 @@ interface Manager {
 })
 export class AdminManagersComponent implements OnInit {
   private userService = inject(UserService);
+  private toast = inject(ToastService);
   
   searchQuery = signal('');
   statusFilter = signal<'tutti' | 'attivi' | 'inattivi'>('tutti'); // ✅ Nuovo filtro
@@ -137,7 +139,7 @@ export class AdminManagersComponent implements OnInit {
       },
       error: (err: any) => {
         console.error('❌ Errore nell\'aggiornamento del gestore:', err);
-        alert('Errore durante l\'aggiornamento del gestore. Riprova.');
+        this.toast.error('Errore', 'Errore durante l\'aggiornamento del gestore. Riprova.');
       }
     });
   }
@@ -186,9 +188,9 @@ export class AdminManagersComponent implements OnInit {
       error: (err: any) => {
         console.error('❌ Errore nella creazione del gestore:', err);
         if (err.status === 409) {
-          alert('Errore: L\'email è già in uso da un altro utente.');
+          this.toast.error('Email già in uso', 'Questa email è già utilizzata da un altro utente.');
         } else {
-          alert('Errore durante la creazione del gestore. Riprova.');
+          this.toast.error('Errore', 'Errore durante la creazione del gestore. Riprova.');
         }
       }
     });
