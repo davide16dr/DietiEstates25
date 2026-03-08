@@ -171,6 +171,11 @@ export class AuthService {
     return user?.userId ?? null;
   }
 
+  /** Usato da OAuthService per aggiornare il signal dopo autenticazione social */
+  setUserFromOAuth(res: AuthResponse): void {
+    this.currentUserSignal.set(res);
+  }
+
   changePassword(userId: string, data: { oldPassword: string; newPassword: string }): Observable<any> {
     return this.http.put(`http://localhost:8080/api/users/${userId}/password`, data);
   }

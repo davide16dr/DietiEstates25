@@ -13,6 +13,14 @@
   <script>
     window.global = window;
   </script>
+
+  <!-- ── OAuth Social Login SDK ──────────────────────────────────────────── -->
+  <!-- Google Identity Services -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <!-- Facebook JS SDK -->
+  <script async defer crossorigin="anonymous"
+    src="https://connect.facebook.net/it_IT/sdk.js"></script>
+  <!-- GitHub non ha SDK browser: usa il flusso popup implementato in OAuthService -->
 </head>
 <body>
   <app-root></app-root>

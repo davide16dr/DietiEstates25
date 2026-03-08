@@ -18,7 +18,7 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
   private websocketService = inject(WebSocketService);
 
   currentUser = this.authService.currentUser;
-
+  unreadCount = this.dashboardService.unreadNotificationsCount;
   clientStatsData = signal<ClientStats | null>(null);
   agentStatsData = signal<AgentStats | null>(null);
 
@@ -38,6 +38,7 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
   };
 
   ngOnInit() {
+    this.dashboardService.refreshUnreadCount();
     // Load stats based on user role
     if (this.isClient) {
       this.loadClientStats();

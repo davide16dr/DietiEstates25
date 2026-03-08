@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { catchError, timeout } from 'rxjs/operators';
@@ -96,6 +96,16 @@ export interface AgentStats {
 export class DashboardService {
   private http = inject(HttpClient);
   private apiUrl = environment.apiUrl;
+
+  // Signal condiviso per il contatore notifiche non lette (usato dalla sidebar)
+  unreadNotificationsCount = signal<number>(0);
+
+  refreshUnreadCount(): void {
+    this.getUnreadNotificationsCount().subscribe({
+      next: (count) => this.unreadNotificationsCount.set(count),
+      error: () => {}
+    });
+  }
 
   getNotifications(): Observable<Notification[]> {
     return this.http.get<Notification[]>(`${this.apiUrl}/notifications`).pipe(

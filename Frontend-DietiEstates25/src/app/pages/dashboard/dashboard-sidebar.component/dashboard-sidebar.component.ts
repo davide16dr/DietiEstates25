@@ -39,6 +39,9 @@ export class DashboardSidebarComponent implements OnInit {
   passwordError = signal<string | null>(null);
 
   ngOnInit(): void {
+    // Carica il contatore notifiche non lette
+    this.dashboardService.refreshUnreadCount();
+
     // Load stats if user is agent
     if (this.isAgent) {
       this.dashboardService.getAgentStats().subscribe({
@@ -76,6 +79,7 @@ export class DashboardSidebarComponent implements OnInit {
   menu = computed<MenuItem[]>(() => {
     const role = this.currentUser()?.role?.toLowerCase();
     const stats = this.agentStats();
+    const unread = this.dashboardService.unreadNotificationsCount();
 
     if (role === 'admin') return [
       { label: 'Dashboard', icon: '▦', route: '/dashboard/admin-home' },
@@ -102,7 +106,7 @@ export class DashboardSidebarComponent implements OnInit {
       { label: 'Ricerche Salvate', icon: '🔖', route: '/dashboard/saved-searches' },
       { label: 'Le Mie Visite', icon: '📅', route: '/dashboard/visits' },
       { label: 'Le Mie Offerte', icon: '🤝', route: '/dashboard/offers' },
-      { label: 'Notifiche', icon: '🔔', route: '/dashboard/notifications' },
+      { label: 'Notifiche', icon: '🔔', route: '/dashboard/notifications', badge: unread || undefined },
     ];
   });
 

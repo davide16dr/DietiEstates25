@@ -133,6 +133,8 @@ export class NotificationsComponent implements OnInit, OnDestroy {
         this.notifications.update(list =>
           list.map(n => n.id === notification.id ? { ...n, read: true } : n)
         );
+        // Aggiorna il badge nella sidebar
+        this.dashboardService.refreshUnreadCount();
       },
       error: (err) => console.error('Errore marcatura notifica come letta:', err)
     });
@@ -142,11 +144,13 @@ export class NotificationsComponent implements OnInit, OnDestroy {
     this.dashboardService.markAllNotificationsAsRead().subscribe({
       next: () => {
         this.notifications.update(list => list.map(n => ({ ...n, read: true })));
+        // Aggiorna il badge nella sidebar
+        this.dashboardService.refreshUnreadCount();
       },
       error: (err) => {
         console.error('Errore marcatura tutte come lette:', err);
-        // Anche in caso di errore, aggiorna localmente per UX migliore
         this.notifications.update(list => list.map(n => ({ ...n, read: true })));
+        this.dashboardService.refreshUnreadCount();
       }
     });
   }
@@ -218,11 +222,12 @@ export class NotificationsComponent implements OnInit, OnDestroy {
     this.dashboardService.deleteNotification(notification.id).subscribe({
       next: () => {
         this.notifications.update(list => list.filter(n => n.id !== notification.id));
+        this.dashboardService.refreshUnreadCount();
       },
       error: (err) => {
         console.error('Errore eliminazione notifica:', err);
-        // Anche in caso di errore, rimuovi localmente per UX migliore
         this.notifications.update(list => list.filter(n => n.id !== notification.id));
+        this.dashboardService.refreshUnreadCount();
       }
     });
   }

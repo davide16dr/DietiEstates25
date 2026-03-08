@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { LoginComponent } from './auth/login/login.component/login.component';
 import { RegisterUserComponent } from './auth/register/register-user.component/register-user.component';
 import { RegisterBusinessComponent } from './auth/register/register-business.component/register-business.component';
+import { OAuthCallbackComponent } from './auth/oauth-callback/oauth-callback.component';
 import { HomepageComponent } from './pages/homepage.component/homepage.component';
 import { PropertiesPageComponent } from './pages/properties-page.component/properties-page.component';
 import { guestGuard } from './shared/guards/guest.guard';
@@ -47,6 +48,11 @@ export const routes: Routes = [
         title: 'Register Business',
         component: RegisterBusinessComponent,
         canActivate: [guestGuard]
+    },
+    {
+        path: 'auth/oauth-callback',
+        title: 'OAuth Callback',
+        component: OAuthCallbackComponent
     },
     {
         path: 'pages/properties-page',
