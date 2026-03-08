@@ -4,8 +4,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { RouterModule, Router } from '@angular/router';
 import { finalize } from 'rxjs/operators';
 import { AuthService } from '../../../shared/services/auth.service';
-
-type SocialProvider = 'google' | 'facebook' | 'github';
+import { OAuthService, OAuthProvider } from '../../../shared/services/oauth.service';
 
 @Component({
   selector: 'app-login',
@@ -18,8 +17,10 @@ export class LoginComponent {
   private fb = inject(FormBuilder);
   private router = inject(Router);
   private auth = inject(AuthService);
+  private oauthService = inject(OAuthService);
 
   isSubmitting = signal(false);
+  isSocialSubmitting = signal<OAuthProvider | null>(null);
   errorMessage = signal<string | null>(null);
 
   form: FormGroup = this.fb.group({
@@ -93,7 +94,29 @@ export class LoginComponent {
       });
   }
 
-  onSocialLogin(provider: SocialProvider): void {
-    this.errorMessage.set(`Login social (${provider}) non ancora implementato.`);
+  onSocialLogin(provider: OAuthProvider): void {
+    if (this.isSocialSubmitting()) return;
+    this.errorMessage.set(null);
+    this.isSocialSubmitting.set(provider);
+
+    this.oauthService.login(provider)
+      .pipe(finalize(() => this.isSocialSubmitting.set(null)))
+      .subscribe({
+        next: (res) => {
+          const role = res.role?.toLowerCase();
+          let dashboardRoute = '/dashboard/home';
+          switch (role) {
+            case 'admin':            dashboardRoute = '/dashboard/admin-home'; break;
+            case 'agency_manager':   dashboardRoute = '/dashboard/manager-home'; break;
+            case 'agent':            dashboardRoute = '/dashboard/agent-properties'; break;
+            default:                 dashboardRoute = '/dashboard/home'; break;
+          }
+          this.router.navigateByUrl(dashboardRoute);
+        },
+        error: (err) => {
+          const msg = err?.error?.error ?? err?.message ?? `Errore durante il login con ${provider}.`;
+          this.errorMessage.set(msg);
+        }
+      });
   }
 }

@@ -49,21 +49,23 @@
       </div>
     </div>
   
-    <div class="panel">
-      <div class="panel-title">
-        <span class="panel-ico">🔔</span>
-        <span>Centro Notifiche</span>
+    @if (isClient) {
+      <div class="panel">
+        <div class="panel-title">
+          <span class="panel-ico">🔔</span>
+          <span>Centro Notifiche</span>
+        </div>
+    
+        <div class="notif-center">
+          <div class="notif-number">{{ unreadCount() }}</div>
+          <div class="notif-text">notifiche non lette</div>
+    
+          <a class="primary" [routerLink]="['/dashboard/notifications']">
+            Visualizza Notifiche
+          </a>
+        </div>
       </div>
-  
-      <div class="notif-center">
-        <div class="notif-number">2</div>
-        <div class="notif-text">notifiche non lette</div>
-  
-        <a class="primary" [routerLink]="['/dashboard/notifications']">
-          Visualizza Notifiche
-        </a>
-      </div>
-    </div>
+    }
   </section>
 }
 
@@ -99,12 +101,18 @@
       </div>
   
       <div class="notif-center">
-        <div class="notif-number">3</div>
+        <div class="notif-number">{{ (agentStatsData()?.pendingVisits ?? 0) + (agentStatsData()?.pendingOffers ?? 0) }}</div>
         <div class="notif-text">attività in sospeso</div>
         <div class="activity-list">
-          <div class="activity-item">1 visita da confermare</div>
-          <div class="activity-item">1 offerta da valutare</div>
-          <div class="activity-item">1 controproposta in attesa</div>
+          @if ((agentStatsData()?.pendingVisits ?? 0) >= 1) {
+            <div class="activity-item">{{ agentStatsData()?.pendingVisits }} visit{{ (agentStatsData()?.pendingVisits ?? 0) === 1 ? 'a' : 'e' }} da confermare</div>
+          }
+          @if ((agentStatsData()?.pendingOffers ?? 0) >= 1) {
+            <div class="activity-item">{{ agentStatsData()?.pendingOffers }} offert{{ (agentStatsData()?.pendingOffers ?? 0) === 1 ? 'a' : 'e' }} da valutare</div>
+          }
+          @if ((agentStatsData()?.pendingVisits ?? 0) + (agentStatsData()?.pendingOffers ?? 0) === 0) {
+            <div class="activity-item">Nessuna attività in sospeso 🎉</div>
+          }
         </div>
       </div>
     </div>

@@ -70,16 +70,40 @@
           <span>OPPURE CONTINUA CON</span>
         </div>
         <div class="social-row">
-          <button type="button" class="social-btn" (click)="onSocialLogin('google')" aria-label="Continua con Google">
-            <img src="assets/google_logo.png" alt="Continua con Google" class="social-icon" loading="lazy" />
+          <button type="button" class="social-btn"
+            (click)="onSocialLogin('google')"
+            [disabled]="!!isSocialSubmitting()"
+            [class.loading]="isSocialSubmitting() === 'google'"
+            aria-label="Continua con Google">
+            @if (isSocialSubmitting() === 'google') {
+              <span class="social-spinner">⏳</span>
+            } @else {
+              <img src="assets/google_logo.png" alt="Continua con Google" class="social-icon" loading="lazy" />
+            }
           </button>
 
-          <button type="button" class="social-btn" (click)="onSocialLogin('facebook')" aria-label="Continua con Facebook">
-            <img src="assets/facebook_logo.png" alt="Continua con Facebook" class="social-icon" loading="lazy" />
+          <button type="button" class="social-btn"
+            (click)="onSocialLogin('facebook')"
+            [disabled]="!!isSocialSubmitting()"
+            [class.loading]="isSocialSubmitting() === 'facebook'"
+            aria-label="Continua con Facebook">
+            @if (isSocialSubmitting() === 'facebook') {
+              <span class="social-spinner">⏳</span>
+            } @else {
+              <img src="assets/facebook_logo.png" alt="Continua con Facebook" class="social-icon" loading="lazy" />
+            }
           </button>
 
-          <button type="button" class="social-btn" (click)="onSocialLogin('github')" aria-label="Continua con GitHub">
-            <img src="assets/github_logo.png" alt="Continua con GitHub" class="social-icon" loading="lazy" />
+          <button type="button" class="social-btn"
+            (click)="onSocialLogin('github')"
+            [disabled]="!!isSocialSubmitting()"
+            [class.loading]="isSocialSubmitting() === 'github'"
+            aria-label="Continua con GitHub">
+            @if (isSocialSubmitting() === 'github') {
+              <span class="social-spinner">⏳</span>
+            } @else {
+              <img src="assets/github_logo.png" alt="Continua con GitHub" class="social-icon" loading="lazy" />
+            }
           </button>
         </div>
 
