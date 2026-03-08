@@ -27,15 +27,16 @@ export interface NotificationPreferences {
 }
 
 export interface Visit {
-  id: number;
-  propertyId: number;
+  id: string;
+  listingId?: string;
+  propertyId?: string;
   propertyTitle: string;
   propertyImage?: string;
   propertyAddress: string;
-  status: 'REQUESTED' | 'CONFIRMED' | 'PENDING' | 'CANCELLED' | 'COMPLETED';
+  status: 'REQUESTED' | 'CONFIRMED' | 'CANCELLED' | 'DONE';
   scheduledDate: string;
   scheduledTime: string;
-  agentName: string;
+  agentName?: string;
   clientName?: string;
   clientEmail?: string;
   note?: string;
@@ -147,7 +148,7 @@ export class DashboardService {
     );
   }
 
-  cancelVisit(id: number): Observable<void> {
+  cancelVisit(id: string): Observable<void> {
     return this.http.patch<void>(`${this.apiUrl}/client/visits/${id}/cancel`, {});
   }
 
@@ -217,13 +218,21 @@ export class DashboardService {
   // ============ CREATE VISIT ============
 
   createVisit(propertyId: string, date: string, time?: string, notes?: string): Observable<Visit> {
-    // Convert date and time to ISO format (Instant)
     let scheduledFor: string;
-    
+
     if (time) {
       scheduledFor = new Date(`${date}T${time}:00`).toISOString();
     } else {
-      scheduledFor = new Date(`${date}T10:00:00`).toISOString();
+      // Default: 10:00 AM on the selected date, using local timezone offset
+      const localDate = new Date(`${date}T10:00:00`);
+      // If the resulting time is in the past, push to end of day to avoid backend rejection
+      if (localDate <= new Date()) {
+        const tomorrow = new Date(localDate);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        scheduledFor = tomorrow.toISOString();
+      } else {
+        scheduledFor = localDate.toISOString();
+      }
     }
 
     return this.http.post<Visit>(`${this.apiUrl}/client/visits`, {
@@ -233,15 +242,15 @@ export class DashboardService {
     });
   }
 
-  confirmVisit(id: number): Observable<void> {
+  confirmVisit(id: string): Observable<void> {
     return this.http.patch<void>(`${this.apiUrl}/agent/visits/${id}/confirm`, {});
   }
 
-  completeVisit(id: number): Observable<void> {
+  completeVisit(id: string): Observable<void> {
     return this.http.patch<void>(`${this.apiUrl}/agent/visits/${id}/complete`, {});
   }
 
-  rejectVisit(id: number, reason?: string): Observable<void> {
+  rejectVisit(id: string, reason?: string): Observable<void> {
     return this.http.patch<void>(`${this.apiUrl}/agent/visits/${id}/reject`, { reason });
   }
 

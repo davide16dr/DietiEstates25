@@ -4,6 +4,8 @@ import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { ListingService } from '../../../shared/services/listing.service';
 import { OfferService, OfferRequest } from '../../../shared/services/offer.service';
 import { DashboardService } from '../../../shared/services/dashboard.service';
+import { ToastService } from '../../../shared/services/toast.service';
+import { AuthService } from '../../../auth/auth.service';
 import { MakeOfferModalComponent, MakeOfferPayload } from '../make-offer-modal.component/make-offer-modal.component';
 import { BookVisitModalComponent, BookVisitPayload } from '../book-visit-modal.component/book-visit-modal.component';
 
@@ -62,6 +64,12 @@ export class PropertyDetailPage implements OnInit {
   private listingService = inject(ListingService);
   private offerService = inject(OfferService);
   private dashboardService = inject(DashboardService);
+  private toast = inject(ToastService);
+  private authService = inject(AuthService);
+
+  get isAuthenticated(): boolean {
+    return this.authService.isAuthenticated();
+  }
   
   showMakeOfferModal = signal(false);
   showBookVisitModal = signal(false);
@@ -210,6 +218,10 @@ export class PropertyDetailPage implements OnInit {
   }
 
   onMakeOffer(): void {
+    if (!this.authService.isAuthenticated()) {
+      this.router.navigate(['/auth/login'], { queryParams: { returnUrl: this.router.url } });
+      return;
+    }
     this.showMakeOfferModal.set(true);
   }
 
@@ -218,6 +230,10 @@ export class PropertyDetailPage implements OnInit {
   }
 
   onBookVisit(): void {
+    if (!this.authService.isAuthenticated()) {
+      this.router.navigate(['/auth/login'], { queryParams: { returnUrl: this.router.url } });
+      return;
+    }
     this.showBookVisitModal.set(true);
   }
 
@@ -230,7 +246,7 @@ export class PropertyDetailPage implements OnInit {
     const propertyId = property.id;
 
     if (!propertyId) {
-      alert('ID proprietà non valido');
+      this.toast.error('ID non valido', 'ID proprietà non valido');
       return;
     }
 
@@ -242,22 +258,18 @@ export class PropertyDetailPage implements OnInit {
         this.submittingVisit.set(false);
         this.closeBookVisitModal();
         
-        alert(`Richiesta di visita inviata con successo per il ${payload.date}!`);
-        
-        if (confirm('Vuoi visualizzare le tue visite?')) {
-          this.router.navigate(['/dashboard/visits']);
-        }
+        this.toast.success('Visita prenotata!', `Richiesta di visita inviata con successo per il ${payload.date}.`);
       },
       error: (error) => {
         this.submittingVisit.set(false);
         console.error('❌ Error booking visit:', error);
         
         if (error.status === 404) {
-          alert('Proprietà non trovata.');
+          this.toast.error('Proprietà non trovata');
         } else if (error.status === 400) {
-          alert('Dati visita non validi.');
+          this.toast.warning('Dati non validi', 'I dati della visita non sono validi.');
         } else {
-          alert('Errore nella prenotazione della visita. Riprova più tardi.');
+          this.toast.error('Errore prenotazione', 'Errore nella prenotazione della visita. Riprova più tardi.');
         }
       }
     });
@@ -268,7 +280,7 @@ export class PropertyDetailPage implements OnInit {
     const propertyId = property.id; // Non convertiamo più in numero, manteniamo come stringa UUID
 
     if (!propertyId) {
-      alert('ID proprietà non valido');
+      this.toast.error('ID non valido', 'ID proprietà non valido');
       return;
     }
 
@@ -292,13 +304,12 @@ export class PropertyDetailPage implements OnInit {
         this.submittingOffer.set(false);
         this.closeMakeOfferModal();
         
-        // Show success message
-        alert(`Offerta di ${this.formatCurrency(payload.amount)} inviata con successo!`);
-        
-        // Optionally navigate to my offers page
-        if (confirm('Vuoi visualizzare le tue offerte?')) {
-          this.router.navigate(['/dashboard/offers']);
-        }
+        this.toast.success(
+          'Offerta inviata!',
+          `Offerta di ${this.formatCurrency(payload.amount)} inviata con successo.`,
+          6000,
+          { label: 'Vedi le tue offerte', handler: () => this.router.navigate(['/dashboard/offers']) }
+        );
       },
       error: (error) => {
         this.submittingOffer.set(false);
@@ -308,14 +319,14 @@ export class PropertyDetailPage implements OnInit {
         
         // Handle specific error cases
         if (error.status === 409) {
-          alert('Hai già inviato un\'offerta per questa proprietà.');
+          this.toast.warning('Offerta già inviata', 'Hai già inviato un\'offerta per questa proprietà.');
         } else if (error.status === 400) {
           const errorMsg = error.error?.message || error.error || 'Dati offerta non validi';
-          alert(`Errore: ${errorMsg}`);
+          this.toast.error('Errore', errorMsg);
         } else if (error.status === 404) {
-          alert('Proprietà non trovata.');
+          this.toast.error('Proprietà non trovata');
         } else {
-          alert('Errore nell\'invio dell\'offerta. Riprova più tardi.');
+          this.toast.error('Errore invio offerta', 'Errore nell\'invio dell\'offerta. Riprova più tardi.');
         }
       }
     });

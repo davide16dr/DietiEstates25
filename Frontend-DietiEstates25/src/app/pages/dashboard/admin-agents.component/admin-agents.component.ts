@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 import { EditAgentModalComponent, AgentEdit } from '../edit-agent-modal.component/edit-agent-modal.component';
 import { AddAgentModalComponent, NewAgent } from '../add-agent-modal.component/add-agent-modal.component';
 import { UserService, User } from '../../../shared/services/user.service';
+import { ToastService } from '../../../shared/services/toast.service';
 
 interface Agent {
   id: string; // ✅ Cambiato da number a string per UUID
@@ -27,6 +28,7 @@ interface Agent {
 })
 export class AdminAgentsComponent implements OnInit {
   private userService = inject(UserService);
+  private toast = inject(ToastService);
 
   searchQuery = signal('');
   
@@ -143,9 +145,9 @@ export class AdminAgentsComponent implements OnInit {
       error: (err: any) => {
         console.error('❌ Errore nella creazione dell\'agente:', err);
         if (err.status === 409) {
-          alert('Errore: L\'email è già in uso da un altro utente.');
+          this.toast.error('Email già in uso', 'Questa email è già utilizzata da un altro utente.');
         } else {
-          alert('Errore durante la creazione dell\'agente. Riprova.');
+          this.toast.error('Errore', 'Errore durante la creazione dell\'agente. Riprova.');
         }
       }
     });
@@ -171,7 +173,7 @@ export class AdminAgentsComponent implements OnInit {
       },
       error: (err: any) => {
         console.error('❌ Errore nell\'aggiornamento dell\'agente:', err);
-        alert('Errore durante l\'aggiornamento dell\'agente. Riprova.');
+        this.toast.error('Errore', 'Errore durante l\'aggiornamento dell\'agente. Riprova.');
       }
     });
   }
@@ -187,7 +189,7 @@ export class AdminAgentsComponent implements OnInit {
       },
       error: (err: any) => {
         console.error('❌ Errore nel toggle status:', err);
-        alert('Errore durante il cambio di stato. Riprova.');
+        this.toast.error('Errore', 'Errore durante il cambio di stato. Riprova.');
       }
     });
   }

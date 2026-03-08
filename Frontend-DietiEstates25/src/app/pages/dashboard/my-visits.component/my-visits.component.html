@@ -35,7 +35,7 @@
 
           <div class="visit-content">
             <div class="visit-header">
-              <h3 (click)="goToProperty(visit.propertyId)">{{ visit.propertyTitle }}</h3>
+              <h3 (click)="goToProperty(visit.propertyId ?? visit.listingId)">{{ visit.propertyTitle }}</h3>
               <span class="status-badge" [ngClass]="getStatusClass(visit.status)">
                 {{ getStatusLabel(visit.status) }}
               </span>
@@ -58,7 +58,7 @@
           </div>
 
           <div class="visit-actions">
-            @if (visit.status === 'CONFIRMED' || visit.status === 'PENDING') {
+            @if (visit.status === 'CONFIRMED' || visit.status === 'REQUESTED') {
               <button class="btn-cancel" (click)="cancelVisit(visit)">
                 <span class="material-icons">close</span>
                 Annulla Visita

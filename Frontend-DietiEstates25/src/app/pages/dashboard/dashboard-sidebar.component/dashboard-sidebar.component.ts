@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../../shared/services/auth.service';
 import { DashboardService, AgentStats } from '../../../shared/services/dashboard.service';
+import { ToastService } from '../../../shared/services/toast.service';
 import { ChangePasswordModalComponent, PasswordChangeData } from '../change-password-modal.component/change-password-modal.component';
 
 type MenuItem = {
@@ -26,6 +27,7 @@ export class DashboardSidebarComponent implements OnInit {
 
   private authService = inject(AuthService);
   private dashboardService = inject(DashboardService);
+  private toast = inject(ToastService);
 
   // ✅ USA DIRETTAMENTE il signal di AuthService invece di crearne uno locale
   currentUser = this.authService.currentUser;
@@ -117,7 +119,7 @@ export class DashboardSidebarComponent implements OnInit {
 
   onPasswordChange(data: PasswordChangeData): void {
     const userId = this.authService.getCurrentUserId();
-    if (!userId) { alert('Errore: utente non autenticato'); return; }
+    if (!userId) { this.toast.error('Errore', 'Utente non autenticato'); return; }
 
     this.isChangingPassword.set(true);
     this.passwordError.set(null);
@@ -128,14 +130,14 @@ export class DashboardSidebarComponent implements OnInit {
     }).subscribe({
       next: () => {
         this.isChangingPassword.set(false);
-        alert('✅ Password cambiata con successo!');
+        this.toast.success('Password modificata!', 'La password è stata cambiata con successo.');
         this.closeChangePasswordModal();
       },
       error: (error) => {
         this.isChangingPassword.set(false);
         const msg = error.error?.error || error.error?.message || 'Errore durante il cambio password';
         this.passwordError.set(msg);
-        alert('❌ ' + msg);
+        this.toast.error('Errore', msg);
       }
     });
   }

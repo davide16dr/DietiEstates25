@@ -116,15 +116,25 @@
 
           <div class="divider"></div>
 
-          <button class="cta cta-primary" type="button" (click)="onBookVisit()">
-            <span class="cta-ic">📅</span>
-            <span>Prenota una visita</span>
-          </button>
+          @if (isAuthenticated) {
+            <button class="cta cta-primary" type="button" (click)="onBookVisit()">
+              <span class="cta-ic">📅</span>
+              <span>Prenota una visita</span>
+            </button>
 
-          <button class="cta cta-ghost" type="button" (click)="onMakeOffer()">
-            <span class="cta-ic">€</span>
-            <span>Fai un'offerta</span>
-          </button>
+            <button class="cta cta-ghost" type="button" (click)="onMakeOffer()">
+              <span class="cta-ic">€</span>
+              <span>Fai un'offerta</span>
+            </button>
+          } @else {
+            <div class="auth-required-banner">
+              <span class="auth-required-icon">🔒</span>
+              <p>Accedi per prenotare una visita o fare un'offerta</p>
+              <a class="cta cta-primary" routerLink="/auth/login" [queryParams]="{ returnUrl: '/pages/property-detail/' + property().id }">
+                Accedi
+              </a>
+            </div>
+          }
         </div>
       </aside>
     </div>

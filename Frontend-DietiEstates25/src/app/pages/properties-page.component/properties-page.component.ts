@@ -12,6 +12,7 @@ import { ListingService, ListingResponse } from '../../shared/services/listing.s
 import { SavedSearchService } from '../../shared/services/saved-search.service';
 import { SavedSearchDTO, SavedSearchCriteria } from '../../shared/models/SavedSearch';
 import { AuthService } from '../../auth/auth.service';
+import { ToastService } from '../../shared/services/toast.service';
 
 export type ViewMode = 'grid' | 'list' | 'map';
 
@@ -65,7 +66,8 @@ export class PropertiesPageComponent implements OnInit {
     private route: ActivatedRoute,
     private listingService: ListingService,
     private savedSearchService: SavedSearchService,
-    private authService: AuthService
+    private authService: AuthService,
+    private toast: ToastService
   ) {}
 
   ngOnInit() {
@@ -278,7 +280,7 @@ export class PropertiesPageComponent implements OnInit {
   openSaveSearchModal() {
     // Verifica che l'utente sia autenticato
     if (!this.authService.isAuthenticated()) {
-      alert('Devi effettuare il login per salvare una ricerca');
+      this.toast.warning('Accesso richiesto', 'Devi effettuare il login per salvare una ricerca');
       return;
     }
     
@@ -295,7 +297,7 @@ export class PropertiesPageComponent implements OnInit {
     const name = this.searchName().trim();
     
     if (!name) {
-      alert('Inserisci un nome per la ricerca');
+      this.toast.warning('Nome richiesto', 'Inserisci un nome per la ricerca');
       return;
     }
 
@@ -345,13 +347,13 @@ export class PropertiesPageComponent implements OnInit {
 
     this.savedSearchService.createSavedSearch(savedSearchRequest as any).subscribe({
       next: () => {
-        alert('✅ Ricerca salvata con successo!');
+        this.toast.success('Ricerca salvata!');
         this.closeSaveSearchModal();
         this.savingSearch.set(false);
       },
       error: (err) => {
         console.error('❌ Error saving search:', err);
-        alert('❌ Errore durante il salvataggio della ricerca: ' + (err.error?.error || err.message));
+        this.toast.error('Errore salvataggio', 'Errore durante il salvataggio della ricerca: ' + (err.error?.error || err.message));
         this.savingSearch.set(false);
       }
     });

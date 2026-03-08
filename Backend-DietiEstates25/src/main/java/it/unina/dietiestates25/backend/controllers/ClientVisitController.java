@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import it.unina.dietiestates25.backend.dto.visit.CreateVisitRequest;
 import it.unina.dietiestates25.backend.dto.visit.VisitResponse;
-import it.unina.dietiestates25.backend.dto.visits.VisitResponseDto;
 import it.unina.dietiestates25.backend.security.UserPrincipal;
 import it.unina.dietiestates25.backend.services.VisitService;
 
@@ -37,9 +36,9 @@ public class ClientVisitController {
      * Get all visits for the current client
      */
     @GetMapping
-    public ResponseEntity<List<VisitResponseDto>> getMyVisits(
+    public ResponseEntity<List<VisitResponse>> getMyVisits(
             @AuthenticationPrincipal UserPrincipal principal) {
-        List<VisitResponseDto> visits = visitService.getClientVisits(principal.getId());
+        List<VisitResponse> visits = visitService.getClientVisits(principal.getId());
         return ResponseEntity.ok(visits);
     }
 
@@ -67,7 +66,8 @@ public class ClientVisitController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } catch (RuntimeException e) {
-            if (e.getMessage().contains("not found")) {
+            String msg = e.getMessage() != null ? e.getMessage() : "";
+            if (msg.contains("not found")) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
@@ -85,10 +85,11 @@ public class ClientVisitController {
             visitService.cancelVisit(principal.getId(), id);
             return ResponseEntity.ok().build();
         } catch (RuntimeException e) {
-            if (e.getMessage().contains("Unauthorized")) {
+            String msg = e.getMessage() != null ? e.getMessage() : "";
+            if (msg.contains("Unauthorized")) {
                 return ResponseEntity.status(403).build();
             }
-            if (e.getMessage().contains("not found")) {
+            if (msg.contains("not found")) {
                 return ResponseEntity.status(404).build();
             }
             return ResponseEntity.status(400).build();

@@ -169,8 +169,7 @@ export class MyOffersComponent implements OnInit, OnDestroy {
   acceptCounterOffer(offer: OfferResponse): void {
     if (!offer.counterOfferAmount) return;
     
-    if (confirm(`Sei sicuro di voler accettare la controproposta di ${this.formatCurrency(offer.counterOfferAmount)}?`)) {
-      this.offerService.acceptCounterOffer(offer.id).subscribe({
+    this.offerService.acceptCounterOffer(offer.id).subscribe({
         next: () => {
           this.loadOffers();
           this.toast.success(
@@ -186,7 +185,6 @@ export class MyOffersComponent implements OnInit, OnDestroy {
           );
         }
       });
-    }
   }
 
   openCounterModal(offer: OfferResponse): void {
@@ -231,8 +229,7 @@ export class MyOffersComponent implements OnInit, OnDestroy {
   }
 
   withdrawOffer(offer: OfferResponse): void {
-    if (confirm('Sei sicuro di voler ritirare questa offerta? Questa azione non può essere annullata.')) {
-      this.offerService.withdrawOffer(offer.id).subscribe({
+    this.offerService.withdrawOffer(offer.id).subscribe({
         next: () => {
           this.loadOffers();
           this.toast.success(
@@ -248,7 +245,6 @@ export class MyOffersComponent implements OnInit, OnDestroy {
           );
         }
       });
-    }
   }
 
   viewProperty(propertyId: string): void {
