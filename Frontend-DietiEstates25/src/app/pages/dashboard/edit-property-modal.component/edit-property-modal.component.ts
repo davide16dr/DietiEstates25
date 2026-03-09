@@ -21,6 +21,7 @@ interface PropertyToEdit {
   address: string;
   city: string;
   image: string;
+  imageUrls?: string[]; // ✅ AGGIUNTO: array di tutte le immagini
 }
 
 // Interfaccia per il form value
@@ -58,9 +59,16 @@ export class EditPropertyModalComponent {
   // Modern Angular 21: inject() e signal()
   private fb = inject(NonNullableFormBuilder);
   
-  selectedImages = signal<File[]>([]);
-  imagePreviews = signal<string[]>([]);
+  selectedImages = signal<File[]>([]); // Nuove immagini da caricare
+  imagePreviews = signal<string[]>([]); // Preview di tutte le immagini (esistenti + nuove)
+  existingImageUrls = signal<string[]>([]); // URLs delle immagini già salvate
   isDragging = signal(false);
+  uploadError = signal<string | null>(null);
+
+  // Costanti per validazione
+  private readonly MAX_IMAGES = 10;
+  private readonly MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+  private readonly ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
   // Form tipizzato
   propertyForm = this.fb.group({
@@ -110,10 +118,22 @@ export class EditPropertyModalComponent {
       status: prop.status
     });
 
-    // Pre-carica l'immagine esistente come preview
-    if (prop.image) {
-      this.imagePreviews.set([prop.image]);
-    }
+    // ✅ CORRETTO: Carica TUTTE le immagini esistenti
+    const existingImages = prop.imageUrls && prop.imageUrls.length > 0 
+      ? prop.imageUrls 
+      : (prop.image ? [prop.image] : []);
+    
+    // Reset completo degli array prima di popolare
+    this.selectedImages.set([]);
+    this.existingImageUrls.set([...existingImages]);
+    this.imagePreviews.set([...existingImages]);
+    
+    console.log('📸 === POPOLAZIONE FORM MODIFICA ===');
+    console.log('📸 Immagini dal backend:', existingImages);
+    console.log('📸 Property.imageUrls:', prop.imageUrls);
+    console.log('📸 Property.image:', prop.image);
+    console.log('📸 Immagini caricate nel form:', existingImages.length);
+    console.log('📸 === FINE POPOLAZIONE ===');
   }
 
   // ===== GESTIONE IMMAGINI =====
@@ -148,35 +168,113 @@ export class EditPropertyModalComponent {
   }
 
   private addFiles(files: File[]): void {
-    const imageFiles = files.filter(file => file.type.startsWith('image/'));
+    this.uploadError.set(null);
+    
+    // Filtra solo file immagine validi
+    const imageFiles = files.filter(file => {
+      if (!this.ALLOWED_TYPES.includes(file.type)) {
+        this.uploadError.set(`Formato non supportato: ${file.name}. Usa JPG, PNG o WEBP.`);
+        return false;
+      }
+      if (file.size > this.MAX_FILE_SIZE) {
+        this.uploadError.set(`File troppo grande: ${file.name}. Massimo 5MB per immagine.`);
+        return false;
+      }
+      return true;
+    });
+
     const currentImages = this.selectedImages();
     const currentPreviews = this.imagePreviews();
+    const totalImages = currentPreviews.length; // Include sia esistenti che nuove
+    const availableSlots = this.MAX_IMAGES - totalImages;
     
-    imageFiles.forEach(file => {
-      if (currentImages.length < 10) {
-        currentImages.push(file);
+    // Controlla se c'è spazio disponibile
+    if (availableSlots === 0) {
+      this.uploadError.set(`Massimo ${this.MAX_IMAGES} immagini consentite.`);
+      return;
+    }
+    
+    // Se ci sono più file del disponibile, mostra warning
+    if (imageFiles.length > availableSlots) {
+      this.uploadError.set(`Puoi aggiungere solo ${availableSlots} immagini. Limite massimo: ${this.MAX_IMAGES}.`);
+    }
+    
+    // Aggiungi solo i file che entrano nel limite
+    const filesToAdd = imageFiles.slice(0, availableSlots);
+    
+    // ✅ CORRETTO: Aggiungi i file subito all'array
+    const updatedImages = [...currentImages, ...filesToAdd];
+    this.selectedImages.set(updatedImages);
+    
+    // ✅ CORRETTO: Crea i preview in modo asincrono e aggiorna ogni volta
+    let previewsToAdd: string[] = [];
+    let loadedCount = 0;
+    
+    filesToAdd.forEach((file, index) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        previewsToAdd[index] = e.target?.result as string;
+        loadedCount++;
         
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          currentPreviews.push(e.target?.result as string);
-          this.imagePreviews.set([...currentPreviews]);
-        };
-        reader.readAsDataURL(file);
-      }
+        // Quando tutti i preview sono caricati, aggiorna il signal
+        if (loadedCount === filesToAdd.length) {
+          const allPreviews = [...currentPreviews, ...previewsToAdd];
+          this.imagePreviews.set(allPreviews);
+          console.log(`✅ Aggiunte ${filesToAdd.length} nuove immagini. Totale: ${allPreviews.length}`);
+        }
+      };
+      reader.readAsDataURL(file);
     });
-    
-    this.selectedImages.set([...currentImages]);
   }
 
   removeImage(index: number): void {
-    const images = this.selectedImages();
-    const previews = this.imagePreviews();
+    console.log('🗑️ Rimozione immagine - Index:', index);
     
-    images.splice(index, 1);
+    const previews = [...this.imagePreviews()];
+    const existingUrls = [...this.existingImageUrls()];
+    const newImages = [...this.selectedImages()];
+    
+    console.log('Prima della rimozione:', {
+      totalPreviews: previews.length,
+      existingUrls: existingUrls.length,
+      newImages: newImages.length
+    });
+    
+    // Determina se l'immagine da rimuovere è esistente o nuova
+    if (index < existingUrls.length) {
+      // ✅ Rimuovi dalle immagini esistenti
+      console.log('Rimozione immagine esistente:', existingUrls[index]);
+      existingUrls.splice(index, 1);
+      this.existingImageUrls.set(existingUrls);
+    } else {
+      // ✅ Rimuovi dalle nuove immagini
+      const newImageIndex = index - existingUrls.length;
+      console.log('Rimozione nuova immagine:', newImageIndex);
+      newImages.splice(newImageIndex, 1);
+      this.selectedImages.set(newImages);
+    }
+    
+    // ✅ IMPORTANTE: Rimuovi dalla preview SEMPRE
     previews.splice(index, 1);
+    this.imagePreviews.set(previews);
+    this.uploadError.set(null);
     
-    this.selectedImages.set([...images]);
-    this.imagePreviews.set([...previews]);
+    console.log('Dopo la rimozione:', {
+      totalPreviews: this.imagePreviews().length,
+      existingUrls: this.existingImageUrls().length,
+      newImages: this.selectedImages().length
+    });
+    console.log('✅ Immagine rimossa con successo');
+  }
+
+  // Numero di immagini totali
+  get imageCount(): number {
+    return this.imagePreviews().length;
+  }
+
+  // Numero di slot disponibili
+  get availableSlots(): number {
+    return this.MAX_IMAGES - this.imageCount;
   }
 
   // ===== FORM ACTIONS =====
@@ -189,13 +287,17 @@ export class EditPropertyModalComponent {
     if (this.propertyForm.valid) {
       const formValue = this.propertyForm.getRawValue();
       
+      console.log('🔍 === DEBUG MODIFICA IMMOBILE ===');
+      console.log('📸 Immagini esistenti:', this.existingImageUrls());
+      console.log('📸 Nuove immagini:', this.selectedImages().length);
+      
       const updateData = {
         property: {
           city: formValue.city,
           address: formValue.address,
           property_type: formValue.property_type,
           rooms: formValue.rooms,
-          bathrooms: formValue.bathrooms || null,
+          bathrooms: formValue.bathrooms || 0,
           area_m2: formValue.area_m2,
           floor: formValue.floor || null,
           elevator: formValue.elevator,
@@ -208,10 +310,14 @@ export class EditPropertyModalComponent {
           price_amount: formValue.price_amount,
           currency: formValue.currency,
           status: formValue.status
-        }
+        },
+        existingImageUrls: this.existingImageUrls(), // ✅ URLs delle immagini da mantenere
+        images: this.selectedImages() // ✅ Nuove immagini da caricare
       };
       
-      console.log('📤 Dati da inviare al backend:', updateData);
+      console.log('📤 Payload completo:', updateData);
+      console.log('🔍 === FINE DEBUG ===');
+      
       this.save.emit(updateData);
     } else {
       this.propertyForm.markAllAsTouched();

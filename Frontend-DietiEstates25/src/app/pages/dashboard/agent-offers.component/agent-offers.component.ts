@@ -24,6 +24,9 @@ export class AgentOffersComponent implements OnInit, OnDestroy {
   stats = signal<OfferStats>({ total: 0, pending: 0, accepted: 0, rejected: 0, counteroffers: 0 });
   loading = signal(true);
   
+  // ✅ NUOVO: Filtro attivo per tab
+  activeFilter = signal<'all' | 'pending' | 'counter' | 'accepted' | 'rejected' | 'withdrawn'>('all');
+  
   // Counter offer modal
   showCounterModal = signal(false);
   selectedOffer = signal<OfferResponse | null>(null);
@@ -86,6 +89,8 @@ export class AgentOffersComponent implements OnInit, OnDestroy {
       next: (offers) => {
         console.log('✅ Offerte ricevute caricate:', offers.length, 'offerte');
         this.offers.set(offers);
+        // ✅ AGGIORNAMENTO STATISTICHE dopo il caricamento
+        this.updateStatsFromOffers();
         this.loading.set(false);
       },
       error: (error) => {
@@ -117,6 +122,7 @@ export class AgentOffersComponent implements OnInit, OnDestroy {
       rejected: offers.filter(o => o.status === 'REJECTED').length,
       counteroffers: offers.filter(o => o.status === 'COUNTEROFFER').length
     });
+    console.log('📊 Statistiche aggiornate:', this.stats());
   }
 
   private getMockOffers(): OfferResponse[] {
@@ -181,6 +187,32 @@ export class AgentOffersComponent implements OnInit, OnDestroy {
   closedOffers = computed(() => {
     return this.offers().filter(o => ['ACCEPTED', 'REJECTED', 'WITHDRAWN'].includes(o.status));
   });
+
+  // ✅ NUOVO: Computed per offerte filtrate
+  filteredOffers = computed(() => {
+    const allOffers = this.offers();
+    const filter = this.activeFilter();
+
+    switch (filter) {
+      case 'pending':
+        return allOffers.filter(o => o.status === 'SUBMITTED');
+      case 'counter':
+        return allOffers.filter(o => o.status === 'COUNTEROFFER');
+      case 'accepted':
+        return allOffers.filter(o => o.status === 'ACCEPTED');
+      case 'rejected':
+        return allOffers.filter(o => o.status === 'REJECTED');
+      case 'withdrawn':
+        return allOffers.filter(o => o.status === 'WITHDRAWN');
+      default:
+        return allOffers;
+    }
+  });
+
+  // ✅ NUOVO: Metodo per cambiare filtro
+  setFilter(filter: 'all' | 'pending' | 'counter' | 'accepted' | 'rejected' | 'withdrawn'): void {
+    this.activeFilter.set(filter);
+  }
 
   formatCurrency(amount: number): string {
     return this.offerService.formatCurrency(amount);

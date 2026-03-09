@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import it.unina.dietiestates25.backend.dto.visit.RejectVisitRequest;
@@ -37,6 +38,21 @@ public class AgentVisitController {
             @AuthenticationPrincipal UserPrincipal principal) {
         List<VisitResponse> visits = visitService.getAgentVisits(principal.getId());
         return ResponseEntity.ok(visits);
+    }
+
+    /**
+     * Get occupied time slots for the current agent on a specific date
+     */
+    @GetMapping("/occupied-slots")
+    public ResponseEntity<List<String>> getOccupiedTimeSlots(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @RequestParam String date) {
+        try {
+            List<String> occupiedSlots = visitService.getOccupiedTimeSlots(principal.getId(), date);
+            return ResponseEntity.ok(occupiedSlots);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(400).build();
+        }
     }
 
     /**
@@ -84,7 +100,7 @@ public class AgentVisitController {
     }
 
     /**
-     * Reject a visit
+     * Reject a visit (only for REQUESTED visits)
      */
     @PatchMapping("/{id}/reject")
     public ResponseEntity<Void> rejectVisit(
@@ -94,6 +110,30 @@ public class AgentVisitController {
         try {
             String reason = request != null ? request.getReason() : null;
             visitService.rejectVisit(principal.getId(), id, reason);
+            return ResponseEntity.ok().build();
+        } catch (RuntimeException e) {
+            String msg = e.getMessage() != null ? e.getMessage() : "";
+            if (msg.contains("Unauthorized")) {
+                return ResponseEntity.status(403).build();
+            }
+            if (msg.contains("not found")) {
+                return ResponseEntity.status(404).build();
+            }
+            return ResponseEntity.status(400).build();
+        }
+    }
+
+    /**
+     * Cancel a confirmed visit (only for CONFIRMED visits)
+     */
+    @PatchMapping("/{id}/cancel")
+    public ResponseEntity<Void> cancelVisit(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @PathVariable UUID id,
+            @RequestBody(required = false) RejectVisitRequest request) {
+        try {
+            String reason = request != null ? request.getReason() : null;
+            visitService.cancelVisitByAgent(principal.getId(), id, reason);
             return ResponseEntity.ok().build();
         } catch (RuntimeException e) {
             String msg = e.getMessage() != null ? e.getMessage() : "";

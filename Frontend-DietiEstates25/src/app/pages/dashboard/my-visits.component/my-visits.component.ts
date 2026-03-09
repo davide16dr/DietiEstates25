@@ -1,8 +1,9 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { DashboardService, Visit } from '../../../shared/services/dashboard.service';
 import { ToastService } from '../../../shared/services/toast.service';
+import { WebSocketService, WebSocketNotification } from '../../../shared/services/websocket.service';
 
 @Component({
   selector: 'app-my-visits',
@@ -11,14 +12,26 @@ import { ToastService } from '../../../shared/services/toast.service';
   templateUrl: './my-visits.component.html',
   styleUrls: ['./my-visits.component.scss']
 })
-export class MyVisitsComponent {
+export class MyVisitsComponent implements OnInit, OnDestroy {
   private dashboardService = inject(DashboardService);
   private router = inject(Router);
   private toast = inject(ToastService);
+  private websocketService = inject(WebSocketService);
 
   activeTab = signal<'upcoming' | 'past'>('upcoming');
   loading = signal(true);
   visits = signal<Visit[]>([]);
+
+  // Callback per le notifiche WebSocket
+  private notificationCallback = (notification: WebSocketNotification) => {
+    console.log('📅 Cliente ricevuto notifica visita in my-visits:', notification);
+    
+    // Ricarica le visite quando arriva una notifica relativa alle visite
+    if (notification.type?.includes('VISIT')) {
+      console.log('🔄 Ricarico le visite del cliente...');
+      this.loadVisits();
+    }
+  };
 
   upcomingVisits = computed(() => {
     const now = new Date();
@@ -42,8 +55,19 @@ export class MyVisitsComponent {
     this.activeTab() === 'upcoming' ? this.upcomingVisits() : this.pastVisits()
   );
 
-  constructor() {
+  ngOnInit(): void {
+    console.log('🎯 MyVisitsComponent inizializzato - setup WebSocket listener');
     this.loadVisits();
+    
+    // Registra il callback per le notifiche WebSocket
+    console.log('📡 Registrazione callback per notifiche visite cliente');
+    this.websocketService.onNotification(this.notificationCallback);
+  }
+
+  ngOnDestroy(): void {
+    // Rimuovi il callback quando il componente viene distrutto
+    console.log('🔌 Rimozione callback notifiche visite cliente');
+    this.websocketService.removeNotificationCallback(this.notificationCallback);
   }
 
   loadVisits(): void {

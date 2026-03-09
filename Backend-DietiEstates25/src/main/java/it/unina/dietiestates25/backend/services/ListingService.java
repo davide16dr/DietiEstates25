@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import it.unina.dietiestates25.backend.dto.listing.ListingFilterRequest;
 import it.unina.dietiestates25.backend.dto.listing.ListingResponse;
@@ -19,6 +20,8 @@ import it.unina.dietiestates25.backend.repositories.OfferRepository;
 import it.unina.dietiestates25.backend.repositories.PropertyRepository;
 import it.unina.dietiestates25.backend.repositories.UserRepository;
 import it.unina.dietiestates25.backend.repositories.VisitRepository;
+import it.unina.dietiestates25.backend.repositories.ListingImageRepository;
+import it.unina.dietiestates25.backend.services.ImageStorageService;
 
 @Service
 public class ListingService {
@@ -30,11 +33,17 @@ public class ListingService {
     private final NotificationService notificationService;
     private final OfferRepository offerRepository;
     private final VisitRepository visitRepository;
+    private final ListingImageRepository listingImageRepository;
+    private final ImageStorageService imageStorageService;
+    // ✅ AGGIUNTO: EntityManager per gestire la cache di Hibernate
+    private final jakarta.persistence.EntityManager entityManager;
 
     public ListingService(ListingRepository listingRepository, PropertyRepository propertyRepository, 
                          UserRepository userRepository, AgencyRepository agencyRepository,
                          NotificationService notificationService, OfferRepository offerRepository,
-                         VisitRepository visitRepository) {
+                         VisitRepository visitRepository, ListingImageRepository listingImageRepository,
+                         ImageStorageService imageStorageService,
+                         jakarta.persistence.EntityManager entityManager) {
         this.listingRepository = listingRepository;
         this.propertyRepository = propertyRepository;
         this.userRepository = userRepository;
@@ -42,6 +51,12 @@ public class ListingService {
         this.notificationService = notificationService;
         this.offerRepository = offerRepository;
         this.visitRepository = visitRepository;
+        this.listingImageRepository = listingImageRepository;
+        this.imageStorageService = imageStorageService;
+        this.entityManager = entityManager;
+        
+        // Inizializza la directory di storage all'avvio
+        this.imageStorageService.init();
     }
 
     @Transactional(readOnly = true)
@@ -134,14 +149,16 @@ public class ListingService {
     @Transactional
     public ListingResponse createListingWithProperty(
             java.util.UUID agentId,
-            it.unina.dietiestates25.backend.dto.listing.CreateListingRequest request) {
+            it.unina.dietiestates25.backend.dto.listing.CreateListingRequest request,
+            List<MultipartFile> images) {
         
         // Validazione dei dati ricevuti
         if (request.getListing() == null || request.getListing().getType() == null) {
             throw new IllegalArgumentException("Listing type cannot be null");
         }
         
-        System.out.println("Listing type ricevuto: " + request.getListing().getType());
+        System.out.println("📝 Listing type ricevuto: " + request.getListing().getType());
+        System.out.println("📸 Numero immagini ricevute: " + (images != null ? images.size() : 0));
         
         // Recupera l'agente dal database
         it.unina.dietiestates25.backend.entities.User agent = userRepository.findById(agentId)
@@ -203,10 +220,42 @@ public class ListingService {
         // Salva l'annuncio
         listing = listingRepository.save(listing);
         
+        // ✅ GESTIONE IMMAGINI
+        if (images != null && !images.isEmpty()) {
+            System.out.println("📸 Salvataggio " + images.size() + " immagini...");
+            try {
+                List<String> imagePaths = imageStorageService.storeImages(images, listing.getId());
+                
+                // Crea le entity ListingImage
+                int sortOrder = 0;
+                for (String imagePath : imagePaths) {
+                    ListingImage listingImage = new ListingImage();
+                    listingImage.setListing(listing);
+                    // ✅ Salva URL completo per il frontend
+                    listingImage.setUrl("http://localhost:8080/uploads/listings/" + imagePath);
+                    listingImage.setSortOrder(sortOrder++);
+                    listingImageRepository.save(listingImage);
+                }
+                
+                System.out.println("✅ Salvate " + imagePaths.size() + " immagini per listing " + listing.getId());
+            } catch (Exception e) {
+                System.err.println("❌ Errore nel salvataggio delle immagini: " + e.getMessage());
+                // Non bloccare la creazione dell'annuncio se fallisce l'upload delle immagini
+            }
+        }
+        
         // 📧 Verifica se il nuovo immobile corrisponde a ricerche salvate e invia notifiche
         notificationService.checkMatchingSearchesAndNotify(listing);
         
         return mapToResponse(listing);
+    }
+
+    // Mantieni anche il vecchio metodo per retrocompatibilità
+    @Transactional
+    public ListingResponse createListingWithProperty(
+            java.util.UUID agentId,
+            it.unina.dietiestates25.backend.dto.listing.CreateListingRequest request) {
+        return createListingWithProperty(agentId, request, null);
     }
 
     @Transactional
@@ -336,6 +385,193 @@ public class ListingService {
     }
     
     /**
+     * Aggiorna un listing con gestione delle immagini (esistenti + nuove)
+     */
+    @Transactional
+    public ListingResponse updateListingWithImages(
+            java.util.UUID listingId,
+            java.util.UUID userId,
+            it.unina.dietiestates25.backend.dto.listing.UpdateListingRequest request,
+            List<String> existingImageUrls,
+            List<MultipartFile> newImages) {
+        
+        System.out.println("🔄 === AGGIORNAMENTO LISTING CON IMMAGINI ===");
+        System.out.println("📋 Listing ID: " + listingId);
+        System.out.println("📸 Immagini esistenti da mantenere: " + (existingImageUrls != null ? existingImageUrls.size() : 0));
+        System.out.println("📸 Nuove immagini da caricare: " + (newImages != null ? newImages.size() : 0));
+        
+        // Prima aggiorna i dati del listing (usa il metodo esistente)
+        updateListing(listingId, userId, request);
+        
+        // Recupera il listing aggiornato
+        Listing listing = listingRepository.findById(listingId)
+                .orElseThrow(() -> new IllegalArgumentException("Listing not found"));
+        
+        // ✅ GESTIONE IMMAGINI
+        try {
+            // 1. Ottieni tutte le immagini attuali del listing
+            List<ListingImage> currentImages = listingImageRepository.findByListingId(listingId);
+            System.out.println("📸 Immagini attualmente nel DB: " + currentImages.size());
+            
+            // 🔍 DEBUG: Stampa tutte le immagini correnti
+            System.out.println("🔍 === DEBUG IMMAGINI CORRENTI ===");
+            for (int i = 0; i < currentImages.size(); i++) {
+                System.out.println("  [" + i + "] URL: " + currentImages.get(i).getUrl());
+            }
+            System.out.println("🔍 === DEBUG IMMAGINI DA MANTENERE ===");
+            if (existingImageUrls != null) {
+                for (int i = 0; i < existingImageUrls.size(); i++) {
+                    System.out.println("  [" + i + "] URL: " + existingImageUrls.get(i));
+                }
+            } else {
+                System.out.println("  NESSUNA (existingImageUrls è null)");
+            }
+            System.out.println("🔍 === FINE DEBUG ===");
+            
+            // 2. Identifica le immagini da eliminare
+            List<ListingImage> imagesToDelete = new java.util.ArrayList<>();
+            if (existingImageUrls != null && !existingImageUrls.isEmpty()) {
+                // Rimuovi solo le immagini che NON sono nella lista existingImageUrls
+                for (ListingImage img : currentImages) {
+                    boolean shouldKeep = existingImageUrls.contains(img.getUrl());
+                    System.out.println("🔍 Confronto: " + img.getUrl() + " -> shouldKeep: " + shouldKeep);
+                    if (!shouldKeep) {
+                        imagesToDelete.add(img);
+                    }
+                }
+            } else {
+                // Se existingImageUrls è vuoto, elimina tutte le immagini esistenti
+                System.out.println("⚠️ existingImageUrls è vuoto o null - eliminazione di tutte le immagini");
+                imagesToDelete.addAll(currentImages);
+            }
+            
+            System.out.println("📊 Immagini da eliminare: " + imagesToDelete.size());
+            System.out.println("📊 Immagini da mantenere: " + (currentImages.size() - imagesToDelete.size()));
+            
+            // 3. Elimina le immagini non volute
+            // ✅ PRIMA: Elimina i file fisici
+            for (ListingImage img : imagesToDelete) {
+                System.out.println("🗑️ Eliminazione file fisico: " + img.getUrl());
+                
+                // Estrai il path relativo dall'URL completo
+                String url = img.getUrl();
+                if (url.contains("/uploads/listings/")) {
+                    String relativePath = url.substring(url.indexOf("/uploads/listings/") + "/uploads/listings/".length());
+                    try {
+                        imageStorageService.deleteImage(relativePath);
+                        System.out.println("✅ File fisico eliminato: " + relativePath);
+                    } catch (Exception e) {
+                        System.err.println("⚠️ Errore eliminazione file fisico: " + e.getMessage());
+                    }
+                }
+            }
+            
+            // ✅ POI: Elimina dal database con query SQL diretta
+            if (existingImageUrls != null && !existingImageUrls.isEmpty()) {
+                // Elimina solo le immagini che NON sono nella lista existingImageUrls
+                System.out.println("🗑️ Esecuzione DELETE SQL per immagini non in existingImageUrls");
+                listingImageRepository.deleteByListingIdAndUrlNotIn(listingId, existingImageUrls);
+                System.out.println("✅ DELETE SQL eseguito con successo");
+            } else {
+                // Elimina tutte le immagini
+                System.out.println("🗑️ Esecuzione DELETE SQL per tutte le immagini");
+                listingImageRepository.deleteAllByListingId(listingId);
+                System.out.println("✅ DELETE SQL eseguito con successo");
+            }
+            
+            // ✅ FLUSH delle modifiche per assicurare che siano persistite
+            listingImageRepository.flush();
+            
+            // ✅ CRITICO: Clear della cache di Hibernate per forzare il reload dal DB
+            // Questo risolve il problema delle entità eliminate che riappaiono dalla cache
+            entityManager.clear();
+            System.out.println("🔄 Cache Hibernate svuotata - le prossime query caricheranno dati freschi dal DB");
+            
+            // 4. Carica le nuove immagini
+            if (newImages != null && !newImages.isEmpty()) {
+                System.out.println("📤 Caricamento " + newImages.size() + " nuove immagini...");
+                
+                List<String> newImagePaths = imageStorageService.storeImages(newImages, listingId);
+                System.out.println("✅ File salvati: " + newImagePaths.size());
+                
+                // ✅ USA QUERY NATIVA per bypassare completamente la cache
+                List<ListingImage> remainingImages = listingImageRepository.findByListingIdNative(listingId);
+                int nextSortOrder = remainingImages.size(); // Il prossimo sortOrder dopo le esistenti
+                
+                System.out.println("📊 Immagini rimaste dopo eliminazione: " + remainingImages.size());
+                System.out.println("📊 Prossimo sortOrder: " + nextSortOrder);
+                
+                // Salva le nuove immagini nel database
+                for (int i = 0; i < newImagePaths.size(); i++) {
+                    ListingImage listingImage = new ListingImage();
+                    listingImage.setListing(listing);
+                    listingImage.setUrl("http://localhost:8080/uploads/listings/" + newImagePaths.get(i));
+                    listingImage.setSortOrder(nextSortOrder + i);
+                    listingImageRepository.save(listingImage);
+                    System.out.println("✅ Salvata immagine " + (i+1) + "/" + newImagePaths.size() + " con sortOrder=" + (nextSortOrder + i));
+                }
+                
+                System.out.println("✅ Salvate " + newImagePaths.size() + " nuove immagini");
+            }
+            
+            // 5. Riordina le immagini esistenti mantenute (se necessario)
+            if (existingImageUrls != null && !existingImageUrls.isEmpty()) {
+                // ✅ USA QUERY NATIVA per recuperare le immagini DOPO l'eliminazione
+                List<ListingImage> finalImages = listingImageRepository.findByListingIdNative(listingId);
+                
+                System.out.println("🔄 === RIORDINAMENTO IMMAGINI ===");
+                System.out.println("📊 Immagini da riordinare: " + finalImages.size());
+                
+                // Riordina in base all'ordine in existingImageUrls
+                for (int i = 0; i < existingImageUrls.size(); i++) {
+                    String urlToFind = existingImageUrls.get(i);
+                    System.out.println("🔍 Cerco URL per sortOrder " + i + ": " + urlToFind);
+                    
+                    boolean found = false;
+                    for (ListingImage img : finalImages) {
+                        if (img.getUrl().equals(urlToFind)) {
+                            found = true;
+                            if (img.getSortOrder() != i) {
+                                System.out.println("🔄 Riordino immagine da sortOrder " + img.getSortOrder() + " a " + i);
+                                img.setSortOrder(i);
+                                listingImageRepository.save(img);
+                            } else {
+                                System.out.println("✅ Immagine già nel sortOrder corretto: " + i);
+                            }
+                            break;
+                        }
+                    }
+                    
+                    if (!found) {
+                        System.err.println("⚠️ URL non trovato nelle immagini finali: " + urlToFind);
+                    }
+                }
+                
+                // Flush finale per salvare i riordinamenti
+                listingImageRepository.flush();
+                System.out.println("🔄 === FINE RIORDINAMENTO ===");
+            }
+            
+            // ✅ IMPORTANTE: USA QUERY NATIVA per il conteggio finale
+            List<ListingImage> finalImagesCount = listingImageRepository.findByListingIdNative(listingId);
+            System.out.println("✅ Gestione immagini completata. Totale immagini finali: " + finalImagesCount.size());
+            
+        } catch (Exception e) {
+            System.err.println("❌ Errore nella gestione delle immagini: " + e.getMessage());
+            e.printStackTrace();
+            // Non bloccare l'aggiornamento se fallisce la gestione delle immagini
+        }
+        
+        // ✅ Ricarica il listing dal database per ottenere i dati freschi
+        // Questo forzerà Hibernate a recuperare i dati aggiornati
+        listing = listingRepository.findById(listingId)
+            .orElseThrow(() -> new IllegalArgumentException("Listing not found after update"));
+        
+        // Ritorna la response aggiornata con le nuove immagini
+        return mapToResponse(listing);
+    }
+    
+    /**
      * Invia notifiche ai clienti interessati quando cambia il prezzo di un immobile
      */
     private void notifyInterestedClients(Listing listing, int oldPrice, int newPrice) {
@@ -408,6 +644,7 @@ public class ListingService {
             response.setCity(property.getCity());
             response.setPropertyType(property.getPropertyType());
             response.setRooms(property.getRooms());
+            response.setBathrooms(property.getBathrooms());  // ✅ AGGIUNTO mapping bagni
             response.setArea(property.getAreaM2());
             response.setFloor(property.getFloor());
             response.setEnergyClass(property.getEnergyClass());

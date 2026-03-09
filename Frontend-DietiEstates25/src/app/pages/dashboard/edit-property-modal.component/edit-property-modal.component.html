@@ -202,43 +202,68 @@
 
       <!-- SEZIONE UPLOAD IMMAGINI -->
       <div class="form-group full-width">
-        <label>Immagini (max 10)</label>
+        <label>
+          Immagini (max 10)
+          @if (imageCount > 0) {
+            <span class="image-counter-badge">{{ imageCount }}/10</span>
+          }
+        </label>
         
         <!-- Drop Zone -->
         <div 
           class="upload-zone"
           [class.dragging]="isDragging()"
+          [class.disabled]="imageCount >= 10"
           (dragover)="onDragOver($event)"
           (dragleave)="onDragLeave($event)"
           (drop)="onDrop($event)"
         >
           <img src="assets/icons/upload_image.png" alt="Upload" class="upload-icon" />
           <p class="upload-text">
-            Trascina le immagini qui o 
-            <label class="upload-link">
-              clicca per selezionare
-              <input 
-                type="file" 
-                multiple 
-                accept="image/*"
-                (change)="onFileSelected($event)"
-                style="display: none;"
-              />
-            </label>
+            @if (imageCount < 10) {
+              Trascina le immagini qui o 
+              <label class="upload-link">
+                clicca per selezionare
+                <input 
+                  type="file" 
+                  multiple 
+                  accept="image/jpeg,image/jpg,image/png,image/webp"
+                  (change)="onFileSelected($event)"
+                  style="display: none;"
+                />
+              </label>
+            } @else {
+              <span class="upload-limit-reached">Limite massimo raggiunto (10/10)</span>
+            }
           </p>
-          <small class="upload-hint">PNG, JPG, JPEG - Max 10 immagini</small>
+          <small class="upload-hint">
+            JPG, PNG, WEBP - Max 5MB per immagine - Max 10 immagini
+            @if (availableSlots > 0 && imageCount > 0) {
+              <br><strong>{{ availableSlots }} slot disponibili</strong>
+            }
+          </small>
         </div>
+
+        <!-- Messaggio di errore -->
+        @if (uploadError()) {
+          <div class="upload-error">
+            ⚠️ {{ uploadError() }}
+          </div>
+        }
 
         <!-- Preview Immagini -->
         @if (imagePreviews().length > 0) {
           <div class="images-preview">
-            @for (preview of imagePreviews(); track $index) {
+            @for (preview of imagePreviews(); track preview; let idx = $index) {
               <div class="preview-item">
-                <img [src]="preview" [alt]="'Anteprima ' + ($index + 1)" />
+                <img [src]="preview" [alt]="'Anteprima ' + (idx + 1)" />
+                <div class="preview-overlay">
+                  <span class="preview-number">{{ idx + 1 }}</span>
+                </div>
                 <button 
                   type="button" 
                   class="remove-image-btn" 
-                  (click)="removeImage($index)"
+                  (click)="removeImage(idx)"
                   title="Rimuovi immagine"
                 >
                   ×

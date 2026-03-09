@@ -18,6 +18,7 @@ interface Property {
   bathrooms: number;
   surface: number;
   image: string;
+  imageUrls?: string[]; // ✅ AGGIUNTO: array di tutte le immagini
   // Aggiunti campi per i modal
   location?: string;
   propertyType?: string;
@@ -88,9 +89,10 @@ export class ManagerPropertiesComponent implements OnInit {
       status: this.mapStatus(listing.status),
       agent: listing.agentName || 'N/A',
       rooms: listing.rooms,
-      bathrooms: 2, // TODO: aggiungere bathrooms al backend DTO
+      bathrooms: listing.bathrooms || 0, // ✅ CORRETTO: legge dal backend invece di hardcodare 2
       surface: listing.area,
       image: listing.imageUrls?.[0] || 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400',
+      imageUrls: listing.imageUrls || [], // ✅ AGGIUNTO: passa tutte le immagini
       location: `${listing.address}, ${listing.city}`,
       propertyType: listing.propertyType,
       city: listing.city,
@@ -199,15 +201,16 @@ export class ManagerPropertiesComponent implements OnInit {
       status: property.status,
       rooms: property.rooms,
       bathrooms: property.bathrooms,
-      size: property.surface, // ✅ surface → size
-      floor: Math.floor(Math.random() * 10),
-      elevator: Math.random() > 0.5,
-      energyClass: ['A', 'B', 'C', 'D'][Math.floor(Math.random() * 4)],
-      description: `${property.category} situato in ${property.address}. ${property.rooms} locali, ${property.bathrooms} bagni, ${property.surface} mq.`,
+      size: property.surface,
+      floor: property.floor || 0,
+      elevator: property.elevator || false,
+      energyClass: property.energyClass || 'D',
+      description: property.description || `${property.category} situato in ${property.address}`,
       propertyType: property.category,
       address: property.address,
-      city: property.address.split(',')[1]?.trim() || 'Milano',
-      image: property.image
+      city: property.city || property.address.split(',')[1]?.trim() || 'Milano',
+      image: property.image,
+      imageUrls: property.imageUrls || [property.image] // ✅ CORRETTO: passa tutte le immagini
     };
     
     this.selectedProperty.set(propertyToEdit);

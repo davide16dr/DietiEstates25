@@ -4,7 +4,7 @@ import { DashboardService, Visit } from '../../../shared/services/dashboard.serv
 import { WebSocketService } from '../../../shared/services/websocket.service';
 import { ToastService } from '../../../shared/services/toast.service';
 
-type FilterType = 'all' | 'confirmed' | 'cancelled' | 'past';
+type FilterType = 'all' | 'pending' | 'confirmed' | 'completed' | 'rejected' | 'past';
 
 @Component({
   selector: 'app-agent-visits',
@@ -49,12 +49,17 @@ export class AgentVisitsComponent implements OnInit, OnDestroy {
     const filter = this.activeFilter();
 
     switch (filter) {
+      case 'pending':
+        return allVisits.filter(v => v.status === 'REQUESTED');
       case 'confirmed':
         return allVisits.filter(v => v.status === 'CONFIRMED');
-      case 'cancelled':
+      case 'completed':
+        return allVisits.filter(v => v.status === 'DONE');
+      case 'rejected':
         return allVisits.filter(v => v.status === 'CANCELLED');
       case 'past':
         return allVisits.filter(v => this.isPastVisit(v));
+      case 'all':
       default:
         return allVisits;
     }
@@ -153,13 +158,25 @@ export class AgentVisitsComponent implements OnInit, OnDestroy {
   rejectVisit(visitId: string): void {
     this.dashboardService.rejectVisit(visitId, undefined).subscribe({
       next: () => {
-        this.visits.update(list =>
-          list.map(v => v.id === visitId ? { ...v, status: 'CANCELLED' as const } : v)
-        );
+        this.loadVisits(); // Ricarica la lista
+        this.toast.success('Visita Rifiutata', 'La richiesta di visita è stata rifiutata');
       },
       error: (err) => {
         console.error('Error rejecting visit:', err);
         this.toast.error('Errore', 'Errore durante il rifiuto della visita');
+      }
+    });
+  }
+
+  cancelVisit(visitId: string): void {
+    this.dashboardService.cancelVisitByAgent(visitId, undefined).subscribe({
+      next: () => {
+        this.loadVisits(); // Ricarica la lista
+        this.toast.success('Visita Annullata', 'La visita confermata è stata annullata');
+      },
+      error: (err) => {
+        console.error('Error cancelling visit:', err);
+        this.toast.error('Errore', 'Errore durante l\'annullamento della visita');
       }
     });
   }

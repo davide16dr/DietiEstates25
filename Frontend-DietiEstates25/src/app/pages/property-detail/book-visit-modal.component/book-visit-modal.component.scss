@@ -80,13 +80,27 @@
   padding: 6px;
   background: #fff;
 
-  input {
+  input, select {
     width: 100%;
     border: 0;
     outline: none;
     font-size: 14px;
     padding: 10px 10px;
     border-radius: 10px;
+    background: #fff;
+    cursor: pointer;
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  select {
+    option:disabled {
+      color: #9ca3af;
+      font-style: italic;
+    }
   }
 
   &:focus-within {
@@ -131,4 +145,11 @@ textarea {
   margin: -6px 0 0;
   font-size: 12px;
   color: #b42318;
+}
+
+.info {
+  margin: -6px 0 0;
+  font-size: 12px;
+  color: #0f7a57;
+  font-style: italic;
 }

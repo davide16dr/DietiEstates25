@@ -2,8 +2,9 @@ package it.unina.dietiestates25.backend.services;
 
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import it.unina.dietiestates25.backend.repositories.NotificationPreferencesRepository;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -12,13 +13,60 @@ import java.util.UUID;
 
 /**
  * Servizio per inviare notifiche in tempo reale tramite WebSocket
+ * ✅ AGGIORNATO: Con controllo delle preferenze utente
  */
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class WebSocketNotificationService {
 
     private final SimpMessagingTemplate messagingTemplate;
+    private final NotificationPreferencesRepository notificationPreferencesRepository;
+
+    public WebSocketNotificationService(
+            SimpMessagingTemplate messagingTemplate,
+            NotificationPreferencesRepository notificationPreferencesRepository) {
+        this.messagingTemplate = messagingTemplate;
+        this.notificationPreferencesRepository = notificationPreferencesRepository;
+    }
+
+    /**
+     * ✅ Verifica se l'utente ha abilitato le notifiche WebSocket di un certo tipo
+     */
+    private boolean shouldSendWebSocketNotification(UUID userId, String notificationType) {
+        try {
+            it.unina.dietiestates25.backend.entities.NotificationPreferences prefs = 
+                notificationPreferencesRepository.findByUser_Id(userId).orElse(null);
+            
+            if (prefs == null) return true; // Default: invia se preferenze non trovate
+            
+            // Se le notifiche in-app sono disabilitate, non inviare WebSocket
+            if (!prefs.isInappEnabled()) {
+                log.info("⏭️ WebSocket {} NON inviato a {} - in-app disabilitato", notificationType, userId);
+                return false;
+            }
+            
+            // Verifica la preferenza specifica per tipo di notifica
+            boolean shouldSend = switch (notificationType) {
+                case "NEW_OFFER", "OFFER_ACCEPTED", "OFFER_REJECTED", "COUNTEROFFER", 
+                     "COUNTER_TO_COUNTER", "OFFER_WITHDRAWN" -> prefs.isNotifyOfferUpdates();
+                case "NEW_VISIT_REQUEST", "VISIT_CONFIRMED", "VISIT_REJECTED", "VISIT_COMPLETED",
+                     "VISIT_CANCELLED_BY_CLIENT", "VISIT_CANCELLED_BY_AGENT" -> prefs.isNotifyVisitUpdates();
+                case "PRICE_CHANGED" -> prefs.isNotifyPriceChange();
+                case "NEW_MATCHING_LISTING" -> prefs.isNotifyNewMatching();
+                case "LISTING_UPDATED" -> prefs.isNotifyListingUpdates();
+                default -> true;
+            };
+            
+            if (!shouldSend) {
+                log.info("⏭️ WebSocket {} NON inviato a {} - preferenza disabilitata", notificationType, userId);
+            }
+            
+            return shouldSend;
+        } catch (Exception e) {
+            log.error("❌ Errore controllo preferenze per {}: {}", userId, e.getMessage());
+            return true; // In caso di errore, invia comunque
+        }
+    }
 
     /**
      * Invia una notifica a un utente specifico
@@ -95,6 +143,11 @@ public class WebSocketNotificationService {
      * @param offerId ID dell'offerta
      */
     public void sendOfferNotification(UUID userId, String type, String title, String body, UUID listingId, UUID offerId) {
+        // ✅ CONTROLLO PREFERENZE
+        if (!shouldSendWebSocketNotification(userId, type)) {
+            return;
+        }
+        
         try {
             Map<String, Object> notification = new HashMap<>();
             notification.put("id", UUID.randomUUID().toString());
@@ -124,6 +177,11 @@ public class WebSocketNotificationService {
      * @param visitId ID della visita
      */
     public void sendVisitNotification(UUID userId, String type, String title, String message, UUID listingId, UUID visitId) {
+        // ✅ CONTROLLO PREFERENZE
+        if (!shouldSendWebSocketNotification(userId, type)) {
+            return;
+        }
+        
         try {
             Map<String, Object> notification = new HashMap<>();
             notification.put("id", UUID.randomUUID().toString());

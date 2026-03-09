@@ -8,6 +8,7 @@ import { ToastService } from '../../../shared/services/toast.service';
 import { AuthService } from '../../../auth/auth.service';
 import { MakeOfferModalComponent, MakeOfferPayload } from '../make-offer-modal.component/make-offer-modal.component';
 import { BookVisitModalComponent, BookVisitPayload } from '../book-visit-modal.component/book-visit-modal.component';
+import { ImageLightboxComponent } from '../../../shared/components/image-lightbox.component/image-lightbox.component';
 
 type DealType = 'Vendita' | 'Affitto';
 type Availability = 'Disponibile' | 'Non disponibile';
@@ -31,6 +32,7 @@ type PropertyDetail = {
   rentPerMonth?: number; 
 
   rooms: number;
+  bathrooms?: number;  // ✅ AGGIUNTO campo bagni
   areaMq: number;
   floorLabel: string;    
   energyClass: string;   
@@ -53,7 +55,7 @@ type PropertyDetail = {
 @Component({
   selector: 'app-property-detail-page',
   standalone: true,
-  imports: [CommonModule, RouterModule, MakeOfferModalComponent, BookVisitModalComponent],
+  imports: [CommonModule, RouterModule, MakeOfferModalComponent, BookVisitModalComponent, ImageLightboxComponent],
   templateUrl: './property-detail.page.html',
   styleUrls: ['./property-detail.page.scss'],
 })
@@ -73,8 +75,12 @@ export class PropertyDetailPage implements OnInit {
   
   showMakeOfferModal = signal(false);
   showBookVisitModal = signal(false);
+  showLightbox = signal(false);
   submittingOffer = signal(false);
   submittingVisit = signal(false);
+  
+  // Gestione carosello immagini
+  currentImageIndex = signal(0);
 
   // TODO: da sostituire
   private mock: PropertyDetail = {
@@ -108,6 +114,44 @@ export class PropertyDetailPage implements OnInit {
 
   property = signal<PropertyDetail>(this.mock);
 
+  // Computed per immagine corrente
+  currentImage = computed(() => {
+    const images = this.property().images;
+    const index = this.currentImageIndex();
+    return images && images.length > 0 ? images[index] : null;
+  });
+
+  // Computed per contatore immagini
+  imageCounter = computed(() => {
+    const images = this.property().images;
+    const index = this.currentImageIndex();
+    return images && images.length > 0 ? `${index + 1} / ${images.length}` : '';
+  });
+
+  // Naviga alla prossima immagine
+  nextImage(): void {
+    const images = this.property().images;
+    if (images && images.length > 0) {
+      const nextIndex = (this.currentImageIndex() + 1) % images.length;
+      this.currentImageIndex.set(nextIndex);
+    }
+  }
+
+  // Naviga all'immagine precedente
+  previousImage(): void {
+    const images = this.property().images;
+    if (images && images.length > 0) {
+      const prevIndex = this.currentImageIndex() - 1;
+      const newIndex = prevIndex < 0 ? images.length - 1 : prevIndex;
+      this.currentImageIndex.set(newIndex);
+    }
+  }
+
+  // Vai a un'immagine specifica
+  goToImage(index: number): void {
+    this.currentImageIndex.set(index);
+  }
+
   constructor() {
     const navState = this.router.getCurrentNavigation()?.extras?.state as any;
     if (navState && navState.listing) {
@@ -122,6 +166,7 @@ export class PropertyDetailPage implements OnInit {
         price: l.price ?? 0,
         rentPerMonth: l.type === 'RENT' ? l.price : undefined,
         rooms: l.rooms ?? 0,
+        bathrooms: l.bathrooms,  // ✅ AGGIUNTO mapping bagni
         areaMq: l.area ?? 0,
         floorLabel: l.floor != null ? `Piano ${l.floor}` : '—',
         energyClass: l.energyClass ?? '-',
@@ -170,6 +215,7 @@ export class PropertyDetailPage implements OnInit {
       price: l.price ?? 0,
       rentPerMonth: l.type === 'RENT' ? l.price : undefined,
       rooms: l.rooms ?? 0,
+      bathrooms: l.bathrooms,  // ✅ AGGIUNTO mapping bagni
       areaMq: l.area ?? 0,
       floorLabel: l.floor != null ? `Piano ${l.floor}` : '—',
       energyClass: l.energyClass ?? '-',
@@ -227,6 +273,14 @@ export class PropertyDetailPage implements OnInit {
 
   closeMakeOfferModal(): void {
     this.showMakeOfferModal.set(false);
+  }
+
+  openLightbox(): void {
+    this.showLightbox.set(true);
+  }
+
+  closeLightbox(): void {
+    this.showLightbox.set(false);
   }
 
   onBookVisit(): void {

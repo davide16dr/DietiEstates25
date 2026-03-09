@@ -139,6 +139,9 @@ export class PropertiesPageComponent implements OnInit {
       mapY: 50,
       lat: listing.latitude ?? 0, // Default 0 se non disponibile
       lng: listing.longitude ?? 0, // Default 0 se non disponibile
+      imageUrl: listing.imageUrls && listing.imageUrls.length > 0 
+        ? listing.imageUrls[0] 
+        : undefined, // ✅ AGGIUNTO: prima immagine dell'annuncio
     };
   }
 

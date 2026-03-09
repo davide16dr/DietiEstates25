@@ -65,9 +65,51 @@ public class VisitService {
             throw new BadRequestException("Cannot schedule visit in the past");
         }
 
+        // ✅ Verifica se esiste già una visita confermata per lo stesso orario (stesso listing)
+        boolean hasConflict = visitRepository.existsByListing_IdAndScheduledForAndStatusIn(
+            visitRequestDto.getListingId(),
+            scheduledFor,
+            List.of(VisitStatus.CONFIRMED, VisitStatus.REQUESTED)
+        );
+        
+        if (hasConflict) {
+            throw new BadRequestException("Questo orario è già occupato. Per favore scegli un altro orario.");
+        }
+
+        // ✅ CORRETTO: Verifica se il cliente ha già una visita in un intervallo di ±30 minuti
+        Instant startRange = scheduledFor.minusSeconds(30 * 60); // 30 minuti prima
+        Instant endRange = scheduledFor.plusSeconds(30 * 60);    // 30 minuti dopo
+        
+        boolean clientHasConflict = visitRepository.hasClientVisitInTimeRange(
+            client.getId(),
+            startRange,
+            endRange,
+            List.of(VisitStatus.CONFIRMED, VisitStatus.REQUESTED)
+        );
+        
+        if (clientHasConflict) {
+            throw new BadRequestException("Hai già una visita prenotata in questo intervallo di tempo. Non puoi prenotare due visite contemporaneamente.");
+        }
+
+        // ✅ NUOVO: Verifica se l'agente ha già una visita in un intervallo di ±30 minuti
+        if (listing.getAgent() != null) {
+            boolean agentHasConflict = visitRepository.hasAgentVisitInTimeRange(
+                listing.getAgent().getId(),
+                startRange,
+                endRange,
+                List.of(VisitStatus.CONFIRMED, VisitStatus.REQUESTED)
+            );
+            
+            if (agentHasConflict) {
+                throw new BadRequestException("L'agente non è disponibile in questo orario. Per favore scegli un altro orario.");
+            }
+        }
+
         Visit visit = new Visit();
         visit.setListing(listing);
         visit.setClient(client);
+        // ✅ CORRETTO: Assegna l'agente del listing alla visita
+        visit.setAgent(listing.getAgent());
         visit.setScheduledFor(scheduledFor);
         visit.setStatus(VisitStatus.REQUESTED);
         visit.setNote(visitRequestDto.getNotes());
@@ -270,6 +312,22 @@ public class VisitService {
         visit.setStatus(VisitStatus.DONE);
         visitRepository.save(visit);
 
+        // ✅ AGGIUNTO: Invia notifica al cliente
+        notificationService.createVisitStatusNotification(
+            visit.getClient().getId(),
+            listing,
+            "COMPLETED"
+        );
+        
+        webSocketNotificationService.sendVisitNotification(
+            visit.getClient().getId(),
+            "VISIT_COMPLETED",
+            "Visita Completata",
+            String.format("La tua visita per %s è stata completata", listing.getProperty().getAddress()),
+            listing.getId(),
+            visit.getId()
+        );
+
         log.info("Visit completed: ID={}", visitId);
     }
 
@@ -283,6 +341,7 @@ public class VisitService {
             throw new ForbiddenException("Unauthorized");
         }
 
+        // ✅ CORRETTO: Rifiuta solo visite in stato REQUESTED
         if (visit.getStatus() != VisitStatus.REQUESTED) {
             throw new BadRequestException("Can only reject requested visits");
         }
@@ -312,6 +371,45 @@ public class VisitService {
     }
 
     @Transactional
+    public void cancelVisitByAgent(UUID agentId, UUID visitId, String reason) {
+        Visit visit = visitRepository.findById(visitId)
+                .orElseThrow(() -> new NotFoundException("Visit not found"));
+
+        Listing listing = visit.getListing();
+        if (listing.getAgent() == null || !listing.getAgent().getId().equals(agentId)) {
+            throw new ForbiddenException("Unauthorized");
+        }
+
+        // ✅ Annulla solo visite in stato CONFIRMED
+        if (visit.getStatus() != VisitStatus.CONFIRMED) {
+            throw new BadRequestException("Can only cancel confirmed visits");
+        }
+
+        visit.setStatus(VisitStatus.CANCELLED);
+        if (reason != null && !reason.isEmpty()) {
+            visit.setNote(reason);
+        }
+        visitRepository.save(visit);
+
+        notificationService.createVisitStatusNotification(
+            visit.getClient().getId(),
+            listing,
+            "CANCELLED_BY_AGENT"
+        );
+        
+        webSocketNotificationService.sendVisitNotification(
+            visit.getClient().getId(),
+            "VISIT_CANCELLED_BY_AGENT",
+            "Visita Annullata",
+            String.format("L'agente ha annullato la visita confermata per %s", listing.getProperty().getAddress()),
+            listing.getId(),
+            visit.getId()
+        );
+
+        log.info("Visit cancelled by agent: ID={}", visitId);
+    }
+
+    @Transactional
     public it.unina.dietiestates25.backend.dto.visit.VisitResponse createVisit(UUID clientId, UUID listingId, Instant scheduledFor, String notes) {
         User client = userRepository.findById(clientId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
@@ -330,6 +428,8 @@ public class VisitService {
         Visit visit = new Visit();
         visit.setListing(listing);
         visit.setClient(client);
+        // ✅ CORRETTO: Assegna l'agente del listing alla visita
+        visit.setAgent(listing.getAgent());
         visit.setScheduledFor(scheduledFor);
         visit.setStatus(VisitStatus.REQUESTED);
         visit.setNote(notes);
@@ -356,7 +456,9 @@ public class VisitService {
             );
         }
 
-        log.info("Visit created: ID={}, Client={}, Listing={}", savedVisit.getId(), client.getId(), listing.getId());
+        log.info("Visit created: ID={}, Client={}, Listing={}, Agent={}", 
+            savedVisit.getId(), client.getId(), listing.getId(), 
+            listing.getAgent() != null ? listing.getAgent().getId() : "NULL");
         return toVisitResponse(savedVisit);
     }
 
@@ -373,6 +475,32 @@ public class VisitService {
                 .count();
 
         return new ClientStatsResponse(pendingVisits, completedVisits, totalVisits);
+    }
+
+    @Transactional(readOnly = true)
+    public List<String> getOccupiedTimeSlots(UUID agentId, String date) {
+        // Parse the date string (format: yyyy-MM-dd)
+        LocalDateTime startOfDay = LocalDateTime.parse(date + "T00:00:00");
+        LocalDateTime endOfDay = LocalDateTime.parse(date + "T23:59:59");
+        
+        Instant startInstant = startOfDay.atZone(ZoneId.of("Europe/Rome")).toInstant();
+        Instant endInstant = endOfDay.atZone(ZoneId.of("Europe/Rome")).toInstant();
+        
+        // Get all confirmed visits for the agent on that date
+        List<Visit> confirmedVisits = visitRepository.findAllByAgent_IdAndStatusAndScheduledForBetween(
+            agentId, 
+            VisitStatus.CONFIRMED,
+            startInstant,
+            endInstant
+        );
+        
+        // Extract and format the time slots (HH:mm)
+        return confirmedVisits.stream()
+            .map(visit -> {
+                LocalDateTime ldt = visit.getScheduledFor().atZone(ZoneId.of("Europe/Rome")).toLocalDateTime();
+                return ldt.format(DateTimeFormatter.ofPattern("HH:mm"));
+            })
+            .collect(Collectors.toList());
     }
 
     private boolean isValidStatusTransition(VisitStatus currentStatus, VisitStatus newStatus) {

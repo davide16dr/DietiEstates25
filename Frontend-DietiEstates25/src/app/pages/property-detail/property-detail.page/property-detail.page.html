@@ -13,19 +13,57 @@
         <span class="pill pill-green">{{ property().availability }}</span>
       </div>
 
-      <div class="hero-actions">
-        <button class="icon-btn" type="button" (click)="onToggleFavorite()" aria-label="Aggiungi ai preferiti">
-          ♥
-        </button>
-        <button class="icon-btn" type="button" (click)="onShare()" aria-label="Condividi">
-          ⤴
-        </button>
-      </div>
-
       <div class="hero-image">
-        <div class="img-placeholder">
-          <span class="img-ic">🖼️</span>
-        </div>
+        @if (property().images && property().images.length > 0) {
+          <!-- Immagine principale (cliccabile per aprire lightbox) -->
+          <img 
+            [src]="currentImage()" 
+            [alt]="property().title" 
+            class="property-img clickable" 
+            (click)="openLightbox()"
+            title="Clicca per ingrandire"
+          />
+          
+          <!-- Controlli navigazione (solo se più di 1 immagine) -->
+          @if (property().images.length > 1) {
+            <button 
+              class="carousel-btn carousel-btn-prev" 
+              (click)="previousImage()"
+              aria-label="Immagine precedente"
+            >
+              ‹
+            </button>
+            
+            <button 
+              class="carousel-btn carousel-btn-next" 
+              (click)="nextImage()"
+              aria-label="Immagine successiva"
+            >
+              ›
+            </button>
+            
+            <!-- Contatore immagini -->
+            <div class="image-counter">
+              {{ imageCounter() }}
+            </div>
+            
+            <!-- Indicatori (dots) -->
+            <div class="carousel-indicators">
+              @for (img of property().images; track $index) {
+                <button 
+                  class="indicator-dot"
+                  [class.active]="currentImageIndex() === $index"
+                  (click)="goToImage($index)"
+                  [attr.aria-label]="'Vai all\'immagine ' + ($index + 1)"
+                ></button>
+              }
+            </div>
+          }
+        } @else {
+          <div class="img-placeholder">
+            <span class="img-ic">🖼️</span>
+          </div>
+        }
       </div>
     </div>
   </section>
@@ -50,6 +88,12 @@
           </div>
 
           <div class="stat-card">
+            <div class="stat-ic">🚿</div>
+            <div class="stat-val">{{ property().bathrooms || 0 }}</div>
+            <div class="stat-lbl">Bagni</div>
+          </div>
+
+          <div class="stat-card">
             <div class="stat-ic">↔️</div>
             <div class="stat-val">{{ property().areaMq }} m²</div>
             <div class="stat-lbl">Superficie</div>
@@ -71,19 +115,6 @@
         <div class="card">
           <h2 class="card-title">Descrizione</h2>
           <p class="card-text">{{ property().description }}</p>
-        </div>
-
-        <div class="card">
-          <h2 class="card-title">Caratteristiche</h2>
-
-          <div class="features">
-            @for (f of property().features; track f) {
-              <div class="feature">
-                <span class="feature-ic">✅</span>
-                <span class="feature-text">{{ f }}</span>
-              </div>
-            }
-          </div>
         </div>
       </main>
 
@@ -156,4 +187,12 @@
       (submitted)="onVisitSubmitted($event)">
     </app-book-visit-modal>
   }
+
+  <!-- Lightbox per visualizzare le immagini a schermo intero -->
+  <app-image-lightbox
+    [images]="property().images"
+    [initialIndex]="currentImageIndex()"
+    [open]="showLightbox()"
+    (closed)="closeLightbox()"
+  ></app-image-lightbox>
 </div>

@@ -1,6 +1,7 @@
 package it.unina.dietiestates25.backend.controllers;
 
 import java.time.Instant;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.UUID;
 
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import it.unina.dietiestates25.backend.dto.visit.CreateVisitRequest;
@@ -40,6 +42,36 @@ public class ClientVisitController {
             @AuthenticationPrincipal UserPrincipal principal) {
         List<VisitResponse> visits = visitService.getClientVisits(principal.getId());
         return ResponseEntity.ok(visits);
+    }
+
+    /**
+     * Get available time slots for a listing on a specific date
+     * Returns the list of occupied time slots (in HH:mm format)
+     */
+    @GetMapping("/available-slots")
+    public ResponseEntity<List<String>> getAvailableTimeSlots(
+            @RequestParam String listingId,
+            @RequestParam String date) {
+        try {
+            UUID listingUuid = UUID.fromString(listingId);
+            
+            List<String> occupiedSlots = visitService.getOccupiedTimeSlots(listingUuid, date);
+            return ResponseEntity.ok(occupiedSlots);
+        } catch (IllegalArgumentException | DateTimeParseException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+    /**
+     * Get occupied time slots for a listing on a specific date
+     * Returns the list of occupied time slots (in HH:mm format)
+     */
+    @GetMapping("/listings/{listingId}/occupied-timeslots")
+    public ResponseEntity<List<String>> getOccupiedTimeSlots(
+            @PathVariable UUID listingId,
+            @RequestParam String date) {
+        List<String> occupiedSlots = visitService.getOccupiedTimeSlots(listingId, date);
+        return ResponseEntity.ok(occupiedSlots);
     }
 
     /**

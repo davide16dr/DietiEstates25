@@ -34,4 +34,5 @@ export interface PropertyCard {
   mapY: number;
   lat: number;
   lng: number;
+  imageUrl?: string; // ✅ AGGIUNTO: URL della prima immagine dell'annuncio
 }

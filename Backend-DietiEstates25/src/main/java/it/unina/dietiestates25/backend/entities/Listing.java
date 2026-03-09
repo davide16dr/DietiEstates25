@@ -60,7 +60,7 @@ public class Listing extends Auditable {
     @Column(name = "public_text", columnDefinition = "text")
     private String publicText;
 
-    @OneToMany(mappedBy = "listing", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "listing", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @OrderBy("sortOrder ASC")
     private List<ListingImage> images = new ArrayList<>();
 
