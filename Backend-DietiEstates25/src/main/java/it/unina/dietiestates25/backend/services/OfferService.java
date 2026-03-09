@@ -359,13 +359,9 @@ public class OfferService {
             throw new RuntimeException("Unauthorized");
         }
 
-        // Store counter offer details in message field (simplified approach)
-        String counterMessage = "COUNTER:" + request.getAmount();
-        if (request.getMessage() != null) {
-            counterMessage += "|" + request.getMessage();
-        }
-        
-        offer.setMessage(counterMessage);
+        // ✅ CORRETTO: Aggiorna l'amount con la controproposta dell'agente
+        offer.setAmount(request.getAmount());
+        offer.setMessage(request.getMessage());
         offer.setStatus(OfferStatus.COUNTEROFFER);
         offerRepository.save(offer);
 
@@ -430,20 +426,12 @@ public class OfferService {
         response.setStatus(offer.getStatus());
         response.setCreatedAt(offer.getCreatedAt());
         response.setUpdatedAt(offer.getUpdatedAt());
+        response.setMessage(offer.getMessage());
 
-        // Extract counter offer details from message if present
-        if (offer.getMessage() != null && offer.getMessage().startsWith("COUNTER:")) {
-            String[] parts = offer.getMessage().substring(8).split("\\|");
-            try {
-                response.setCounterOfferAmount(Integer.parseInt(parts[0]));
-                if (parts.length > 1) {
-                    response.setCounterMessage(parts[1]);
-                }
-            } catch (NumberFormatException e) {
-                // Ignore parsing error
-            }
-        } else {
-            response.setMessage(offer.getMessage());
+        // ✅ CORRETTO: Se lo stato è COUNTEROFFER, l'amount contiene già la controproposta
+        if (offer.getStatus() == OfferStatus.COUNTEROFFER) {
+            response.setCounterOfferAmount(offer.getAmount());
+            response.setCounterMessage(offer.getMessage());
         }
 
         // Add client info for agent view

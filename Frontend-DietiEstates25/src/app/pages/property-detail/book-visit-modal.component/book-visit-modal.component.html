@@ -15,10 +15,26 @@
           <p class="error">Seleziona una data.</p>
         }
 
-        <label class="label">Orario preferito</label>
+        <label class="label">Orario preferito (ogni 5 minuti)</label>
+        @if (checkingAvailability()) {
+          <p class="info">Controllo disponibilità...</p>
+        }
         <div class="time-wrap">
-          <input type="time" formControlName="time" placeholder="--:--" />
+          <select formControlName="time" [disabled]="!form.controls.date.value || checkingAvailability()">
+            <option value="">Seleziona un orario</option>
+            @for (slot of timeSlots(); track slot) {
+              <option [value]="slot" [disabled]="!isTimeSlotAvailable(slot)">
+                {{ slot }} @if (!isTimeSlotAvailable(slot)) { (occupato) }
+              </option>
+            }
+          </select>
         </div>
+        @if (form.controls.time.touched && form.controls.time.invalid) {
+          <p class="error">Seleziona un orario.</p>
+        }
+        @if (unavailableSlots().length > 0 && form.controls.date.value) {
+          <p class="info">Gli orari occupati sono disabilitati</p>
+        }
 
         <label class="label">Note (opzionale)</label>
         <textarea
@@ -27,7 +43,7 @@
           placeholder="Informazioni aggiuntive..."
         ></textarea>
 
-        <button class="primary" type="submit" [disabled]="!canSubmit()">
+        <button class="primary" type="submit" [disabled]="!canSubmit() || checkingAvailability()">
           Invia richiesta
         </button>
       </form>

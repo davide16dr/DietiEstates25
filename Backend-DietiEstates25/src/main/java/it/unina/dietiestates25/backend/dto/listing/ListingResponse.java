@@ -23,6 +23,7 @@ public class ListingResponse {
     private String city;
     private String propertyType; // "Appartamento", "Villa", "Attico", etc.
     private Integer rooms;
+    private Integer bathrooms;  // ✅ AGGIUNTO campo bagni
     private Integer area;
     private Integer floor;
     private String energyClass;
@@ -83,6 +84,9 @@ public class ListingResponse {
 
     public Integer getRooms() { return rooms; }
     public void setRooms(Integer rooms) { this.rooms = rooms; }
+
+    public Integer getBathrooms() { return bathrooms; }
+    public void setBathrooms(Integer bathrooms) { this.bathrooms = bathrooms; }
 
     public Integer getArea() { return area; }
     public void setArea(Integer area) { this.area = area; }

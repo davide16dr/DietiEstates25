@@ -68,10 +68,45 @@ public class NotificationService {
         notificationRepository.deleteById(notificationId);
     }
 
-    // ============ NOTIFICATION CREATION METHODS ============
+    // ============ NOTIFICATION CREATION METHODS (WITH PREFERENCES CHECK) ============
+
+    /**
+     * ✅ NUOVO: Verifica se l'utente ha abilitato le notifiche di un certo tipo
+     */
+    private boolean shouldSendNotification(UUID userId, String notificationType) {
+        it.unina.dietiestates25.backend.entities.NotificationPreferences prefs = getUserPreferences(userId);
+        if (prefs == null) return true; // Default: invia se preferenze non trovate
+        
+        // Se le notifiche in-app sono disabilitate, non inviare NESSUNA notifica
+        if (!prefs.isInappEnabled()) {
+            System.out.println("⏭️ Notifica " + notificationType + " NON inviata a " + userId + " - in-app disabilitato");
+            return false;
+        }
+        
+        // Verifica la preferenza specifica per tipo di notifica
+        boolean shouldSend = switch (notificationType) {
+            case "OFFER_STATUS_CHANGED", "OFFER_UPDATES" -> prefs.isNotifyOfferUpdates();
+            case "VISIT_STATUS_CHANGED", "VISIT_UPDATES" -> prefs.isNotifyVisitUpdates();
+            case "PRICE_CHANGED" -> prefs.isNotifyPriceChange();
+            case "NEW_MATCHING_LISTING" -> prefs.isNotifyNewMatching();
+            case "LISTING_UPDATED" -> prefs.isNotifyListingUpdates();
+            default -> true;
+        };
+        
+        if (!shouldSend) {
+            System.out.println("⏭️ Notifica " + notificationType + " NON inviata a " + userId + " - preferenza disabilitata");
+        }
+        
+        return shouldSend;
+    }
 
     @Transactional
     public void createOfferStatusNotification(UUID clientId, Listing listing, String status, Integer counterOfferAmount) {
+        // ✅ CONTROLLO PREFERENZE
+        if (!shouldSendNotification(clientId, "OFFER_UPDATES")) {
+            return;
+        }
+        
         User client = userRepository.findById(clientId).orElse(null);
         if (client == null) return;
 
@@ -103,10 +138,16 @@ public class NotificationService {
         notification.setBody(body);
 
         notificationRepository.save(notification);
+        System.out.println("✅ Notifica OFFER inviata a " + clientId);
     }
 
     @Transactional
     public void createVisitStatusNotification(UUID clientId, Listing listing, String status) {
+        // ✅ CONTROLLO PREFERENZE
+        if (!shouldSendNotification(clientId, "VISIT_UPDATES")) {
+            return;
+        }
+        
         User client = userRepository.findById(clientId).orElse(null);
         if (client == null) return;
 
@@ -126,6 +167,14 @@ public class NotificationService {
                 title = "🚫 Visita Cancellata";
                 body = String.format("La visita per '%s' è stata cancellata.", listing.getTitle());
                 break;
+            case "COMPLETED":
+                title = "✅ Visita Completata";
+                body = String.format("La visita per '%s' è stata completata.", listing.getTitle());
+                break;
+            case "CANCELLED_BY_AGENT":
+                title = "🚫 Visita Annullata";
+                body = String.format("L'agente ha annullato la visita per '%s'.", listing.getTitle());
+                break;
             default:
                 return;
         }
@@ -138,10 +187,16 @@ public class NotificationService {
         notification.setBody(body);
 
         notificationRepository.save(notification);
+        System.out.println("✅ Notifica VISIT inviata a " + clientId);
     }
 
     @Transactional
     public void createPriceChangeNotification(UUID clientId, Listing listing, int oldPrice, int newPrice) {
+        // ✅ CONTROLLO PREFERENZE
+        if (!shouldSendNotification(clientId, "PRICE_CHANGED")) {
+            return;
+        }
+        
         User client = userRepository.findById(clientId).orElse(null);
         if (client == null) return;
 
@@ -157,10 +212,16 @@ public class NotificationService {
         notification.setBody(body);
 
         notificationRepository.save(notification);
+        System.out.println("✅ Notifica PRICE_CHANGE inviata a " + clientId);
     }
 
     @Transactional
     public void createNewMatchingListingNotification(UUID clientId, SavedSearch savedSearch, Listing listing) {
+        // ✅ CONTROLLO PREFERENZE
+        if (!shouldSendNotification(clientId, "NEW_MATCHING_LISTING")) {
+            return;
+        }
+        
         User client = userRepository.findById(clientId).orElse(null);
         if (client == null) return;
 
@@ -177,10 +238,16 @@ public class NotificationService {
         notification.setBody(body);
 
         notificationRepository.save(notification);
+        System.out.println("✅ Notifica NEW_MATCHING inviata a " + clientId);
     }
 
     @Transactional
     public void createListingUpdatedNotification(UUID clientId, Listing listing) {
+        // ✅ CONTROLLO PREFERENZE
+        if (!shouldSendNotification(clientId, "LISTING_UPDATED")) {
+            return;
+        }
+        
         User client = userRepository.findById(clientId).orElse(null);
         if (client == null) return;
 
@@ -195,13 +262,25 @@ public class NotificationService {
         notification.setBody(body);
 
         notificationRepository.save(notification);
+        System.out.println("✅ Notifica LISTING_UPDATED inviata a " + clientId);
     }
     
     /**
-     * Crea una notifica generica per un agente
+     * Crea una notifica generica per un agente (CON CONTROLLO PREFERENZE)
      */
     @Transactional
     public void createAgentNotification(UUID agentId, Listing listing, String title, String body) {
+        // ✅ CONTROLLO PREFERENZE - Gli agenti ricevono notifiche su offerte/visite
+        // Determina il tipo basandosi sul titolo
+        String notificationType = "OFFER_UPDATES";
+        if (title.toLowerCase().contains("visita")) {
+            notificationType = "VISIT_UPDATES";
+        }
+        
+        if (!shouldSendNotification(agentId, notificationType)) {
+            return;
+        }
+        
         User agent = userRepository.findById(agentId).orElse(null);
         if (agent == null) return;
 
@@ -213,6 +292,7 @@ public class NotificationService {
         notification.setBody(body);
 
         notificationRepository.save(notification);
+        System.out.println("✅ Notifica AGENT inviata a " + agentId + " - tipo: " + notificationType);
     }
     
     /**

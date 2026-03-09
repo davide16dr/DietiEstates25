@@ -14,6 +14,14 @@
   .img-ph{ width:100%; height:100%; display:grid; place-items:center; color:#9ca3af; opacity:.85; }
   .ph-ico{ font-size:1.8rem; }
   
+  /* ✅ Stile per l'immagine reale dell'immobile */
+  .property-image{ 
+    width:100%; 
+    height:100%; 
+    object-fit:cover; 
+    object-position:center; 
+  }
+  
   .chips{ position:absolute; top:12px; left:12px; display:flex; gap:.6rem; z-index:2; }
   .chip{ padding:.35rem .85rem; border-radius:999px; font-weight:800; font-size:.85rem; border:1px solid rgba(0,0,0,.05); }
   .chip.ok{ background:#2f7a52; color:#fff; }
@@ -37,4 +45,3 @@
   .meta{ display:flex; gap:1rem; color:#4b5563; flex-wrap:wrap; }
   .m{ display:inline-flex; align-items:center; gap:.45rem; font-weight:700; }
   .m-ico{ opacity:.85; }
-  

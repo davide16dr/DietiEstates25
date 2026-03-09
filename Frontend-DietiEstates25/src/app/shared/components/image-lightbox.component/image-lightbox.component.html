@@ -1,0 +1,59 @@
+@if (open()) {
+  <div 
+    class="lightbox-overlay" 
+    (click)="onBackdropClick($event)"
+    (keydown)="onKeyDown($event)"
+    tabindex="0"
+  >
+    <button class="lightbox-close" (click)="close()" aria-label="Chiudi">
+      ✕
+    </button>
+
+    <div class="lightbox-content">
+      <img 
+        [src]="currentImage()" 
+        alt="Immagine immobile"
+        class="lightbox-image"
+      />
+
+      @if (images().length > 1) {
+        <!-- Pulsante Precedente -->
+        <button 
+          class="lightbox-nav lightbox-nav-prev"
+          (click)="previousImage()"
+          [disabled]="currentIndex() === 0"
+          aria-label="Immagine precedente"
+        >
+          ‹
+        </button>
+
+        <!-- Pulsante Successivo -->
+        <button 
+          class="lightbox-nav lightbox-nav-next"
+          (click)="nextImage()"
+          [disabled]="currentIndex() === images().length - 1"
+          aria-label="Immagine successiva"
+        >
+          ›
+        </button>
+
+        <!-- Contatore -->
+        <div class="lightbox-counter">
+          {{ imageCounter() }}
+        </div>
+
+        <!-- Indicatori -->
+        <div class="lightbox-indicators">
+          @for (img of images(); track $index) {
+            <button 
+              class="lightbox-dot"
+              [class.active]="currentIndex() === $index"
+              (click)="goToImage($index)"
+              [attr.aria-label]="'Vai all\'immagine ' + ($index + 1)"
+            ></button>
+          }
+        </div>
+      }
+    </div>
+  </div>
+}

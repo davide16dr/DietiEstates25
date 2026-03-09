@@ -149,14 +149,15 @@ public class ListingController {
     @PostMapping("/agent/create")
     public ResponseEntity<ListingResponse> createListing(
             Authentication authentication,
-            @RequestBody it.unina.dietiestates25.backend.dto.listing.CreateListingRequest request) {
+            @RequestParam("property") String propertyJson,
+            @RequestParam("listing") String listingJson,
+            @RequestParam(value = "images", required = false) List<org.springframework.web.multipart.MultipartFile> images) {
         
-        System.out.println("=== CREATE LISTING REQUEST ===");
-        System.out.println("Request body: " + request);
-        System.out.println("Request listing: " + (request.getListing() != null ? request.getListing() : "null"));
-        System.out.println("Request listing type: " + (request.getListing() != null ? request.getListing().getType() : "null"));
-        System.out.println("Request property: " + (request.getProperty() != null ? request.getProperty() : "null"));
-        System.out.println("==============================");
+        System.out.println("=== CREATE LISTING REQUEST (MULTIPART) ===");
+        System.out.println("Property JSON: " + propertyJson);
+        System.out.println("Listing JSON: " + listingJson);
+        System.out.println("Images count: " + (images != null ? images.size() : 0));
+        System.out.println("==========================================");
         
         if (authentication == null || authentication.getPrincipal() == null) {
             return ResponseEntity.status(401).build();
@@ -172,13 +173,28 @@ public class ListingController {
         }
         
         try {
-            ListingResponse response = listingService.createListingWithProperty(agentId, request);
+            // Parse JSON strings to objects
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            it.unina.dietiestates25.backend.dto.listing.CreateListingRequest.PropertyRequest property = 
+                mapper.readValue(propertyJson, it.unina.dietiestates25.backend.dto.listing.CreateListingRequest.PropertyRequest.class);
+            it.unina.dietiestates25.backend.dto.listing.CreateListingRequest.ListingRequest listing = 
+                mapper.readValue(listingJson, it.unina.dietiestates25.backend.dto.listing.CreateListingRequest.ListingRequest.class);
+            
+            // Crea il request object
+            it.unina.dietiestates25.backend.dto.listing.CreateListingRequest request = 
+                new it.unina.dietiestates25.backend.dto.listing.CreateListingRequest(property, listing);
+            
+            // Crea il listing con le immagini
+            ListingResponse response = listingService.createListingWithProperty(agentId, request, images);
             return ResponseEntity.status(201).body(response);
+        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+            System.err.println("❌ Errore parsing JSON: " + e.getMessage());
+            return ResponseEntity.status(400).body(null);
         } catch (IllegalArgumentException e) {
-            System.err.println("Errore durante la creazione dell'annuncio: " + e.getMessage());
+            System.err.println("❌ Errore durante la creazione dell'annuncio: " + e.getMessage());
             return ResponseEntity.status(400).body(null);
         } catch (Exception e) {
-            System.err.println("Errore inaspettato durante la creazione dell'annuncio: " + e.getMessage());
+            System.err.println("❌ Errore inaspettato durante la creazione dell'annuncio: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.status(500).body(null);
         }
@@ -188,12 +204,23 @@ public class ListingController {
     public ResponseEntity<ListingResponse> updateListing(
             @PathVariable("id") java.util.UUID id,
             Authentication authentication,
-            @RequestBody it.unina.dietiestates25.backend.dto.listing.UpdateListingRequest request) {
+            @RequestParam(value = "property", required = false) String propertyJson,
+            @RequestParam(value = "listing", required = false) String listingJson,
+            @RequestParam(value = "existingImageUrls", required = false) String existingImageUrlsJson,
+            @RequestParam(value = "images", required = false) List<org.springframework.web.multipart.MultipartFile> images) {
         
-        System.out.println("=== UPDATE LISTING REQUEST ===");
+        System.out.println("=== UPDATE LISTING REQUEST (MULTIPART) ===");
         System.out.println("Listing ID: " + id);
-        System.out.println("Request body: " + request);
-        System.out.println("==============================");
+        System.out.println("Property JSON: " + propertyJson);
+        System.out.println("Listing JSON: " + listingJson);
+        System.out.println("Existing Images JSON: " + existingImageUrlsJson);
+        System.out.println("New Images count: " + (images != null ? images.size() : 0));
+        
+        // ✅ DEBUG: Verifica quale metodo verrà chiamato
+        boolean hasImageManagement = existingImageUrlsJson != null || (images != null && !images.isEmpty());
+        System.out.println("🔍 hasImageManagement: " + hasImageManagement);
+        System.out.println("🔍 Chiamerà: " + (hasImageManagement ? "updateListingWithImages()" : "updateListing()"));
+        System.out.println("==========================================");
         
         if (authentication == null || authentication.getPrincipal() == null) {
             return ResponseEntity.status(401).build();
@@ -209,10 +236,42 @@ public class ListingController {
         }
         
         try {
-            ListingResponse response = listingService.updateListing(id, userId, request);
+            // Parse JSON strings to objects
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            
+            it.unina.dietiestates25.backend.dto.listing.UpdateListingRequest.PropertyUpdate property = null;
+            it.unina.dietiestates25.backend.dto.listing.UpdateListingRequest.ListingUpdate listing = null;
+            List<String> existingImageUrls = null;
+            
+            if (propertyJson != null) {
+                property = mapper.readValue(propertyJson, it.unina.dietiestates25.backend.dto.listing.UpdateListingRequest.PropertyUpdate.class);
+            }
+            
+            if (listingJson != null) {
+                listing = mapper.readValue(listingJson, it.unina.dietiestates25.backend.dto.listing.UpdateListingRequest.ListingUpdate.class);
+            }
+            
+            if (existingImageUrlsJson != null) {
+                System.out.println("🔍 Parsing existingImageUrlsJson: " + existingImageUrlsJson);
+                existingImageUrls = mapper.readValue(existingImageUrlsJson, 
+                    mapper.getTypeFactory().constructCollectionType(List.class, String.class));
+                System.out.println("✅ Parsed existingImageUrls count: " + (existingImageUrls != null ? existingImageUrls.size() : 0));
+            }
+            
+            // Crea il request object
+            it.unina.dietiestates25.backend.dto.listing.UpdateListingRequest request = 
+                new it.unina.dietiestates25.backend.dto.listing.UpdateListingRequest(property, listing);
+            
+            // ✅ IMPORTANTE: Aggiorna il listing con le immagini
+            ListingResponse response = listingService.updateListingWithImages(id, userId, request, existingImageUrls, images);
             return ResponseEntity.ok(response);
+        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+            System.err.println("❌ Errore parsing JSON: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(400).body(null);
         } catch (IllegalArgumentException e) {
             System.err.println("❌ Errore durante l'aggiornamento dell'annuncio: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.status(400).body(null);
         } catch (SecurityException e) {
             System.err.println("❌ Accesso negato: " + e.getMessage());

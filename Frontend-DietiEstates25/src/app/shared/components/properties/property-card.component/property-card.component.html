@@ -6,9 +6,18 @@
           <span class="chip soft">{{ data().mode }}</span>
         </div>
     
-        <div class="img-ph">
-          <span class="ph-ico">🖼️</span>
-        </div>
+        <!-- ✅ Immagine reale dell'immobile -->
+        @if (data().imageUrl) {
+          <img 
+            [src]="data().imageUrl" 
+            [alt]="data().title"
+            class="property-image"
+          />
+        } @else {
+          <div class="img-ph">
+            <span class="ph-ico">🖼️</span>
+          </div>
+        }
     
         <span class="energy">⚡ {{ data().energy }}</span>
       </div>

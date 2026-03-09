@@ -56,21 +56,33 @@
   </button>
   <button 
     class="filter-btn" 
-    [class.active]="activeFilter() === 'confirmed'"
-    (click)="setFilter('confirmed')">
-    Accettate
+    [class.active]="activeFilter() === 'pending'"
+    (click)="setFilter('pending')">
+    ⏱️ In Attesa
   </button>
   <button 
     class="filter-btn" 
-    [class.active]="activeFilter() === 'cancelled'"
-    (click)="setFilter('cancelled')">
-    Rifiutate
+    [class.active]="activeFilter() === 'confirmed'"
+    (click)="setFilter('confirmed')">
+    ✓ Confermate
+  </button>
+  <button 
+    class="filter-btn" 
+    [class.active]="activeFilter() === 'completed'"
+    (click)="setFilter('completed')">
+    🏁 Completate
+  </button>
+  <button 
+    class="filter-btn" 
+    [class.active]="activeFilter() === 'rejected'"
+    (click)="setFilter('rejected')">
+    ✕ Rifiutate
   </button>
   <button 
     class="filter-btn" 
     [class.active]="activeFilter() === 'past'"
     (click)="setFilter('past')">
-    Passate
+    📅 Passate
   </button>
 </section>
 
@@ -121,15 +133,16 @@
           <button class="action-btn success" (click)="confirmVisit(visit.id)">
             ✓ Conferma
           </button>
+          <button class="action-btn secondary" (click)="rejectVisit(visit.id)">
+            ✕ Rifiuta
+          </button>
         }
         @if (visit.status === 'CONFIRMED') {
           <button class="action-btn primary" (click)="completeVisit(visit.id)">
             ✓ Segna Completata
           </button>
-        }
-        @if (visit.status !== 'DONE' && visit.status !== 'CANCELLED') {
-          <button class="action-btn secondary" (click)="rejectVisit(visit.id)">
-            ✕ Rifiuta
+          <button class="action-btn warning" (click)="cancelVisit(visit.id)">
+            ✕ Annulla
           </button>
         }
       </div>
@@ -142,9 +155,12 @@
       <div class="empty-title">Nessuna visita trovata</div>
       <div class="empty-text">
         @switch (activeFilter()) {
+          @case ('pending') { Non ci sono visite in attesa }
           @case ('confirmed') { Non ci sono visite confermate }
-          @case ('cancelled') { Non ci sono visite rifiutate }
+          @case ('completed') { Non ci sono visite completate }
+          @case ('rejected') { Non ci sono visite rifiutate }
           @case ('past') { Non ci sono visite passate }
+          @case ('all') { Le richieste di visita appariranno qui }
           @default { Le richieste di visita appariranno qui }
         }
       </div>

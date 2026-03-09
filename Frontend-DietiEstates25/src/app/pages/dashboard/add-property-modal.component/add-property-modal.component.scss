@@ -235,7 +235,7 @@
   cursor: pointer;
   margin-top: 8px;
 
-  &:hover {
+  &:hover:not(.disabled) {
     border-color: #0f7a55;
     background: #f0f9f6;
   }
@@ -245,43 +245,41 @@
     background: #e9f7ef;
     border-width: 3px;
   }
-}
 
-.upload-icon {
-  width: 64px;
-  height: 64px;
-  margin: 0 auto 16px;
-  opacity: 0.6;
-  display: block;
-  transition: all 0.3s;
-}
-
-.upload-zone:hover .upload-icon {
-  opacity: 0.8;
-  transform: scale(1.05);
-}
-
-.upload-text {
-  margin: 0 0 8px;
-  color: #374151;
-  font-size: 15px;
-  font-weight: 600;
-}
-
-.upload-link {
-  color: #0f7a55;
-  font-weight: 700;
-  cursor: pointer;
-  text-decoration: underline;
-
-  &:hover {
-    color: #0d6847;
+  &.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: #f3f4f6;
   }
 }
 
-.upload-hint {
-  color: #6b7280;
+// Badge contatore immagini
+.image-counter-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  background: #0f7a55;
+  color: white;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.upload-limit-reached {
+  color: #ef4444;
+  font-weight: 700;
+}
+
+// Messaggio di errore upload
+.upload-error {
+  margin-top: 8px;
+  padding: 10px 14px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  color: #dc2626;
   font-size: 13px;
+  font-weight: 600;
 }
 
 // Preview Immagini
@@ -299,12 +297,41 @@
   overflow: hidden;
   border: 2px solid #e5e7eb;
   background: #f9fafb;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: #0f7a55;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
 
   img {
     width: 100%;
     height: 100%;
     object-fit: cover;
   }
+}
+
+// Overlay con numero dell'immagine
+.preview-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preview-number {
+  background: rgba(255, 255, 255, 0.9);
+  color: #111827;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 12px;
 }
 
 .remove-image-btn {
@@ -325,11 +352,16 @@
   justify-content: center;
   transition: all 0.2s;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  opacity: 0;
 
   &:hover {
     background: #dc2626;
     transform: scale(1.1);
   }
+}
+
+.preview-item:hover .remove-image-btn {
+  opacity: 1;
 }
 
 // Animazioni

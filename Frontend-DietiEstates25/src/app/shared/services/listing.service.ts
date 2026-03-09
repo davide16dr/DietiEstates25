@@ -18,6 +18,7 @@ export interface ListingResponse {
   city: string;
   propertyType: string;
   rooms: number;
+  bathrooms?: number;  // ✅ AGGIUNTO campo bagni
   area: number;
   floor: number;
   energyClass: string;
@@ -103,10 +104,48 @@ export class ListingService {
   }
 
   createListing(propertyData: any): Observable<ListingResponse> {
-    return this.http.post<ListingResponse>(`${this.API}/agent/create`, propertyData);
+    // Crea FormData per inviare file multipart
+    const formData = new FormData();
+    
+    // Aggiungi i dati JSON come stringhe
+    formData.append('property', JSON.stringify(propertyData.property));
+    formData.append('listing', JSON.stringify(propertyData.listing));
+    
+    // Aggiungi le immagini se presenti
+    if (propertyData.images && propertyData.images.length > 0) {
+      propertyData.images.forEach((file: File) => {
+        formData.append('images', file, file.name);
+      });
+    }
+    
+    return this.http.post<ListingResponse>(`${this.API}/agent/create`, formData);
   }
 
   updateListing(id: string, propertyData: any): Observable<ListingResponse> {
+    // Se ci sono nuove immagini o modifiche alle immagini esistenti, usa FormData
+    if (propertyData.images || propertyData.existingImageUrls) {
+      const formData = new FormData();
+      
+      // Aggiungi i dati JSON
+      formData.append('property', JSON.stringify(propertyData.property));
+      formData.append('listing', JSON.stringify(propertyData.listing));
+      
+      // Aggiungi le URLs delle immagini esistenti da mantenere
+      if (propertyData.existingImageUrls && propertyData.existingImageUrls.length > 0) {
+        formData.append('existingImageUrls', JSON.stringify(propertyData.existingImageUrls));
+      }
+      
+      // Aggiungi le nuove immagini da caricare
+      if (propertyData.images && propertyData.images.length > 0) {
+        propertyData.images.forEach((file: File) => {
+          formData.append('images', file, file.name);
+        });
+      }
+      
+      return this.http.put<ListingResponse>(`${this.API}/${id}`, formData);
+    }
+    
+    // Altrimenti, invia solo i dati JSON
     return this.http.put<ListingResponse>(`${this.API}/${id}`, propertyData);
   }
 }

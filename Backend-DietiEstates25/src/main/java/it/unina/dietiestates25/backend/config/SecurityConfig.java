@@ -69,7 +69,8 @@ public class SecurityConfig {
                     "/v3/api-docs/**",
                     "/swagger-ui/**",
                     "/swagger-ui.html",
-                    "/ws/**"  // 🔌 Permetti connessioni WebSocket
+                    "/ws/**",  // 🔌 Permetti connessioni WebSocket
+                    "/uploads/**"  // 📸 Permetti accesso pubblico alle immagini
                 ).permitAll()
                 // Endpoint pubblici solo GET per listings
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/listings", "/api/listings/search", "/api/listings/*").permitAll()

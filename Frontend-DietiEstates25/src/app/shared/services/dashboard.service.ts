@@ -242,6 +242,15 @@ export class DashboardService {
     });
   }
 
+  getAvailableTimeSlots(propertyId: string, date: string): Observable<string[]> {
+    return this.http.get<string[]>(`${this.apiUrl}/client/visits/available-slots`, {
+      params: { listingId: propertyId, date: date }
+    }).pipe(
+      timeout(3000),
+      catchError(() => of([]))
+    );
+  }
+
   confirmVisit(id: string): Observable<void> {
     return this.http.patch<void>(`${this.apiUrl}/agent/visits/${id}/confirm`, {});
   }
@@ -252,6 +261,10 @@ export class DashboardService {
 
   rejectVisit(id: string, reason?: string): Observable<void> {
     return this.http.patch<void>(`${this.apiUrl}/agent/visits/${id}/reject`, { reason });
+  }
+
+  cancelVisitByAgent(id: string, reason?: string): Observable<void> {
+    return this.http.patch<void>(`${this.apiUrl}/agent/visits/${id}/cancel`, { reason });
   }
 
   // ============ NOTIFICATION PREFERENCES ============

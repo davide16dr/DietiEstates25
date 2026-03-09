@@ -39,6 +39,12 @@ export class AddPropertyModalComponent {
   selectedImages = signal<File[]>([]);
   imagePreviews = signal<string[]>([]);
   isDragging = signal(false);
+  uploadError = signal<string | null>(null);
+
+  // Costanti per validazione
+  private readonly MAX_IMAGES = 10;
+  private readonly MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+  private readonly ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
   // Form tipizzato con FormGroup<T>
   propertyForm = this.fb.group({
@@ -93,37 +99,106 @@ export class AddPropertyModalComponent {
   }
 
   private addFiles(files: File[]): void {
-    const imageFiles = files.filter(file => file.type.startsWith('image/'));
-    const currentImages = this.selectedImages();
-    const currentPreviews = this.imagePreviews();
+    this.uploadError.set(null);
     
-    imageFiles.forEach(file => {
-      // Limita a massimo 10 immagini
-      if (currentImages.length < 10) {
-        currentImages.push(file);
-        
-        // Crea preview
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          currentPreviews.push(e.target?.result as string);
-          this.imagePreviews.set([...currentPreviews]);
-        };
-        reader.readAsDataURL(file);
+    // Filtra solo file immagine validi
+    const imageFiles = files.filter(file => {
+      if (!this.ALLOWED_TYPES.includes(file.type)) {
+        this.uploadError.set(`Formato non supportato: ${file.name}. Usa JPG, PNG o WEBP.`);
+        return false;
       }
+      if (file.size > this.MAX_FILE_SIZE) {
+        this.uploadError.set(`File troppo grande: ${file.name}. Massimo 5MB per immagine.`);
+        return false;
+      }
+      return true;
     });
+
+    const currentImages = [...this.selectedImages()]; // Copia profonda
+    const currentPreviews = [...this.imagePreviews()]; // Copia profonda
+    const availableSlots = this.MAX_IMAGES - currentImages.length;
     
-    this.selectedImages.set([...currentImages]);
+    // Controlla se c'è spazio disponibile
+    if (availableSlots === 0) {
+      this.uploadError.set(`Massimo ${this.MAX_IMAGES} immagini consentite.`);
+      return;
+    }
+    
+    // Se ci sono più file del disponibile, mostra warning
+    if (imageFiles.length > availableSlots) {
+      this.uploadError.set(`Puoi aggiungere solo ${availableSlots} immagini. Limite massimo: ${this.MAX_IMAGES}.`);
+    }
+    
+    // Aggiungi solo i file che entrano nel limite
+    const filesToAdd = imageFiles.slice(0, availableSlots);
+    
+    // Aggiorna immediatamente le immagini
+    const newImages = [...currentImages, ...filesToAdd];
+    this.selectedImages.set(newImages);
+    
+    // Carica le preview in modo asincrono
+    let previewsLoaded = 0;
+    const newPreviews = [...currentPreviews];
+    
+    filesToAdd.forEach((file, index) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        newPreviews.push(e.target?.result as string);
+        previewsLoaded++;
+        
+        // Aggiorna il signal ogni volta che una preview è pronta
+        this.imagePreviews.set([...newPreviews]);
+        
+        console.log(`Preview ${previewsLoaded}/${filesToAdd.length} caricata`);
+      };
+      reader.onerror = () => {
+        console.error(`Errore caricamento preview per ${file.name}`);
+      };
+      reader.readAsDataURL(file);
+    });
   }
 
   removeImage(index: number): void {
-    const images = this.selectedImages();
-    const previews = this.imagePreviews();
+    console.log('🗑️ Rimozione immagine index:', index);
     
+    // Ottieni copie degli array
+    const images = [...this.selectedImages()];
+    const previews = [...this.imagePreviews()];
+    
+    console.log('Prima:', { images: images.length, previews: previews.length });
+    
+    // Revoca l'URL blob per liberare memoria (se è un blob URL)
+    const previewToRemove = previews[index];
+    if (previewToRemove && previewToRemove.startsWith('blob:')) {
+      URL.revokeObjectURL(previewToRemove);
+    }
+    
+    // Rimuovi l'immagine e la preview
     images.splice(index, 1);
     previews.splice(index, 1);
     
-    this.selectedImages.set([...images]);
-    this.imagePreviews.set([...previews]);
+    console.log('Dopo:', { images: images.length, previews: previews.length });
+    
+    // Aggiorna gli stati con nuovi array
+    this.selectedImages.set(images);
+    this.imagePreviews.set(previews);
+    this.uploadError.set(null);
+    
+    // Force change detection
+    console.log('✅ Signal aggiornati. Verifica:', {
+      selectedImages: this.selectedImages().length,
+      imagePreviews: this.imagePreviews().length
+    });
+  }
+
+  // Numero di immagini caricate
+  get imageCount(): number {
+    return this.selectedImages().length;
+  }
+
+  // Numero di slot disponibili
+  get availableSlots(): number {
+    return this.MAX_IMAGES - this.imageCount;
   }
 
   // ===== FORM ACTIONS =====
@@ -148,7 +223,7 @@ export class AddPropertyModalComponent {
           address: formValue.address,
           property_type: formValue.property_type,
           rooms: formValue.rooms,
-          bathrooms: formValue.bathrooms || null,
+          bathrooms: formValue.bathrooms || 0,  // ✅ Invia 0 invece di null
           area_m2: formValue.area_m2,
           floor: formValue.floor || null,
           elevator: formValue.elevator,
@@ -157,7 +232,7 @@ export class AddPropertyModalComponent {
         },
         listing: {
           title: formValue.title,
-          listing_type: formValue.listing_type,  // Passo come listing_type per il servizio
+          listing_type: formValue.listing_type,
           price_amount: formValue.price_amount,
           currency: formValue.currency
         },

@@ -24,6 +24,7 @@ interface Property {
   address: string;
   city: string;
   image: string;
+  imageUrls?: string[]; // ✅ AGGIUNTO: array di tutte le immagini
 }
 
 @Component({
@@ -76,6 +77,7 @@ export class AgentPropertiesComponent implements OnInit {
       type: listing.type === 'SALE' ? 'vendita' : 'affitto',
       status: this.mapStatus(listing.status),
       rooms: listing.rooms,
+      bathrooms: listing.bathrooms,  // ✅ AGGIUNTO mapping bagni
       size: listing.area,
       floor: listing.floor,
       elevator: listing.hasElevator,
@@ -86,7 +88,8 @@ export class AgentPropertiesComponent implements OnInit {
       city: listing.city,
       image: listing.imageUrls && listing.imageUrls.length > 0 
         ? listing.imageUrls[0] 
-        : 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400'
+        : 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400',
+      imageUrls: listing.imageUrls // ✅ AGGIUNTO: array di tutte le immagini
     };
   }
 

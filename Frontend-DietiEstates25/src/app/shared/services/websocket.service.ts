@@ -88,6 +88,23 @@ export class WebSocketService {
       
       onStompError: (frame) => {
         console.error('❌ Errore WebSocket:', frame);
+        console.error('❌ Frame headers:', frame.headers);
+        console.error('❌ Frame body:', frame.body);
+        
+        // Controlla se l'errore è dovuto a token JWT scaduto
+        if (frame.body?.includes('JWT expired') || frame.body?.includes('expired')) {
+          console.warn('⚠️ Token JWT scaduto rilevato da errore WebSocket');
+          this.toast.warning(
+            'Sessione Scaduta',
+            'La tua sessione è scaduta. Effettua nuovamente il login.'
+          );
+          // Logout automatico dopo 2 secondi
+          setTimeout(() => {
+            this.authService.logout();
+          }, 2000);
+          return;
+        }
+        
         this.connected.set(false);
         this.attemptReconnect(token);
       }
@@ -122,10 +139,38 @@ export class WebSocketService {
       }, this.reconnectDelay * this.reconnectAttempts);
     } else {
       console.error('❌ Impossibile riconnettersi al WebSocket dopo', this.maxReconnectAttempts, 'tentativi');
-      this.toast.error(
-        'Connessione Persa',
-        'Impossibile connettersi al server. Ricarica la pagina.'
-      );
+      
+      // Controlla se il token è scaduto
+      if (this.isTokenExpired(token)) {
+        console.warn('⚠️ Token JWT scaduto. Effettuo logout automatico...');
+        this.toast.warning(
+          'Sessione Scaduta',
+          'La tua sessione è scaduta. Effettua nuovamente il login.'
+        );
+        // Logout automatico dopo 2 secondi
+        setTimeout(() => {
+          this.authService.logout();
+        }, 2000);
+      } else {
+        this.toast.error(
+          'Connessione Persa',
+          'Impossibile connettersi al server. Ricarica la pagina.'
+        );
+      }
+    }
+  }
+
+  /**
+   * Verifica se il token JWT è scaduto
+   */
+  private isTokenExpired(token: string): boolean {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const expirationTime = payload.exp * 1000; // Converti in millisecondi
+      return Date.now() >= expirationTime;
+    } catch (error) {
+      console.error('❌ Errore parsing token JWT:', error);
+      return true; // Se non riesco a parsare, considero il token scaduto
     }
   }
   
