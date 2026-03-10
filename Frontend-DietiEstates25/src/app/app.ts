@@ -23,8 +23,8 @@ export class App {
   // 🔌 Iniettare il WebSocketService per avviare la connessione WebSocket
   private websocketService = inject(WebSocketService);
 
-  private hideNavbarRoutes = ['/auth/login', '/auth/register', '/auth/register-business'];
-  private hideFooterRoutes = ['/auth/login', '/auth/register', '/auth/register-business', '/dashboard'];
+  private hideNavbarRoutes = ['/auth/login', '/auth/register', '/auth/register-business', '/auth/forgot-password', '/auth/reset-password'];
+  private hideFooterRoutes = ['/auth/login', '/auth/register', '/auth/register-business', '/auth/forgot-password', '/auth/reset-password', '/dashboard'];
   
   showNavbar = signal(true);
   showFooter = signal(true);
@@ -37,7 +37,7 @@ export class App {
         const url = event.urlAfterRedirects;
         
         this.showNavbar.set(
-          !this.hideNavbarRoutes.includes(url)
+          !this.hideNavbarRoutes.some(route => url === route || url.startsWith(route))
         );
         
         // Nascondi il footer se l'URL è nelle rotte specifiche O se inizia con /dashboard

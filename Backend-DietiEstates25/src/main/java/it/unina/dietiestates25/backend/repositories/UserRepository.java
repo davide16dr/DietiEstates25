@@ -12,6 +12,7 @@ import it.unina.dietiestates25.backend.entities.enums.UserRole;
 public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> findByEmail(String email);
     boolean existsByEmail(String email);
+    Optional<User> findByResetToken(String resetToken);
     
     /**
      * Trova tutti gli utenti di una specifica agenzia con un determinato ruolo

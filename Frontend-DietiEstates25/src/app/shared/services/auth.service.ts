@@ -179,4 +179,12 @@ export class AuthService {
   changePassword(userId: string, data: { oldPassword: string; newPassword: string }): Observable<any> {
     return this.http.put(`http://localhost:8080/api/users/${userId}/password`, data);
   }
+
+  forgotPassword(email: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.API}/forgot-password`, { email });
+  }
+
+  resetPassword(token: string, newPassword: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.API}/reset-password`, { token, newPassword });
+  }
 }

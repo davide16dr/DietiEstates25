@@ -12,9 +12,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import it.unina.dietiestates25.backend.dto.auth.AuthResponse;
+import it.unina.dietiestates25.backend.dto.auth.ForgotPasswordRequest;
 import it.unina.dietiestates25.backend.dto.auth.LoginRequest;
 import it.unina.dietiestates25.backend.dto.auth.RegisterBusinessRequest;
 import it.unina.dietiestates25.backend.dto.auth.RegisterRequest;
+import it.unina.dietiestates25.backend.dto.auth.ResetPasswordRequest;
 import it.unina.dietiestates25.backend.services.AuthService;
 import it.unina.dietiestates25.backend.services.BusinessRegistrationService;
 import jakarta.validation.Valid;
@@ -81,6 +83,29 @@ public class AuthController {
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("error", "Errore durante la registrazione: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        // Risponde sempre 200 per evitare user enumeration
+        authService.requestPasswordReset(request.getEmail());
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Se l'email è registrata, riceverai le istruzioni per il reset della password.");
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        try {
+            authService.resetPassword(request.getToken(), request.getNewPassword());
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Password aggiornata con successo.");
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
         }
     }
 }

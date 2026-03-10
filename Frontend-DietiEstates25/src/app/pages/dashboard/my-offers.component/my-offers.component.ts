@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed, OnDestroy } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, OnDestroy, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -18,6 +18,7 @@ export class MyOffersComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private toast = inject(ToastService);
   private webSocketService = inject(WebSocketService);
+  private ngZone = inject(NgZone);
   private notificationCallback?: (notification: WebSocketNotification) => void;
 
   offers = signal<OfferResponse[]>([]);
@@ -44,7 +45,7 @@ export class MyOffersComponent implements OnInit, OnDestroy {
       // Ricarica SEMPRE quando arriva una notifica con offerId O tipo relativo alle offerte
       if (notification.offerId || this.isOfferNotification(notification.type)) {
         console.log('💰 ✅ RICARICA offerte in tempo reale (cliente)...');
-        this.loadOffers();
+        this.ngZone.run(() => this.loadOffers());
       } else {
         console.log('💰 ⏭️ Notifica ignorata - non relativa alle offerte');
       }

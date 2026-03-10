@@ -221,4 +221,55 @@ public class EmailService {
             e.printStackTrace();
         }
     }
+
+    /**
+     * Invia un'email con il link per il reset della password
+     */
+    public void sendPasswordResetEmail(String toEmail, String firstName, String resetLink) {
+        if (!emailEnabled) {
+            System.out.println("[EMAIL DISABILITATO IN SVILUPPO]");
+            System.out.println("To: " + toEmail);
+            System.out.println("Subject: DietiEstates25 - Reset Password");
+            System.out.println("Body:");
+            System.out.println("---");
+            System.out.println(String.format(
+                "Caro/a %s,\n\n" +
+                "Abbiamo ricevuto una richiesta di reset della password per il tuo account.\n\n" +
+                "Clicca sul link qui sotto per reimpostare la tua password (valido per 1 ora):\n" +
+                "%s\n\n" +
+                "Se non hai richiesto il reset della password, ignora questa email.\n\n" +
+                "Cordiali saluti,\n" +
+                "Il Team di DietiEstates25",
+                firstName, resetLink
+            ));
+            System.out.println("---");
+            return;
+        }
+
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(toEmail);
+            message.setSubject("DietiEstates25 - Reset Password");
+
+            String body = String.format(
+                "Caro/a %s,\n\n" +
+                "Abbiamo ricevuto una richiesta di reset della password per il tuo account.\n\n" +
+                "Clicca sul link qui sotto per reimpostare la tua password (valido per 1 ora):\n" +
+                "%s\n\n" +
+                "Se non hai richiesto il reset della password, ignora questa email.\n\n" +
+                "Cordiali saluti,\n" +
+                "Il Team di DietiEstates25",
+                firstName, resetLink
+            );
+
+            message.setText(body);
+            mailSender.send(message);
+
+            System.out.println("✅ Email reset password inviata a: " + toEmail);
+        } catch (Exception e) {
+            System.err.println("❌ Errore nell'invio dell'email di reset: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
 }
