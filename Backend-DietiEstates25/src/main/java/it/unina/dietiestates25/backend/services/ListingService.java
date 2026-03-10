@@ -320,15 +320,28 @@ public class ListingService {
             if (listingUpdate.getStatus() != null) {
                 // Mappa lo status dal frontend al backend
                 String status = listingUpdate.getStatus();
+                System.out.println("📋 === DEBUG CAMBIO STATUS ===");
+                System.out.println("📋 Status ricevuto dal frontend: " + status);
+                System.out.println("📋 Status attuale nel DB: " + listing.getStatus());
+                
                 if ("disponibile".equals(status)) {
                     listing.setStatus(ListingStatus.ACTIVE);
+                    System.out.println("✅ Nuovo status impostato: ACTIVE");
                 } else if ("venduto".equals(status)) {
                     listing.setStatus(ListingStatus.SOLD);
+                    System.out.println("✅ Nuovo status impostato: SOLD");
                 } else if ("affittato".equals(status)) {
                     listing.setStatus(ListingStatus.RENTED);
+                    System.out.println("✅ Nuovo status impostato: RENTED");
                 } else if ("in_trattativa".equals(status)) {
                     listing.setStatus(ListingStatus.SUSPENDED);
+                    System.out.println("✅ Nuovo status impostato: SUSPENDED");
+                } else {
+                    System.out.println("⚠️ Status non riconosciuto: " + status);
                 }
+                
+                System.out.println("📋 Status dopo setStatus(): " + listing.getStatus());
+                System.out.println("📋 === FINE DEBUG ===");
             }
         }
         

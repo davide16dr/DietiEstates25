@@ -27,9 +27,16 @@ export class DashboardComponent implements OnInit {
 
   private redirectIfRoot(): void {
     const url = this.router.url.split('?')[0];
-    if (url !== '/dashboard') return;
+    console.log('🔍 Dashboard URL corrente:', url);
+    
+    if (url !== '/dashboard') {
+      console.log('✅ URL non è /dashboard, continuo normalmente');
+      return;
+    }
 
     const role = this.auth.currentUser()?.role?.toLowerCase();
+    console.log('🔄 Redirect necessario per ruolo:', role);
+    
     switch (role) {
       case 'admin':          this.router.navigateByUrl('/dashboard/admin-home', { replaceUrl: true }); break;
       case 'agency_manager': this.router.navigateByUrl('/dashboard/manager-home', { replaceUrl: true }); break;

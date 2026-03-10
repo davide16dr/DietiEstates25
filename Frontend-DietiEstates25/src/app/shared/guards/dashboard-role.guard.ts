@@ -20,9 +20,9 @@ export const dashboardRoleGuard: CanActivateFn = (route: ActivatedRouteSnapshot,
 
   // Mappa delle rotte autorizzate per ogni ruolo
   const roleRoutes: { [key: string]: string[] } = {
-    'admin': ['home', 'admin-home', 'admin-managers', 'admin-agents', 'admin-agency-info'], 
+    'admin': ['home', 'admin-home', 'admin-managers', 'admin-agents', 'admin-agency-info', 'admin-properties'], 
     'agency_manager': ['home', 'manager-home', 'manager-agents', 'manager-properties'], 
-    'agent': ['home', 'agent-properties', 'agent-visits', 'agent-offers'],
+    'agent': ['home', 'agent-properties', 'agent-visits', 'agent-offers', 'notifications'],
     'client': ['home', 'saved-searches', 'visits', 'offers', 'notifications']
   };
 

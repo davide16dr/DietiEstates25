@@ -12,9 +12,11 @@ interface Agent {
   email: string;
   phone: string;
   status: 'attivo' | 'inattivo';
-  properties: number;
-  sales: number;
   avatar: string;
+  totalProperties?: number;
+  activeProperties?: number;
+  soldProperties?: number;
+  rentedProperties?: number;
 }
 
 @Component({
@@ -49,9 +51,10 @@ export class ManagerAgentsComponent implements OnInit {
     this.isLoading.set(true);
     this.error.set(null);
 
-    this.userService.getUsersByRole('AGENT').subscribe({
+    // ✅ Usa il nuovo endpoint che include le statistiche
+    this.userService.getAgentsWithStats().subscribe({
       next: (users: User[]) => {
-        console.log('📋 Agenti ricevuti:', users);
+        console.log('📋 Agenti con statistiche ricevuti (Manager):', users);
 
         // Mappa gli utenti del backend in Agent per il frontend
         const mappedAgents: Agent[] = users.map(user => ({
@@ -60,9 +63,11 @@ export class ManagerAgentsComponent implements OnInit {
           email: user.email,
           phone: user.phoneE164 || 'N/A',
           status: user.active ? 'attivo' : 'inattivo',
-          properties: 0, // TODO: calcolare dal backend
-          sales: 0, // TODO: calcolare dal backend
-          avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(user.firstName + ' ' + user.lastName)}&background=0f7a55&color=fff`
+          avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(user.firstName + ' ' + user.lastName)}&background=0f7a55&color=fff`,
+          totalProperties: user.totalProperties || 0,
+          activeProperties: user.activeProperties || 0,
+          soldProperties: user.soldProperties || 0,
+          rentedProperties: user.rentedProperties || 0
         }));
 
         this.agents.set(mappedAgents);
@@ -102,8 +107,8 @@ export class ManagerAgentsComponent implements OnInit {
     const totali = all.length;
     const attivi = all.filter(a => a.status === 'attivo').length;
     const inattivi = all.filter(a => a.status === 'inattivo').length;
-    const totalProperties = all.reduce((sum, a) => sum + a.properties, 0);
-    const totalSales = all.reduce((sum, a) => sum + a.sales, 0);
+    const totalProperties = all.reduce((sum, a) => sum + (a.totalProperties || 0), 0);
+    const totalSales = all.reduce((sum, a) => sum + ((a.soldProperties || 0) + (a.rentedProperties || 0)), 0);
     
     return { totali, attivi, inattivi, totalProperties, totalSales };
   }

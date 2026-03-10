@@ -25,6 +25,7 @@ import { AdminDashboardComponent } from './pages/dashboard/admin-dashboard.compo
 import { AdminManagersComponent } from './pages/dashboard/admin-managers.component/admin-managers.component';
 import { AdminAgentsComponent } from './pages/dashboard/admin-agents.component/admin-agents.component';
 import { AdminAgencyInfoComponent } from './pages/dashboard/admin-agency-info.component/admin-agency-info.component';
+import { AdminPropertiesComponent } from './pages/dashboard/admin-properties.component/admin-properties.component';
 import { dashboardRoleGuard } from './shared/guards/dashboard-role.guard';
 
 export const routes: Routes = [
@@ -96,6 +97,7 @@ export const routes: Routes = [
             { path: 'admin-managers', title: 'Gestori Agenzia', component: AdminManagersComponent, canActivate: [dashboardRoleGuard] },
             { path: 'admin-agents', title: 'Agenti Agenzia', component: AdminAgentsComponent, canActivate: [dashboardRoleGuard] },
             { path: 'admin-agency-info', title: 'Info Azienda', component: AdminAgencyInfoComponent, canActivate: [dashboardRoleGuard] },
+            { path: 'admin-properties', title: 'Immobili Agenzia', component: AdminPropertiesComponent, canActivate: [dashboardRoleGuard] },
         ]
     }
 ]

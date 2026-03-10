@@ -22,14 +22,31 @@ export class MyVisitsComponent implements OnInit, OnDestroy {
   loading = signal(true);
   visits = signal<Visit[]>([]);
 
-  // Callback per le notifiche WebSocket
+  // Callback per le notifiche WebSocket - DEVE essere una arrow function per mantenere il contesto 'this'
   private notificationCallback = (notification: WebSocketNotification) => {
-    console.log('📅 Cliente ricevuto notifica visita in my-visits:', notification);
+    console.log('📅 [MyVisits] Notifica WebSocket ricevuta:', notification);
+    console.log('📅 [MyVisits] Tipo:', notification.type);
+    console.log('📅 [MyVisits] Titolo:', notification.title);
+    console.log('📅 [MyVisits] Body:', notification.body);
     
-    // Ricarica le visite quando arriva una notifica relativa alle visite
-    if (notification.type?.includes('VISIT')) {
-      console.log('🔄 Ricarico le visite del cliente...');
+    // ✅ Ricarica le visite per TUTTI i tipi di notifiche relative alle visite
+    const visitNotificationTypes = [
+      'VISIT_CONFIRMED',
+      'VISIT_REJECTED', 
+      'VISIT_COMPLETED',
+      'VISIT_CANCELLED_BY_AGENT',
+      'VISIT_STATUS_CHANGED',
+      'NEW_VISIT_REQUEST'
+    ];
+    
+    const shouldReload = visitNotificationTypes.includes(notification.type) || 
+                        notification.type?.includes('VISIT');
+    
+    if (shouldReload) {
+      console.log('🔄 [MyVisits] Ricarico le visite del cliente...');
       this.loadVisits();
+    } else {
+      console.log('⏭️ [MyVisits] Notifica ignorata (non è una notifica visita)');
     }
   };
 
@@ -56,30 +73,38 @@ export class MyVisitsComponent implements OnInit, OnDestroy {
   );
 
   ngOnInit(): void {
-    console.log('🎯 MyVisitsComponent inizializzato - setup WebSocket listener');
+    console.log('🎯 [MyVisits] Componente inizializzato');
+    console.log('🎯 [MyVisits] WebSocket connesso?', this.websocketService.connected());
+    
+    // Carica le visite iniziali
     this.loadVisits();
     
     // Registra il callback per le notifiche WebSocket
-    console.log('📡 Registrazione callback per notifiche visite cliente');
+    console.log('📡 [MyVisits] Registrazione callback per notifiche visite cliente');
     this.websocketService.onNotification(this.notificationCallback);
+    console.log('✅ [MyVisits] Callback registrato con successo');
   }
 
   ngOnDestroy(): void {
+    console.log('🔌 [MyVisits] Componente distrutto - rimuovo callback');
     // Rimuovi il callback quando il componente viene distrutto
-    console.log('🔌 Rimozione callback notifiche visite cliente');
     this.websocketService.removeNotificationCallback(this.notificationCallback);
+    console.log('✅ [MyVisits] Callback rimosso');
   }
 
   loadVisits(): void {
+    console.log('📥 [MyVisits] Caricamento visite in corso...');
     this.loading.set(true);
     
     this.dashboardService.getVisits().subscribe({
       next: (visits) => {
+        console.log('✅ [MyVisits] Visite caricate:', visits.length);
+        console.log('📋 [MyVisits] Dettaglio visite:', visits);
         this.visits.set(visits);
         this.loading.set(false);
       },
       error: (err) => {
-        console.error('Error loading visits:', err);
+        console.error('❌ [MyVisits] Errore caricamento visite:', err);
         this.visits.set([]);
         this.loading.set(false);
       }
