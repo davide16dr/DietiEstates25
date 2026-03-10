@@ -74,13 +74,85 @@
   flex: 1;
 }
 
-// Immagine Principale
-.property-image {
+// Galleria immagini
+.property-gallery {
   width: 100%;
   height: 300px;
-  background-size: cover;
-  background-position: center;
   position: relative;
+  overflow: hidden;
+  background: #111;
+  cursor: pointer;
+
+  .property-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: opacity 0.2s ease;
+  }
+}
+
+.carousel-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.8);
+  }
+
+  &.carousel-btn-prev { left: 12px; }
+  &.carousel-btn-next { right: 12px; }
+}
+
+.image-counter {
+  position: absolute;
+  bottom: 44px;
+  right: 16px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  border-radius: 12px;
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  z-index: 10;
+}
+
+.carousel-indicators {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  z-index: 10;
+}
+
+.indicator-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &.active {
+    background: #fff;
+  }
 }
 
 .status-badge {

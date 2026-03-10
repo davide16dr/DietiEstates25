@@ -1,5 +1,6 @@
 package it.unina.dietiestates25.backend.entities;
 
+import java.time.Instant;
 import java.util.UUID;
 
 import it.unina.dietiestates25.backend.entities.enums.UserRole;
@@ -47,6 +48,12 @@ public class User extends Auditable {
     @Column(name = "agency_id", columnDefinition = "uuid")
     private UUID agencyId;
 
+    @Column(name = "reset_token", length = 64)
+    private String resetToken;
+
+    @Column(name = "reset_token_expiry")
+    private Instant resetTokenExpiry;
+
     public User() {}
 
     @PrePersist
@@ -83,4 +90,10 @@ public class User extends Auditable {
 
     public UUID getAgencyId() { return agencyId; }
     public void setAgencyId(UUID agencyId) { this.agencyId = agencyId; }
+
+    public String getResetToken() { return resetToken; }
+    public void setResetToken(String resetToken) { this.resetToken = resetToken; }
+
+    public Instant getResetTokenExpiry() { return resetTokenExpiry; }
+    public void setResetTokenExpiry(Instant resetTokenExpiry) { this.resetTokenExpiry = resetTokenExpiry; }
 }

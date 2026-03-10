@@ -68,7 +68,7 @@ export class LoginComponent {
               dashboardRoute = '/dashboard/manager-home';
               break;
             case 'agent':
-              dashboardRoute = '/dashboard/agent-properties';
+              dashboardRoute = '/dashboard/home';
               break;
             case 'client':
               dashboardRoute = '/dashboard/home';
@@ -108,7 +108,7 @@ export class LoginComponent {
           switch (role) {
             case 'admin':            dashboardRoute = '/dashboard/admin-home'; break;
             case 'agency_manager':   dashboardRoute = '/dashboard/manager-home'; break;
-            case 'agent':            dashboardRoute = '/dashboard/agent-properties'; break;
+            case 'agent':            dashboardRoute = '/dashboard/home'; break;
             default:                 dashboardRoute = '/dashboard/home'; break;
           }
           this.router.navigateByUrl(dashboardRoute);

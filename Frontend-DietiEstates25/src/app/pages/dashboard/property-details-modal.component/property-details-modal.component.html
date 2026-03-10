@@ -6,12 +6,39 @@
     </div>
 
     <div class="modal-body">
-      <!-- Immagine Principale -->
-      <div class="property-image" [style.background-image]="'url(' + property().image + ')'">
+      <!-- Galleria Immagini -->
+      <div class="property-gallery">
+        <img
+          [src]="currentImage()"
+          class="property-img"
+          (click)="openLightbox()"
+          alt="Immagine immobile"
+        />
+        @if (images().length > 1) {
+          <button class="carousel-btn carousel-btn-prev" (click)="previousImage()">&#8249;</button>
+          <button class="carousel-btn carousel-btn-next" (click)="nextImage()">&#8250;</button>
+          <div class="image-counter">{{ imageCounter() }}</div>
+          <div class="carousel-indicators">
+            @for (img of images(); track $index) {
+              <span
+                class="indicator-dot"
+                [class.active]="$index === currentIndex()"
+                (click)="goToImage($index)"
+              ></span>
+            }
+          </div>
+        }
         <span class="status-badge" [ngClass]="getStatusClass(property().status)">
           {{ getStatusLabel(property().status) }}
         </span>
       </div>
+
+      <app-image-lightbox
+        [images]="images()"
+        [initialIndex]="currentIndex()"
+        [open]="showLightbox()"
+        (closed)="closeLightbox()"
+      />
 
       <!-- Titolo e Prezzo -->
       <div class="property-header">

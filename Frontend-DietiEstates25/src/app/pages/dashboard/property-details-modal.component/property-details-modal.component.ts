@@ -1,5 +1,6 @@
-import { Component, input, output } from '@angular/core';
+import { Component, input, output, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ImageLightboxComponent } from '../../../shared/components/image-lightbox.component/image-lightbox.component';
 
 interface PropertyDetail {
   id: string;
@@ -19,6 +20,7 @@ interface PropertyDetail {
   address: string;
   city: string;
   image: string;
+  imageUrls?: string[];
   createdAt?: Date;
   views?: number;
   favorites?: number;
@@ -27,15 +29,50 @@ interface PropertyDetail {
 @Component({
   selector: 'app-property-details-modal',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ImageLightboxComponent],
   templateUrl: './property-details-modal.component.html',
   styleUrl: './property-details-modal.component.scss',
 })
-export class PropertyDetailsModalComponent {
-  // Modern Angular 21: input() e output()
+export class PropertyDetailsModalComponent implements OnInit {
   property = input.required<PropertyDetail>();
   close = output<void>();
   edit = output<PropertyDetail>();
+
+  currentIndex = signal(0);
+  showLightbox = signal(false);
+
+  images = computed(() => {
+    const p = this.property();
+    if (p.imageUrls && p.imageUrls.length > 0) return p.imageUrls;
+    return p.image ? [p.image] : [];
+  });
+
+  currentImage = computed(() => this.images()[this.currentIndex()] ?? '');
+  imageCounter = computed(() => `${this.currentIndex() + 1} / ${this.images().length}`);
+
+  ngOnInit(): void {
+    this.currentIndex.set(0);
+  }
+
+  nextImage(): void {
+    this.currentIndex.update(i => (i + 1) % this.images().length);
+  }
+
+  previousImage(): void {
+    this.currentIndex.update(i => (i - 1 + this.images().length) % this.images().length);
+  }
+
+  goToImage(i: number): void {
+    this.currentIndex.set(i);
+  }
+
+  openLightbox(): void {
+    this.showLightbox.set(true);
+  }
+
+  closeLightbox(): void {
+    this.showLightbox.set(false);
+  }
 
   onClose(): void {
     this.close.emit();

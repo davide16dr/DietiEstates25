@@ -3,6 +3,8 @@ import { LoginComponent } from './auth/login/login.component/login.component';
 import { RegisterUserComponent } from './auth/register/register-user.component/register-user.component';
 import { RegisterBusinessComponent } from './auth/register/register-business.component/register-business.component';
 import { OAuthCallbackComponent } from './auth/oauth-callback/oauth-callback.component';
+import { ForgotPasswordComponent } from './auth/forgot-password/forgot-password.component';
+import { ResetPasswordComponent } from './auth/reset-password/reset-password.component';
 import { HomepageComponent } from './pages/homepage.component/homepage.component';
 import { PropertiesPageComponent } from './pages/properties-page.component/properties-page.component';
 import { guestGuard } from './shared/guards/guest.guard';
@@ -53,6 +55,17 @@ export const routes: Routes = [
         path: 'auth/oauth-callback',
         title: 'OAuth Callback',
         component: OAuthCallbackComponent
+    },
+    {
+        path: 'auth/forgot-password',
+        title: 'Password Dimenticata',
+        component: ForgotPasswordComponent,
+        canActivate: [guestGuard]
+    },
+    {
+        path: 'auth/reset-password',
+        title: 'Reset Password',
+        component: ResetPasswordComponent
     },
     {
         path: 'pages/properties-page',

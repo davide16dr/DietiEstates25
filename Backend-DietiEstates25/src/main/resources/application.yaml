@@ -4,7 +4,7 @@ spring:
 
   datasource:
     url: jdbc:postgresql://localhost:5432/dietiestates25
-    username: davideranavolo
+    username: massimocolucci
     password: 
     driver-class-name: org.postgresql.Driver
     hikari:
@@ -30,8 +30,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: ${MAIL_USERNAME:davideranavolo16@gmail.com}
-    password: ${MAIL_PASSWORD:}
+    username: ${MAIL_USERNAME:dietiEstates25DM@gmail.com}
+    password: ${MAIL_PASSWORD:jjtyrimhgkpbbvul}
     properties:
       mail:
         smtp:
@@ -48,6 +48,21 @@ app:
   jwt:
     secret: "PROGETTO_ING_SW_DietiEstates25_SECRET_KEY!"
     expiration-ms: 3600000
+  storage:
+    upload-dir: uploads
+    max-images-per-listing: 10
+    allowed-extensions: jpg,jpeg,png,webp
+  email:
+    enabled: true   # ← metti true dopo aver inserito la App Password Gmail sopra
+  oauth:
+    google:
+      client-id: "629289116262-r5fhjrhapcf075f11edh27q9jmfthnlv.apps.googleusercontent.com"        # ← incolla qui il Google Client ID
+    github:
+      client-id: "Ov23liBwCrSrz7hwJm9d"   # già impostato
+      client-secret: "e2170608089773e28aab708693a028a7e8f7806f"    # ← incolla qui il GitHub Client Secret
+    facebook:
+      app-id: "817657888033157"           # ← incolla qui il Facebook App ID
+      app-secret: "d919e43bec93bf111859afa47246e1cd"       # ← incolla qui il Facebook App Secret
 
 server:
   port: 8080
