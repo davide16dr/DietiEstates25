@@ -190,6 +190,55 @@ export class AgentPropertiesComponent implements OnInit {
 
   // ===== HELPERS =====
 
+  markAsSold(property: Property): void {
+    const newStatus = property.type === 'vendita' ? 'venduto' : 'affittato';
+    this.changePropertyStatus(property.id, newStatus);
+  }
+
+  markAsAvailable(property: Property): void {
+    this.changePropertyStatus(property.id, 'disponibile');
+  }
+
+  private changePropertyStatus(propertyId: string, newStatus: 'disponibile' | 'venduto' | 'affittato'): void {
+    console.log(`🔄 Cambio stato immobile ${propertyId} a: ${newStatus}`);
+
+    // Prepara i dati per l'aggiornamento nel formato che il backend si aspetta
+    // IMPORTANTE: invia oggetti vuoti {} per evitare errori di parsing nel backend
+    const updateData = {
+      property: {}, // Oggetto vuoto, non modifichiamo i dati della proprietà
+      listing: {
+        status: newStatus
+      }
+    };
+
+    console.log('📤 Invio dati aggiornamento:', updateData);
+
+    this.listingService.updateListing(propertyId, updateData).subscribe({
+      next: (response: any) => {
+        console.log('✅ Stato immobile aggiornato con successo:', response);
+        console.log('📊 Nuovo status nella response:', response.status);
+        // Ricarica la lista per mostrare i dati aggiornati
+        this.loadMyProperties();
+      },
+      error: (err: any) => {
+        console.error('❌ Errore nell\'aggiornamento dello stato:', err);
+        console.error('❌ Status code:', err.status);
+        console.error('❌ Error message:', err.message);
+        console.error('❌ Error body:', err.error);
+        this.error.set('Errore nell\'aggiornamento dello stato. Riprova più tardi.');
+      }
+    });
+  }
+
+  private mapStatusToBackend(status: 'disponibile' | 'venduto' | 'affittato'): string {
+    switch (status) {
+      case 'disponibile': return 'ACTIVE';
+      case 'venduto': return 'SOLD';
+      case 'affittato': return 'RENTED';
+      default: return 'ACTIVE';
+    }
+  }
+
   getStatusClass(status: string): string {
     const classes: { [key: string]: string } = {
       disponibile: 'status-available',

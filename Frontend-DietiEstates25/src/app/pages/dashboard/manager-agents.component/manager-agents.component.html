@@ -120,13 +120,13 @@
 
             <div class="agent-stats">
               <div class="stat-item">
-                <span class="stat-number">{{ agent.properties }}</span>
+                <span class="stat-number">{{ agent.totalProperties }}</span>
                 <span class="stat-text">Immobili</span>
               </div>
               <div class="stat-divider"></div>
               <div class="stat-item">
-                <span class="stat-number">{{ agent.sales }}</span>
-                <span class="stat-text">Vendite</span>
+                <span class="stat-number">{{ (agent.soldProperties || 0) + (agent.rentedProperties || 0) }}</span>
+                <span class="stat-text">Venduti</span>
               </div>
             </div>
           </div>

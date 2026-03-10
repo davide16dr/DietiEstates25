@@ -87,6 +87,7 @@ export class DashboardSidebarComponent implements OnInit {
       { label: 'Dashboard', icon: '▦', route: '/dashboard/admin-home' },
       { label: 'Gestori', icon: '👥', route: '/dashboard/admin-managers' },
       { label: 'Agenti', icon: '👥', route: '/dashboard/admin-agents' },
+      { label: 'Immobili', icon: '🏠', route: '/dashboard/admin-properties' },
       { label: 'Info Azienda', icon: '🏢', route: '/dashboard/admin-agency-info' },
     ];
 
@@ -101,6 +102,7 @@ export class DashboardSidebarComponent implements OnInit {
       { label: 'I Miei Immobili', icon: '🏠', route: '/dashboard/agent-properties', badge: stats?.totalProperties },
       { label: 'Visite', icon: '📅', route: '/dashboard/agent-visits', badge: stats?.pendingVisits },
       { label: 'Offerte', icon: '🤝', route: '/dashboard/agent-offers', badge: stats?.pendingOffers },
+      { label: 'Notifiche', icon: '🔔', route: '/dashboard/notifications', badge: unread || undefined },
     ];
 
     return [

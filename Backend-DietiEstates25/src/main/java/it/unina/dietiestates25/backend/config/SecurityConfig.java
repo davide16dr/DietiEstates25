@@ -76,8 +76,8 @@ public class SecurityConfig {
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/listings", "/api/listings/search", "/api/listings/*").permitAll()
                 // Endpoint privati per agenti
                 .requestMatchers("/api/listings/agent/**").hasRole("AGENT")
-                // Endpoint privati per manager
-                .requestMatchers("/api/listings/agency/**").hasRole("AGENCY_MANAGER")
+                // Endpoint privati per manager e admin
+                .requestMatchers("/api/listings/agency/**").hasAnyRole("AGENCY_MANAGER", "ADMIN")
                 // PUT/DELETE su listings richiedono AGENT o MANAGER
                 .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/listings/*").hasAnyRole("AGENT", "AGENCY_MANAGER")
                 .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/listings/*").hasAnyRole("AGENT", "AGENCY_MANAGER")

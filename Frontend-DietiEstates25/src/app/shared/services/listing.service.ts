@@ -122,30 +122,32 @@ export class ListingService {
   }
 
   updateListing(id: string, propertyData: any): Observable<ListingResponse> {
-    // Se ci sono nuove immagini o modifiche alle immagini esistenti, usa FormData
-    if (propertyData.images || propertyData.existingImageUrls) {
-      const formData = new FormData();
-      
-      // Aggiungi i dati JSON
+    console.log('🔄 [ListingService] updateListing chiamato con:', propertyData);
+    
+    // SEMPRE usa FormData per l'aggiornamento
+    const formData = new FormData();
+    
+    // Aggiungi i dati JSON come stringhe
+    if (propertyData.property) {
       formData.append('property', JSON.stringify(propertyData.property));
+    }
+    if (propertyData.listing) {
       formData.append('listing', JSON.stringify(propertyData.listing));
-      
-      // Aggiungi le URLs delle immagini esistenti da mantenere
-      if (propertyData.existingImageUrls && propertyData.existingImageUrls.length > 0) {
-        formData.append('existingImageUrls', JSON.stringify(propertyData.existingImageUrls));
-      }
-      
-      // Aggiungi le nuove immagini da caricare
-      if (propertyData.images && propertyData.images.length > 0) {
-        propertyData.images.forEach((file: File) => {
-          formData.append('images', file, file.name);
-        });
-      }
-      
-      return this.http.put<ListingResponse>(`${this.API}/${id}`, formData);
     }
     
-    // Altrimenti, invia solo i dati JSON
-    return this.http.put<ListingResponse>(`${this.API}/${id}`, propertyData);
+    // Aggiungi le URLs delle immagini esistenti da mantenere
+    if (propertyData.existingImageUrls && propertyData.existingImageUrls.length > 0) {
+      formData.append('existingImageUrls', JSON.stringify(propertyData.existingImageUrls));
+    }
+    
+    // Aggiungi le nuove immagini da caricare
+    if (propertyData.images && propertyData.images.length > 0) {
+      propertyData.images.forEach((file: File) => {
+        formData.append('images', file, file.name);
+      });
+    }
+    
+    console.log('📤 [ListingService] Invio FormData al backend');
+    return this.http.put<ListingResponse>(`${this.API}/${id}`, formData);
   }
 }

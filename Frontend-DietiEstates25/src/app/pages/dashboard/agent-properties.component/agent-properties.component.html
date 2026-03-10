@@ -107,6 +107,22 @@
           <div class="property-footer">
             <div class="property-price">{{ formatPrice(property.price, property.type) }}</div>
             <div class="property-actions">
+              @if (property.status === 'disponibile') {
+                <button 
+                  class="action-btn success" 
+                  (click)="markAsSold(property)"
+                  title="Segna come {{ property.type === 'vendita' ? 'venduto' : 'affittato' }}">
+                  {{ property.type === 'vendita' ? '✓ Venduto' : '✓ Affittato' }}
+                </button>
+              }
+              @if (property.status === 'venduto' || property.status === 'affittato') {
+                <button 
+                  class="action-btn warning" 
+                  (click)="markAsAvailable(property)"
+                  title="Segna come disponibile">
+                  ↺ Disponibile
+                </button>
+              }
               <button class="action-btn secondary" (click)="openEditModal(property)">Modifica</button>
               <button class="action-btn primary" (click)="openDetailsModal(property)">Dettagli</button>
             </div>

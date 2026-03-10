@@ -1,0 +1,152 @@
+<div class="admin-properties">
+  <!-- Header -->
+  <section class="header">
+    <div>
+      <h1>Immobili dell'Agenzia</h1>
+      <p>Visualizza tutti gli immobili gestiti dalla tua agenzia</p>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <section class="stats">
+    <!-- Loading State -->
+    @if (isLoading()) {
+      <div class="stat-card">
+        <div class="stat-info">
+          <div class="stat-label">Caricamento...</div>
+        </div>
+      </div>
+    } @else {
+      <div class="stat-card">
+        <div class="stat-icon" style="background: #eef2ff;">🏠</div>
+        <div class="stat-info">
+          <div class="stat-value">{{ stats.totali }}</div>
+          <div class="stat-label">Immobili Totali</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon" style="background: #e9f7ef;">✓</div>
+        <div class="stat-info">
+          <div class="stat-value">{{ stats.disponibili }}</div>
+          <div class="stat-label">Disponibili</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon" style="background: #fef3c7;">💰</div>
+        <div class="stat-info">
+          <div class="stat-value">{{ stats.venduti }}</div>
+          <div class="stat-label">Venduti</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon" style="background: #fce7f3;">🔑</div>
+        <div class="stat-info">
+          <div class="stat-value">{{ stats.affittati }}</div>
+          <div class="stat-label">Affittati</div>
+        </div>
+      </div>
+    }
+  </section>
+
+  <!-- Error Alert -->
+  @if (error()) {
+    <div class="error-alert">
+      <span class="error-icon">⚠️</span>
+      <span>{{ error() }}</span>
+    </div>
+  }
+
+  <!-- Filters -->
+  <section class="filters">
+    <div class="search-box">
+      <img src="assets/icons/search.png" alt="Search" class="search-icon" />
+      <input
+        type="text"
+        placeholder="Cerca per titolo, indirizzo o agente..."
+        [value]="searchQuery()"
+        (input)="onSearch($event)"
+      />
+    </div>
+
+    <select class="filter-select" [value]="filterStatus()" (change)="onStatusFilterChange($event)">
+      <option value="tutti">Tutti gli stati</option>
+      <option value="disponibile">Disponibili</option>
+      <option value="venduto">Venduti</option>
+      <option value="affittato">Affittati</option>
+      <option value="in_trattativa">In Trattativa</option>
+    </select>
+
+    <select class="filter-select" [value]="filterType()" (change)="onTypeFilterChange($event)">
+      <option value="tutti">Tutti i tipi</option>
+      <option value="vendita">Vendita</option>
+      <option value="affitto">Affitto</option>
+    </select>
+  </section>
+
+  <!-- Properties Grid -->
+  <section class="properties-grid">
+    <!-- Loading State -->
+    @if (isLoading()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Caricamento immobili...</p>
+      </div>
+    } @else {
+      @for (property of filteredProperties; track property.id) {
+        <div class="property-card">
+          <div class="property-image">
+            <img [src]="property.image" [alt]="property.title" />
+            <span class="property-type-badge">{{ property.type }}</span>
+            <span class="property-status-badge" [ngClass]="getStatusClass(property.status)">
+              {{ getStatusLabel(property.status) }}
+            </span>
+          </div>
+
+          <div class="property-content">
+            <h3 class="property-title">{{ property.title }}</h3>
+            <p class="property-address">📍 {{ property.address }}</p>
+
+            <div class="property-features">
+              <span class="feature">🛏️ {{ property.rooms }}</span>
+              <span class="feature">🚿 {{ property.bathrooms }}</span>
+              <span class="feature">📐 {{ property.surface }}m²</span>
+            </div>
+
+            <div class="property-agent">
+              <span class="agent-icon">👤</span>
+              <span>Agente: {{ property.agent }}</span>
+            </div>
+
+            <div class="property-footer">
+              <div class="property-price">{{ formatPrice(property.price, property.type) }}</div>
+              <div class="property-actions">
+                <button class="action-btn primary" (click)="viewPropertyDetails(property)">
+                  Visualizza Dettagli
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+
+      @if (filteredProperties.length === 0 && !error()) {
+        <div class="empty-state">
+          <span class="empty-icon">🔍</span>
+          <h3>Nessun immobile trovato</h3>
+          <p>Prova a modificare i filtri di ricerca</p>
+        </div>
+      }
+    }
+  </section>
+
+  <!-- Property Details Modal -->
+  @if (showDetailsModal() && selectedProperty()) {
+    <app-property-details-modal
+      [property]="selectedProperty()!"
+      (close)="onCloseDetailsModal()"
+    />
+  }
+</div>
