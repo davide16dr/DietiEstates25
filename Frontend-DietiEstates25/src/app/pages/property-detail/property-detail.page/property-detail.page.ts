@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal, OnInit } from '@angular/core';
+import { Component, computed, inject, signal, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
@@ -76,6 +76,7 @@ export class PropertyDetailPage implements OnInit {
   private dashboardService = inject(DashboardService);
   private toast = inject(ToastService);
   private authService = inject(AuthService);
+  private cdr = inject(ChangeDetectorRef); // ✅ AGGIUNTO: ChangeDetectorRef
 
   get isAuthenticated(): boolean {
     return this.authService.isAuthenticated();
@@ -217,7 +218,11 @@ export class PropertyDetailPage implements OnInit {
         console.log('🗺️ === FINE DEBUG ===');
         
         const dto = this.mapListingToPropertyDetail(l);
-        this.property.set(dto);
+        
+        // ✅ Usa setTimeout per evitare ExpressionChangedAfterItHasBeenCheckedError
+        setTimeout(() => {
+          this.property.set(dto);
+        }, 0);
         
         // ✅ DEBUG: Log del marker che verrà mostrato
         console.log('🎯 Marker sulla mappa:', {

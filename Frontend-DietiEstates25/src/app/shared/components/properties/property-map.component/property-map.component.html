@@ -1,71 +1,79 @@
 <div class="map-card">
-  <google-map
-    height="560px"
-    width="100%"
-    [center]="center()"
-    [zoom]="zoom()"
-    [options]="mapOptions"
-    (mapInitialized)="onMapReady($event)">
-    @for (m of markers(); track m.id) {
-      <map-marker
-        #mapMarker="mapMarker"
-        [position]="{ lat: m.lat, lng: m.lng }"
-        [options]="toGMarkerOptions(m.label)"
-        (mapClick)="openInfoWindow(m, mapMarker)">
-      </map-marker>
-    }
-
-    <!-- ✅ InfoWindow per mostrare l'anteprima del listing -->
-    <map-info-window #infoWindow>
-      @if (selectedMarker(); as marker) {
-        <div class="property-preview">
-          <!-- Immagine dell'immobile -->
-          @if (marker.imageUrl) {
-            <img [src]="marker.imageUrl" [alt]="marker.title" class="preview-image">
-          } @else {
-            <div class="preview-image-placeholder">
-              <span class="material-icons">home</span>
-            </div>
-          }
-
-          <!-- Dettagli dell'immobile -->
-          <div class="preview-content">
-            <h3 class="preview-title">{{ marker.title || 'Immobile' }}</h3>
-            <p class="preview-address">
-              <span class="material-icons">location_on</span>
-              {{ marker.address || 'Indirizzo non disponibile' }}
-            </p>
-            
-            <div class="preview-details">
-              @if (marker.rooms) {
-                <span class="detail-item">
-                  <span class="material-icons">bed</span>
-                  {{ marker.rooms }} locali
-                </span>
-              }
-              @if (marker.area) {
-                <span class="detail-item">
-                  <span class="material-icons">square_foot</span>
-                  {{ marker.area }} m²
-                </span>
-              }
-            </div>
-
-            <div class="preview-price">{{ marker.label }}</div>
-
-            <!-- Pulsante per aprire la pagina di dettaglio -->
-            <button type="button" class="preview-btn" (click)="openPropertyDetail()">
-              Vedi dettagli
-              <span class="material-icons">arrow_forward</span>
-            </button>
-          </div>
-        </div>
+  @if (isGoogleMapsLoaded()) {
+    <google-map
+      height="560px"
+      width="100%"
+      [center]="center()"
+      [zoom]="zoom()"
+      [options]="mapOptions"
+      (mapInitialized)="onMapReady($event)">
+      @for (m of markers(); track m.id) {
+        <map-marker
+          #mapMarker="mapMarker"
+          [position]="{ lat: m.lat, lng: m.lng }"
+          [options]="toGMarkerOptions(m.label)"
+          (mapClick)="openInfoWindow(m, mapMarker)">
+        </map-marker>
       }
-    </map-info-window>
-  </google-map>
 
-  <div class="map-controls">
-    <button type="button" class="mc-btn" (click)="onZoomIn()" aria-label="Zoom in">＋</button>
-    <button type="button" class="mc-btn" (click)="onZoomOut()" aria-label="Zoom out">－</button>
-  </div>
+      <!-- ✅ InfoWindow per mostrare l'anteprima del listing -->
+      <map-info-window #infoWindow>
+        @if (selectedMarker(); as marker) {
+          <div class="property-preview">
+            <!-- Immagine dell'immobile -->
+            @if (marker.imageUrl) {
+              <img [src]="marker.imageUrl" [alt]="marker.title" class="preview-image">
+            } @else {
+              <div class="preview-image-placeholder">
+                <span class="material-icons">home</span>
+              </div>
+            }
+
+            <!-- Dettagli dell'immobile -->
+            <div class="preview-content">
+              <h3 class="preview-title">{{ marker.title || 'Immobile' }}</h3>
+              <p class="preview-address">
+                <span class="material-icons">location_on</span>
+                {{ marker.address || 'Indirizzo non disponibile' }}
+              </p>
+              
+              <div class="preview-details">
+                @if (marker.rooms) {
+                  <span class="detail-item">
+                    <span class="material-icons">bed</span>
+                    {{ marker.rooms }} locali
+                  </span>
+                }
+                @if (marker.area) {
+                  <span class="detail-item">
+                    <span class="material-icons">square_foot</span>
+                    {{ marker.area }} m²
+                  </span>
+                }
+              </div>
+
+              <div class="preview-price">{{ marker.label }}</div>
+
+              <!-- Pulsante per aprire la pagina di dettaglio -->
+              <button type="button" class="preview-btn" (click)="openPropertyDetail()">
+                Vedi dettagli
+                <span class="material-icons">arrow_forward</span>
+              </button>
+            </div>
+          </div>
+        }
+      </map-info-window>
+    </google-map>
+
+    <div class="map-controls">
+      <button type="button" class="mc-btn" (click)="onZoomIn()" aria-label="Zoom in">＋</button>
+      <button type="button" class="mc-btn" (click)="onZoomOut()" aria-label="Zoom out">－</button>
+    </div>
+  } @else {
+    <!-- Mostra un loading spinner mentre Google Maps si carica -->
+    <div class="map-loading">
+      <div class="spinner"></div>
+      <p>Caricamento mappa...</p>
+    </div>
+  }
 </div>
