@@ -1,9 +1,8 @@
 // ⚠️ QUESTO È UN FILE TEMPLATE
-// Copia questo file come "environment.ts" e sostituisci i valori con le tue chiavi API reali
-// environment.ts è ignorato da Git per sicurezza
+// Copia questo file in environment.ts e inserisci le tue chiavi API reali
 
 export const environment = {
   production: false,
-  googleMapsApiKey: '', // ⚠️ SOSTITUIRE con la propria chiave API da Google Cloud Console
+  googleMapsApiKey: 'YOUR_GOOGLE_MAPS_API_KEY_HERE',
   apiUrl: 'http://localhost:8080/api',
 };

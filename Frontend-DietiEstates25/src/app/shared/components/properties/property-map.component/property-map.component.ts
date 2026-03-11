@@ -1,6 +1,7 @@
-import { Component, input, output, computed, signal, effect, ViewChild } from '@angular/core';
+import { Component, input, output, computed, signal, effect, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { GoogleMapsModule, MapInfoWindow, MapMarker } from '@angular/google-maps';
+import { GoogleMapsLoaderService } from '../../../services/google-maps-loader.service';
 
 export interface MapMarkerData {
   id: string;
@@ -24,6 +25,8 @@ export interface MapMarkerData {
   styleUrls: ['./property-map.component.scss'],
 })
 export class PropertyMapComponent {
+  private mapsLoader = inject(GoogleMapsLoaderService);
+
   markers = input.required<MapMarkerData[]>();
   markerClick = output<string>();
 
@@ -31,6 +34,9 @@ export class PropertyMapComponent {
 
   center = signal<google.maps.LatLngLiteral>({ lat: 45.4642, lng: 9.19 });
   zoom = signal(6);
+  
+  // ✅ Signal per verificare se Google Maps è caricato
+  isGoogleMapsLoaded = signal(false);
   
   // ✅ Signal per tenere traccia del marker selezionato
   selectedMarker = signal<MapMarkerData | null>(null);
@@ -45,6 +51,13 @@ export class PropertyMapComponent {
 
   // ✅ AGGIUNTO: Effect per centrare automaticamente la mappa quando cambiano i marker
   constructor() {
+    // ✅ Carica Google Maps dinamicamente usando il servizio
+    this.mapsLoader.load().then(() => {
+      this.isGoogleMapsLoaded.set(true);
+    }).catch(error => {
+      console.error('⚠️ Impossibile caricare Google Maps:', error);
+    });
+    
     effect(() => {
       const markers = this.markers();
       if (markers.length === 1) {
