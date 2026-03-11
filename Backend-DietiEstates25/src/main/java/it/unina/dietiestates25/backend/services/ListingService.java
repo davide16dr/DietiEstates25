@@ -58,7 +58,6 @@ public class ListingService {
         this.imageStorageService = imageStorageService;
         this.entityManager = entityManager;
         this.googleGeocodingService = googleGeocodingService;
-
         // Inizializza la directory di storage all'avvio
         this.imageStorageService.init();
     }
@@ -78,7 +77,6 @@ public class ListingService {
         System.out.println("   areaMax: " + filters.getAreaMax());
         System.out.println("   energyClass: " + filters.getEnergyClass());
         System.out.println("   elevator: " + filters.getElevator());
-
         // Se status non è specificato, cerco solo annunci ACTIVE
         String status = filters.getStatus() != null ? filters.getStatus().name() : ListingStatus.ACTIVE.name();
 
@@ -121,6 +119,16 @@ public class ListingService {
             System.out.println("  [" + i + "] " + l.getTitle() + " - " + l.getProperty().getCity());
         }
 
+        System.out.println("🔍 === FINE DEBUG ===");
+
+        System.out.println("✅ Risultati query SQL: " + listings.size() + " listings trovati");
+        
+        // Log dettagliato dei risultati
+        for (int i = 0; i < listings.size(); i++) {
+            Listing l = listings.get(i);
+            System.out.println("  [" + i + "] " + l.getTitle() + " - " + l.getProperty().getCity());
+        }
+        
         System.out.println("🔍 === FINE DEBUG ===");
 
         return listings.stream()
@@ -241,7 +249,6 @@ public class ListingService {
             property.setLatitude(new java.math.BigDecimal("41.9028")); // Roma
             property.setLongitude(new java.math.BigDecimal("12.4964"));
         }
-
         // Salva la proprietà
         property = propertyRepository.save(property);
 
@@ -405,7 +412,6 @@ public class ListingService {
             boolean addressChanged = false;
             String oldAddress = property.getAddress();
             String oldCity = property.getCity();
-
             if (propertyUpdate.getCity() != null) {
                 property.setCity(propertyUpdate.getCity());
                 if (!propertyUpdate.getCity().equals(oldCity)) {
@@ -722,6 +728,72 @@ public class ListingService {
                 });
 
         System.out.println("✅ Inviate " + notifiedClients.size() + " notifiche per variazione prezzo");
+    }
+    
+    /**
+     * 🗺️ Trova immobili in un'area geografica definita da bounds (lat/lng)
+     * Utilizzato per ricerca per indirizzo con Google Maps API
+     */
+    @Transactional(readOnly = true)
+    public List<it.unina.dietiestates25.backend.dto.listing.ListingResponseDto> findListingsInBounds(
+            double minLat, double maxLat, double minLng, double maxLng,
+            String type, Integer priceMin, Integer priceMax) {
+        
+        System.out.println("🗺️ Ricerca immobili in bounds geografici:");
+        System.out.println("   Lat: [" + minLat + ", " + maxLat + "]");
+        System.out.println("   Lng: [" + minLng + ", " + maxLng + "]");
+        
+        List<Listing> listings = listingRepository.findInGeoBounds(
+            minLat, maxLat, minLng, maxLng, type, priceMin, priceMax
+        );
+        
+        System.out.println("✅ Trovati " + listings.size() + " immobili");
+        
+        return listings.stream()
+            .map(this::mapToResponseDto)
+            .collect(Collectors.toList());
+    }
+    
+    /**
+     * Mapper per ListingResponseDto (usato per ricerca geografica)
+     */
+    private it.unina.dietiestates25.backend.dto.listing.ListingResponseDto mapToResponseDto(Listing listing) {
+        it.unina.dietiestates25.backend.dto.listing.ListingResponseDto dto = 
+            new it.unina.dietiestates25.backend.dto.listing.ListingResponseDto();
+        
+        Property property = listing.getProperty();
+        
+        dto.setId(listing.getId());
+        dto.setTitle(listing.getTitle());
+        dto.setType(listing.getType());
+        dto.setStatus(listing.getStatus());
+        dto.setPriceAmount(listing.getPriceAmount());
+        dto.setCurrency(listing.getCurrency());
+        dto.setPublicText(listing.getPublicText());
+        
+        // Property info
+        it.unina.dietiestates25.backend.dto.listing.ListingResponseDto.PropertyInfo propInfo = 
+            new it.unina.dietiestates25.backend.dto.listing.ListingResponseDto.PropertyInfo();
+        propInfo.setCity(property.getCity());
+        propInfo.setAddress(property.getAddress());
+        propInfo.setLatitude(property.getLatitude());
+        propInfo.setLongitude(property.getLongitude());
+        propInfo.setPropertyType(property.getPropertyType());
+        propInfo.setRooms(property.getRooms());
+        propInfo.setBathrooms(property.getBathrooms());
+        propInfo.setAreaM2(property.getAreaM2());
+        propInfo.setFloor(property.getFloor());
+        propInfo.setElevator(property.isElevator());
+        propInfo.setEnergyClass(property.getEnergyClass());
+        dto.setProperty(propInfo);
+        
+        // Images
+        List<String> imageUrls = listing.getImages().stream()
+            .map(ListingImage::getUrl)
+            .collect(Collectors.toList());
+        dto.setImageUrls(imageUrls);
+        
+        return dto;
     }
 
     /**
