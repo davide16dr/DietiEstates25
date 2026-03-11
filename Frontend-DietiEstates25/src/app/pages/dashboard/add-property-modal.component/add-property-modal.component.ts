@@ -1,6 +1,8 @@
-import { Component, output, inject, signal } from '@angular/core';
+import { Component, output, inject, signal, ElementRef, ViewChild, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators, NonNullableFormBuilder } from '@angular/forms';
+import { GooglePlacesService, PlacePrediction } from '../../../shared/services/google-places.service';
+import { Subject, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
 
 // Interfaccia tipizzata per il form Property
 interface PropertyFormValue {
@@ -27,13 +29,31 @@ interface PropertyFormValue {
   templateUrl: './add-property-modal.component.html',
   styleUrl: './add-property-modal.component.scss',
 })
-export class AddPropertyModalComponent {
+export class AddPropertyModalComponent implements AfterViewInit, OnDestroy {
   // Modern Angular 21: output() invece di @Output()
   close = output<void>();
   save = output<any>();
 
   // Modern Angular 21: inject() invece di constructor DI
   private fb = inject(NonNullableFormBuilder);
+  private googlePlacesService = inject(GooglePlacesService);
+
+  @ViewChild('cityInput') cityInput!: ElementRef<HTMLInputElement>;
+  @ViewChild('addressInput') addressInput!: ElementRef<HTMLInputElement>;
+
+  // Autocomplete per città
+  citySuggestions = signal<PlacePrediction[]>([]);
+  showCitySuggestions = signal(false);
+  private citySearchSubject = new Subject<string>();
+
+  // Autocomplete per indirizzo
+  addressSuggestions = signal<PlacePrediction[]>([]);
+  showAddressSuggestions = signal(false);
+  private addressSearchSubject = new Subject<string>();
+
+  // Coordinate geografiche
+  propertyCoordinates = signal<{ lat: number; lng: number } | null>(null);
+  cityCoordinates = signal<{ lat: number; lng: number } | null>(null);
 
   // Modern Angular 21: signal() per stato reattivo
   selectedImages = signal<File[]>([]);
@@ -66,6 +86,176 @@ export class AddPropertyModalComponent {
     price_amount: this.fb.control(0, [Validators.required, Validators.min(1)]),
     currency: this.fb.control('EUR')
   });
+
+  constructor() {
+    // Configura l'autocomplete per il campo città (solo città italiane)
+    this.citySearchSubject
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        switchMap(input => this.googlePlacesService.getCitySuggestions(input))
+      )
+      .subscribe(suggestions => {
+        this.citySuggestions.set(suggestions);
+        this.showCitySuggestions.set(suggestions.length > 0);
+      });
+
+    // Configura l'autocomplete per il campo indirizzo (indirizzi completi)
+    this.addressSearchSubject
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        switchMap(input => {
+          // ✅ INTELLIGENTE: Usa il nome della città per filtrare i risultati
+          const city = this.propertyForm.get('city')?.value?.trim();
+          const coords = this.cityCoordinates();
+          
+          if (city && city.length > 0 && coords) {
+            // Città già compilata CON coordinate: cerca indirizzi SOLO in quella città
+            console.log('🔍 Ricerca indirizzo in città:', city, coords);
+            return this.googlePlacesService.getAddressSuggestionsNearLocation(input, coords.lat, coords.lng, city);
+          } else if (city && city.length > 0) {
+            // Città compilata ma senza coordinate: usa il nome città nella query
+            const fullQuery = `${input}, ${city}, Italia`;
+            console.log('🔍 Ricerca indirizzo CON città nella query:', fullQuery);
+            return this.googlePlacesService.getAddressSuggestions(fullQuery);
+          } else {
+            // Città vuota: cerca indirizzi generici in tutta Italia
+            console.log('🔍 Ricerca indirizzo SENZA città:', input);
+            return this.googlePlacesService.getAddressSuggestions(input);
+          }
+        })
+      )
+      .subscribe(suggestions => {
+        this.addressSuggestions.set(suggestions);
+        this.showAddressSuggestions.set(suggestions.length > 0);
+      });
+  }
+
+  ngAfterViewInit(): void {
+    // Listener per chiudere i suggerimenti quando si clicca fuori
+    document.addEventListener('click', this.handleClickOutside.bind(this));
+  }
+
+  ngOnDestroy(): void {
+    document.removeEventListener('click', this.handleClickOutside.bind(this));
+    this.citySearchSubject.complete();
+    this.addressSearchSubject.complete();
+  }
+
+  // ===== AUTOCOMPLETE HANDLERS =====
+
+  onCityInput(event: Event): void {
+    const input = (event.target as HTMLInputElement).value;
+    if (input.length >= 2) {
+      this.citySearchSubject.next(input);
+    } else {
+      this.citySuggestions.set([]);
+      this.showCitySuggestions.set(false);
+    }
+  }
+
+  selectCity(prediction: PlacePrediction): void {
+    // Usa solo il nome della città (main_text)
+    this.propertyForm.patchValue({ city: prediction.structured_formatting.main_text });
+    this.citySuggestions.set([]);
+    this.showCitySuggestions.set(false);
+
+    // ✅ IMPORTANTE: Ottieni e salva le coordinate della città per bias geografico
+    this.googlePlacesService.geocodePlaceId(prediction.place_id).subscribe(result => {
+      if (result) {
+        this.cityCoordinates.set({ lat: result.latitude, lng: result.longitude });
+        console.log('📍 Coordinate città salvate:', result.city, result.latitude, result.longitude);
+      }
+    });
+  }
+
+  onAddressInput(event: Event): void {
+    const input = (event.target as HTMLInputElement).value;
+    if (input.length >= 3) {
+      this.addressSearchSubject.next(input);
+    } else {
+      this.addressSuggestions.set([]);
+      this.showAddressSuggestions.set(false);
+    }
+  }
+
+  selectAddress(prediction: PlacePrediction): void {
+    console.log('🔍 Selezione indirizzo:', prediction.description);
+    
+    // Controlla se il campo città è già compilato
+    const currentCity = this.propertyForm.get('city')?.value?.trim();
+    const isCityAlreadySet = currentCity && currentCity.length > 0;
+    
+    // Usa il geocoding per ottenere i dati strutturati correttamente
+    this.googlePlacesService.geocodePlaceId(prediction.place_id).subscribe(result => {
+      if (result) {
+        console.log('📍 Risultato geocoding:', result);
+        
+        // ✅ Estrai SOLO la via e il numero civico
+        const fullAddress = result.address;
+        const addressParts = fullAddress.split(',').map(p => p.trim());
+        
+        let streetAddress = addressParts[0]; // Es: "Via Provinciale Montagna Spaccata"
+        
+        // Se c'è una seconda parte che sembra un numero civico, aggiungila
+        if (addressParts.length > 1) {
+          const possibleNumber = addressParts[1].trim();
+          if (/^\d+[a-zA-Z]?$/.test(possibleNumber)) {
+            streetAddress = `${streetAddress}, ${possibleNumber}`;
+          }
+        }
+        
+        const cityFromAddress = result.city;
+        
+        console.log('📍 Indirizzo estratto:', streetAddress);
+        console.log('📍 Città estratta:', cityFromAddress);
+        
+        // ✅ LOGICA INTELLIGENTE:
+        if (isCityAlreadySet) {
+          // Città già presente: aggiorna SOLO l'indirizzo
+          console.log('✅ Città già presente, aggiorno solo indirizzo');
+          this.propertyForm.patchValue({ 
+            address: streetAddress
+          });
+        } else {
+          // Città vuota: autocompila ENTRAMBI i campi
+          console.log('✅ Città vuota, autocompilo città + indirizzo');
+          this.propertyForm.patchValue({ 
+            address: streetAddress,
+            city: cityFromAddress
+          });
+        }
+        
+        // Salva le coordinate
+        this.propertyCoordinates.set({ lat: result.latitude, lng: result.longitude });
+        console.log('📍 Coordinate immobile:', result.latitude, result.longitude);
+      }
+      
+      this.addressSuggestions.set([]);
+      this.showAddressSuggestions.set(false);
+    });
+  }
+
+  private handleClickOutside(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    
+    // Chiudi suggerimenti città se si clicca fuori
+    if (this.cityInput && !this.cityInput.nativeElement.contains(target)) {
+      const clickedCitySuggestion = target.closest('.city-suggestions');
+      if (!clickedCitySuggestion) {
+        this.showCitySuggestions.set(false);
+      }
+    }
+
+    // Chiudi suggerimenti indirizzo se si clicca fuori
+    if (this.addressInput && !this.addressInput.nativeElement.contains(target)) {
+      const clickedAddressSuggestion = target.closest('.address-suggestions');
+      if (!clickedAddressSuggestion) {
+        this.showAddressSuggestions.set(false);
+      }
+    }
+  }
 
   // ===== GESTIONE IMMAGINI =====
   
@@ -213,8 +403,7 @@ export class AddPropertyModalComponent {
       
       console.log('=== ADD PROPERTY MODAL onSubmit ===');
       console.log('formValue:', formValue);
-      console.log('formValue.listing_type:', formValue.listing_type);
-      console.log('propertyForm value:', this.propertyForm.value);
+      console.log('Coordinate immobile:', this.propertyCoordinates());
       console.log('===================================');
       
       const formData = {
@@ -223,7 +412,7 @@ export class AddPropertyModalComponent {
           address: formValue.address,
           property_type: formValue.property_type,
           rooms: formValue.rooms,
-          bathrooms: formValue.bathrooms || 0,  // ✅ Invia 0 invece di null
+          bathrooms: formValue.bathrooms || 0,
           area_m2: formValue.area_m2,
           floor: formValue.floor || null,
           elevator: formValue.elevator,
@@ -258,6 +447,8 @@ export class AddPropertyModalComponent {
     });
     this.selectedImages.set([]);
     this.imagePreviews.set([]);
+    this.propertyCoordinates.set(null);
+    this.cityCoordinates.set(null);
   }
 
   // ===== VALIDATION HELPERS =====

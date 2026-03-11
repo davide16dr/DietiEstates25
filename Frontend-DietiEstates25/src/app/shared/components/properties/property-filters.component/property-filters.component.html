@@ -21,9 +21,27 @@
         </select>
       </div>
   
-      <div class="field">
+      <div class="field city-autocomplete">
         <label>Città</label>
-        <input type="text" placeholder="Es. Milano" formControlName="city" />
+        <input 
+          #cityInput
+          type="text" 
+          placeholder="Es. Milano, Roma, Napoli..." 
+          formControlName="city"
+          (input)="onCityInput($event)"
+          autocomplete="off"
+        />
+        
+        @if (showCitySuggestions && citySuggestions.length > 0) {
+          <ul class="city-suggestions">
+            @for (suggestion of citySuggestions; track suggestion.place_id) {
+              <li (click)="selectCity(suggestion)">
+                <span class="city-main">{{ suggestion.structured_formatting.main_text }}</span>
+                <span class="city-secondary">{{ suggestion.structured_formatting.secondary_text }}</span>
+              </li>
+            }
+          </ul>
+        }
       </div>
   
       <div class="field">

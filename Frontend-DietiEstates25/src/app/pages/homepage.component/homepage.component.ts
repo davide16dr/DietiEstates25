@@ -1,5 +1,8 @@
-import { Component, signal, inject } from '@angular/core';
+import { Component, signal, inject, ElementRef, ViewChild, AfterViewInit, OnDestroy } from '@angular/core';
 import { RouterModule, Router } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { GooglePlacesService, PlacePrediction } from '../../shared/services/google-places.service';
+import { Subject, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
 
 interface Stat { label: string; value: string; }
 interface Feature { icon: string; title: string; description: string; }
@@ -7,15 +10,23 @@ interface Feature { icon: string; title: string; description: string; }
 @Component({
   selector: 'app-homepage',
   standalone: true,
-  imports: [RouterModule],
+  imports: [RouterModule, CommonModule],
   templateUrl: './homepage.component.html',
   styleUrl: './homepage.component.scss',
 })
-export class HomepageComponent {
+export class HomepageComponent implements AfterViewInit, OnDestroy {
   private router = inject(Router);
+  private googlePlacesService = inject(GooglePlacesService);
+
+  @ViewChild('searchInput') searchInput!: ElementRef<HTMLInputElement>;
 
   searchQuery = signal('');
   contractType = signal<'sale' | 'rent' | null>(null);
+
+  // Autocomplete per ricerca immediata
+  searchSuggestions: PlacePrediction[] = [];
+  showSearchSuggestions = false;
+  private searchSubject = new Subject<string>();
 
   stats: Stat[] = [
     { value: '10,000+', label: 'Immobili' },
@@ -31,12 +42,68 @@ export class HomepageComponent {
     { icon: '👨‍💼', title: 'Supporto Dedicato', description: 'Assistenza professionale in ogni fase.' },
   ];
 
+  constructor() {
+    // Configura l'autocomplete immediato per la barra di ricerca
+    this.searchSubject
+      .pipe(
+        debounceTime(200), // Risposta più rapida per la homepage
+        distinctUntilChanged(),
+        switchMap(input => this.googlePlacesService.getAddressSuggestions(input))
+      )
+      .subscribe(suggestions => {
+        this.searchSuggestions = suggestions;
+        this.showSearchSuggestions = suggestions.length > 0;
+      });
+  }
+
+  ngAfterViewInit(): void {
+    // Listener per chiudere i suggerimenti quando si clicca fuori
+    document.addEventListener('click', this.handleClickOutside.bind(this));
+  }
+
+  ngOnDestroy(): void {
+    document.removeEventListener('click', this.handleClickOutside.bind(this));
+    this.searchSubject.complete();
+  }
+
+  onSearchInput(event: Event): void {
+    const input = (event.target as HTMLInputElement).value;
+    this.searchQuery.set(input);
+    
+    if (input.length >= 2) {
+      this.searchSubject.next(input);
+    } else {
+      this.searchSuggestions = [];
+      this.showSearchSuggestions = false;
+    }
+  }
+
+  selectSuggestion(prediction: PlacePrediction): void {
+    // ✅ USA SOLO IL NOME DELLA CITTÀ (main_text) invece della descrizione completa
+    this.searchQuery.set(prediction.structured_formatting.main_text);
+    this.searchSuggestions = [];
+    this.showSearchSuggestions = false;
+    
+    // Esegui automaticamente la ricerca
+    this.onSearch();
+  }
+
+  private handleClickOutside(event: MouseEvent): void {
+    if (this.searchInput && !this.searchInput.nativeElement.contains(event.target as Node)) {
+      const clickedSuggestion = (event.target as HTMLElement).closest('.search-suggestions');
+      if (!clickedSuggestion) {
+        this.showSearchSuggestions = false;
+      }
+    }
+  }
+
   selectType(type: 'sale' | 'rent'): void {
     // Toggle: se già selezionato, deseleziona
     this.contractType.set(this.contractType() === type ? null : type);
   }
 
   onSearch(): void {
+    this.showSearchSuggestions = false;
     this.router.navigate(['/pages/properties-page'], {
       queryParams: {
         search: this.searchQuery(),

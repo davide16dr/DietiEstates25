@@ -3,13 +3,9 @@ import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { routes } from './app.routes';
-import { environment } from '../environments/environment';
 import { jwtInterceptor } from './auth/jwt.interceptor';
 
-const script = document.createElement('script');
-script.src = `https://maps.googleapis.com/maps/api/js?key=${environment.googleMapsApiKey}&v=weekly`;
-script.defer = true;
-document.head.appendChild(script);
+// ✅ Google Maps API viene caricata da index.html con librerie places e geometry
 
 export const appConfig: ApplicationConfig = {
   providers: [

@@ -68,7 +68,6 @@ $shadow-soft: 0 18px 40px rgba(15, 31, 53, 0.12);
   display: flex;
   align-items: center;
   justify-content: center;
-
   flex-wrap: wrap;
   background: #ffffff;
   border-radius: 999px;
@@ -77,8 +76,14 @@ $shadow-soft: 0 18px 40px rgba(15, 31, 53, 0.12);
   gap: 0.6rem;
 }
 
-.search-input {
+// ── Autocomplete Search con Google Places API ──────────────────────────
+.search-input-wrapper {
   flex: 1;
+  position: relative;
+  min-width: 280px;
+}
+
+.search-input {
   display: flex;
   align-items: center;
   padding: 0.4rem 0.9rem;
@@ -95,6 +100,77 @@ $shadow-soft: 0 18px 40px rgba(15, 31, 53, 0.12);
   outline: none;
   width: 100%;
   font-size: 0.95rem;
+}
+
+.search-suggestions {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  max-height: 320px;
+  overflow-y: auto;
+  box-shadow: 0 12px 32px rgba(17, 24, 39, 0.15);
+  z-index: 1000;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+
+  li {
+    padding: 0.9rem 1.1rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    border-bottom: 1px solid #f3f4f6;
+
+    &:first-child {
+      border-top-left-radius: 16px;
+      border-top-right-radius: 16px;
+    }
+
+    &:last-child {
+      border-bottom: none;
+      border-bottom-left-radius: 16px;
+      border-bottom-right-radius: 16px;
+    }
+
+    &:hover {
+      background: #f9fafb;
+    }
+
+    .suggestion-icon {
+      font-size: 1.1rem;
+      flex-shrink: 0;
+      opacity: 0.6;
+    }
+
+    .suggestion-content {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+      flex: 1;
+    }
+
+    .suggestion-main {
+      font-weight: 600;
+      color: $text-main;
+      font-size: 0.95rem;
+    }
+
+    .suggestion-secondary {
+      font-size: 0.82rem;
+      color: $text-muted;
+    }
+  }
+}
+
+.search-filters {
+  display: flex;
+  gap: 0.6rem;
 }
 
 .btn {
