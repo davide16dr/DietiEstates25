@@ -40,6 +40,59 @@
     height:54px; border-radius:14px; border:1px solid #eadfce;
     background:#fbfaf8; cursor:pointer; font-size:1.15rem; color:#374151;
   }
+
+  // ── Autocomplete città con Google Places API ────────────────────────────
+  .city-autocomplete {
+    position: relative;
+  }
+
+  .city-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid #eadfce;
+    border-radius: 12px;
+    margin-top: 4px;
+    max-height: 280px;
+    overflow-y: auto;
+    box-shadow: 0 8px 20px rgba(17, 24, 39, 0.12);
+    z-index: 1000;
+    list-style: none;
+    padding: 0;
+    margin: 4px 0 0 0;
+
+    li {
+      padding: 0.85rem 1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      border-bottom: 1px solid #f3f4f6;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &:hover {
+        background: #f9fafb;
+      }
+
+      .city-main {
+        font-weight: 600;
+        color: #111827;
+        font-size: 0.95rem;
+      }
+
+      .city-secondary {
+        font-size: 0.82rem;
+        color: #6b7280;
+      }
+    }
+  }
+
   @media (max-width: 980px) {
     .filters-card{ position: static; }
   }

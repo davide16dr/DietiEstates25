@@ -37,13 +37,16 @@ public class ListingService {
     private final ImageStorageService imageStorageService;
     // ✅ AGGIUNTO: EntityManager per gestire la cache di Hibernate
     private final jakarta.persistence.EntityManager entityManager;
+    // ✅ AGGIUNTO: GoogleGeocodingService per geocodificare gli indirizzi
+    private final GoogleGeocodingService googleGeocodingService;
 
     public ListingService(ListingRepository listingRepository, PropertyRepository propertyRepository, 
                          UserRepository userRepository, AgencyRepository agencyRepository,
                          NotificationService notificationService, OfferRepository offerRepository,
                          VisitRepository visitRepository, ListingImageRepository listingImageRepository,
                          ImageStorageService imageStorageService,
-                         jakarta.persistence.EntityManager entityManager) {
+                         jakarta.persistence.EntityManager entityManager,
+                         GoogleGeocodingService googleGeocodingService) {
         this.listingRepository = listingRepository;
         this.propertyRepository = propertyRepository;
         this.userRepository = userRepository;
@@ -54,6 +57,7 @@ public class ListingService {
         this.listingImageRepository = listingImageRepository;
         this.imageStorageService = imageStorageService;
         this.entityManager = entityManager;
+        this.googleGeocodingService = googleGeocodingService;
         
         // Inizializza la directory di storage all'avvio
         this.imageStorageService.init();
@@ -61,6 +65,20 @@ public class ListingService {
 
     @Transactional(readOnly = true)
     public List<ListingResponse> getFilteredListings(ListingFilterRequest filters) {
+        System.out.println("🔍 === DEBUG RICERCA BACKEND ===");
+        System.out.println("📋 Filtri ricevuti dal frontend:");
+        System.out.println("   city: " + filters.getCity());
+        System.out.println("   type: " + (filters.getType() != null ? filters.getType().name() : "null"));
+        System.out.println("   status: " + (filters.getStatus() != null ? filters.getStatus().name() : "null"));
+        System.out.println("   propertyType: " + filters.getPropertyType());
+        System.out.println("   priceMin: " + filters.getPriceMin());
+        System.out.println("   priceMax: " + filters.getPriceMax());
+        System.out.println("   roomsMin: " + filters.getRoomsMin());
+        System.out.println("   areaMin: " + filters.getAreaMin());
+        System.out.println("   areaMax: " + filters.getAreaMax());
+        System.out.println("   energyClass: " + filters.getEnergyClass());
+        System.out.println("   elevator: " + filters.getElevator());
+        
         // Se status non è specificato, cerco solo annunci ACTIVE
         String status = filters.getStatus() != null ? 
             filters.getStatus().name() : ListingStatus.ACTIVE.name();
@@ -73,6 +91,12 @@ public class ListingService {
         String energyClass = (filters.getEnergyClass() != null && !filters.getEnergyClass().trim().isEmpty()) 
             ? filters.getEnergyClass().trim() : null;
         String type = filters.getType() != null ? filters.getType().name() : null;
+
+        System.out.println("📋 Parametri query SQL:");
+        System.out.println("   type: " + type);
+        System.out.println("   status: " + status);
+        System.out.println("   city: " + city);
+        System.out.println("   propertyType: " + propertyType);
 
         List<Listing> listings = listingRepository.findByFilters(
             type,
@@ -87,6 +111,16 @@ public class ListingService {
             energyClass,
             filters.getElevator()
         );
+
+        System.out.println("✅ Risultati query SQL: " + listings.size() + " listings trovati");
+        
+        // Log dettagliato dei risultati
+        for (int i = 0; i < listings.size(); i++) {
+            Listing l = listings.get(i);
+            System.out.println("  [" + i + "] " + l.getTitle() + " - " + l.getProperty().getCity());
+        }
+        
+        System.out.println("🔍 === FINE DEBUG ===");
 
         return listings.stream()
             .map(this::mapToResponse)
@@ -189,12 +223,23 @@ public class ListingService {
         // Imposta l'agenzia della proprietà da quella dell'agente
         property.setAgency(agency);
         
-        // TODO: Implementare geolocalizzazione reale
-        // Per ora usiamo valori di default (coordinate di Napoli)
-        java.math.BigDecimal defaultLatitude = new java.math.BigDecimal("40.8517");
-        java.math.BigDecimal defaultLongitude = new java.math.BigDecimal("14.2681");
-        property.setLatitude(defaultLatitude);
-        property.setLongitude(defaultLongitude);
+        // ✅ GEOCODIFICA L'INDIRIZZO per ottenere coordinate GPS precise
+        String fullAddress = request.getProperty().getAddress() + ", " + request.getProperty().getCity();
+        System.out.println("🌍 Geocoding indirizzo: " + fullAddress);
+        
+        GoogleGeocodingService.GeocodingResult geocodingResult = googleGeocodingService.geocodeAddress(fullAddress);
+        
+        if (geocodingResult != null) {
+            // Usa le coordinate geocodificate
+            property.setLatitude(new java.math.BigDecimal(geocodingResult.latitude()));
+            property.setLongitude(new java.math.BigDecimal(geocodingResult.longitude()));
+            System.out.println("✅ Coordinate GPS ottenute: lat=" + geocodingResult.latitude() + ", lng=" + geocodingResult.longitude());
+        } else {
+            // Fallback: coordinate di default (centro Italia)
+            System.err.println("⚠️ Geocoding fallito per: " + fullAddress + " - uso coordinate di default");
+            property.setLatitude(new java.math.BigDecimal("41.9028")); // Roma
+            property.setLongitude(new java.math.BigDecimal("12.4964"));
+        }
         
         // Salva la proprietà
         property = propertyRepository.save(property);
@@ -350,11 +395,22 @@ public class ListingService {
             Property property = listing.getProperty();
             it.unina.dietiestates25.backend.dto.listing.UpdateListingRequest.PropertyUpdate propertyUpdate = request.getProperty();
             
+            // ✅ Traccia se l'indirizzo è cambiato per ri-geocodificare
+            boolean addressChanged = false;
+            String oldAddress = property.getAddress();
+            String oldCity = property.getCity();
+            
             if (propertyUpdate.getCity() != null) {
                 property.setCity(propertyUpdate.getCity());
+                if (!propertyUpdate.getCity().equals(oldCity)) {
+                    addressChanged = true;
+                }
             }
             if (propertyUpdate.getAddress() != null) {
                 property.setAddress(propertyUpdate.getAddress());
+                if (!propertyUpdate.getAddress().equals(oldAddress)) {
+                    addressChanged = true;
+                }
             }
             if (propertyUpdate.getPropertyType() != null) {
                 property.setPropertyType(propertyUpdate.getPropertyType());
@@ -380,6 +436,30 @@ public class ListingService {
             if (propertyUpdate.getDescription() != null) {
                 property.setDescription(propertyUpdate.getDescription());
                 listing.setPublicText(propertyUpdate.getDescription());
+            }
+            
+            // ✅ Se l'indirizzo è cambiato, ri-geocodifica per ottenere nuove coordinate GPS
+            if (addressChanged) {
+                // ✅ PRIORITÀ 1: Usa le coordinate inviate dal frontend (da Google Places Autocomplete)
+                if (propertyUpdate.getLatitude() != null && propertyUpdate.getLongitude() != null) {
+                    property.setLatitude(new java.math.BigDecimal(propertyUpdate.getLatitude()));
+                    property.setLongitude(new java.math.BigDecimal(propertyUpdate.getLongitude()));
+                    System.out.println("✅ Coordinate GPS ricevute dal frontend: lat=" + propertyUpdate.getLatitude() + ", lng=" + propertyUpdate.getLongitude());
+                } else {
+                    // ✅ PRIORITÀ 2: Fallback alla geocodifica lato server (solo se non ricevute dal frontend)
+                    String fullAddress = property.getAddress() + ", " + property.getCity();
+                    System.out.println("🌍 Indirizzo modificato! Ri-geocoding: " + fullAddress);
+                    
+                    GoogleGeocodingService.GeocodingResult geocodingResult = googleGeocodingService.geocodeAddress(fullAddress);
+                    
+                    if (geocodingResult != null) {
+                        property.setLatitude(new java.math.BigDecimal(geocodingResult.latitude()));
+                        property.setLongitude(new java.math.BigDecimal(geocodingResult.longitude()));
+                        System.out.println("✅ Coordinate GPS aggiornate: lat=" + geocodingResult.latitude() + ", lng=" + geocodingResult.longitude());
+                    } else {
+                        System.err.println("⚠️ Geocoding fallito per: " + fullAddress + " - mantengo coordinate esistenti");
+                    }
+                }
             }
             
             propertyRepository.save(property);
@@ -622,6 +702,72 @@ public class ListingService {
             });
         
         System.out.println("✅ Inviate " + notifiedClients.size() + " notifiche per variazione prezzo");
+    }
+    
+    /**
+     * 🗺️ Trova immobili in un'area geografica definita da bounds (lat/lng)
+     * Utilizzato per ricerca per indirizzo con Google Maps API
+     */
+    @Transactional(readOnly = true)
+    public List<it.unina.dietiestates25.backend.dto.listing.ListingResponseDto> findListingsInBounds(
+            double minLat, double maxLat, double minLng, double maxLng,
+            String type, Integer priceMin, Integer priceMax) {
+        
+        System.out.println("🗺️ Ricerca immobili in bounds geografici:");
+        System.out.println("   Lat: [" + minLat + ", " + maxLat + "]");
+        System.out.println("   Lng: [" + minLng + ", " + maxLng + "]");
+        
+        List<Listing> listings = listingRepository.findInGeoBounds(
+            minLat, maxLat, minLng, maxLng, type, priceMin, priceMax
+        );
+        
+        System.out.println("✅ Trovati " + listings.size() + " immobili");
+        
+        return listings.stream()
+            .map(this::mapToResponseDto)
+            .collect(Collectors.toList());
+    }
+    
+    /**
+     * Mapper per ListingResponseDto (usato per ricerca geografica)
+     */
+    private it.unina.dietiestates25.backend.dto.listing.ListingResponseDto mapToResponseDto(Listing listing) {
+        it.unina.dietiestates25.backend.dto.listing.ListingResponseDto dto = 
+            new it.unina.dietiestates25.backend.dto.listing.ListingResponseDto();
+        
+        Property property = listing.getProperty();
+        
+        dto.setId(listing.getId());
+        dto.setTitle(listing.getTitle());
+        dto.setType(listing.getType());
+        dto.setStatus(listing.getStatus());
+        dto.setPriceAmount(listing.getPriceAmount());
+        dto.setCurrency(listing.getCurrency());
+        dto.setPublicText(listing.getPublicText());
+        
+        // Property info
+        it.unina.dietiestates25.backend.dto.listing.ListingResponseDto.PropertyInfo propInfo = 
+            new it.unina.dietiestates25.backend.dto.listing.ListingResponseDto.PropertyInfo();
+        propInfo.setCity(property.getCity());
+        propInfo.setAddress(property.getAddress());
+        propInfo.setLatitude(property.getLatitude());
+        propInfo.setLongitude(property.getLongitude());
+        propInfo.setPropertyType(property.getPropertyType());
+        propInfo.setRooms(property.getRooms());
+        propInfo.setBathrooms(property.getBathrooms());
+        propInfo.setAreaM2(property.getAreaM2());
+        propInfo.setFloor(property.getFloor());
+        propInfo.setElevator(property.isElevator());
+        propInfo.setEnergyClass(property.getEnergyClass());
+        dto.setProperty(propInfo);
+        
+        // Images
+        List<String> imageUrls = listing.getImages().stream()
+            .map(ListingImage::getUrl)
+            .collect(Collectors.toList());
+        dto.setImageUrls(imageUrls);
+        
+        return dto;
     }
 
     private ListingResponse mapToResponse(Listing listing) {

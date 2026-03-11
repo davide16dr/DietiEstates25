@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal, OnInit } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ListingService } from '../../../shared/services/listing.service';
 import { OfferService, OfferRequest } from '../../../shared/services/offer.service';
 import { DashboardService } from '../../../shared/services/dashboard.service';
@@ -9,6 +10,8 @@ import { AuthService } from '../../../auth/auth.service';
 import { MakeOfferModalComponent, MakeOfferPayload } from '../make-offer-modal.component/make-offer-modal.component';
 import { BookVisitModalComponent, BookVisitPayload } from '../book-visit-modal.component/book-visit-modal.component';
 import { ImageLightboxComponent } from '../../../shared/components/image-lightbox.component/image-lightbox.component';
+import { PropertyMapComponent, MapMarkerData } from '../../../shared/components/properties/property-map.component/property-map.component'; // ✅ AGGIUNTO
+import { environment } from '../../../../environments/environment'; // ✅ AGGIUNTO: Import environment
 
 type DealType = 'Vendita' | 'Affitto';
 type Availability = 'Disponibile' | 'Non disponibile';
@@ -50,12 +53,16 @@ type PropertyDetail = {
   };
 
   images: string[];
+  
+  // ✅ AGGIUNTO: Coordinate geografiche per la mappa
+  latitude?: number;
+  longitude?: number;
 };
 
 @Component({
   selector: 'app-property-detail-page',
   standalone: true,
-  imports: [CommonModule, RouterModule, MakeOfferModalComponent, BookVisitModalComponent, ImageLightboxComponent],
+  imports: [CommonModule, RouterModule, MakeOfferModalComponent, BookVisitModalComponent, ImageLightboxComponent, PropertyMapComponent], // ✅ AGGIUNTO PropertyMapComponent
   templateUrl: './property-detail.page.html',
   styleUrls: ['./property-detail.page.scss'],
 })
@@ -63,6 +70,7 @@ export class PropertyDetailPage implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private location = inject(Location);
+  private sanitizer = inject(DomSanitizer); // ✅ AGGIUNTO: DomSanitizer per URL sicuri
   private listingService = inject(ListingService);
   private offerService = inject(OfferService);
   private dashboardService = inject(DashboardService);
@@ -180,7 +188,10 @@ export class PropertyDetailPage implements OnInit {
           email: l.agentEmail ?? 'info@dietiestates.it',
           initials: this.getInitials(l.agentName)
         },
-        images: Array.isArray(l.imageUrls) && l.imageUrls.length ? l.imageUrls : ['assets/placeholders/property-hero.jpg']
+        images: Array.isArray(l.imageUrls) && l.imageUrls.length ? l.imageUrls : [],
+        // ✅ AGGIUNTO: Coordinate geografiche
+        latitude: l.latitude,
+        longitude: l.longitude
       };
 
       this.property.set(dto);
@@ -195,8 +206,25 @@ export class PropertyDetailPage implements OnInit {
     this.listingService.getById(id).subscribe({
       next: (l: any) => {
         if (!l) return;
+        
+        // ✅ DEBUG: Log delle coordinate ricevute dal backend
+        console.log('🗺️ === DEBUG COORDINATE MAPPA ===');
+        console.log('📍 Immobile:', l.title);
+        console.log('📍 Indirizzo:', l.address, l.city);
+        console.log('📍 Latitude dal backend:', l.latitude);
+        console.log('📍 Longitude dal backend:', l.longitude);
+        console.log('📍 Coordinate valide?', l.latitude != null && l.longitude != null && l.latitude !== 0 && l.longitude !== 0);
+        console.log('🗺️ === FINE DEBUG ===');
+        
         const dto = this.mapListingToPropertyDetail(l);
         this.property.set(dto);
+        
+        // ✅ DEBUG: Log del marker che verrà mostrato
+        console.log('🎯 Marker sulla mappa:', {
+          lat: dto.latitude,
+          lng: dto.longitude,
+          label: this.priceLabel()
+        });
       },
       error: (err: any) => {
         console.error('Impossibile caricare dettaglio proprietà', err);
@@ -229,7 +257,10 @@ export class PropertyDetailPage implements OnInit {
         email: l.agentEmail ?? 'info@dietiestates.it',
         initials: this.getInitials(l.agentName)
       },
-      images: Array.isArray(l.imageUrls) && l.imageUrls.length ? l.imageUrls : ['assets/placeholders/property-hero.jpg']
+      images: Array.isArray(l.imageUrls) && l.imageUrls.length ? l.imageUrls : [],
+      // ✅ AGGIUNTO: Coordinate geografiche
+      latitude: l.latitude,
+      longitude: l.longitude
     };
   }
 
@@ -394,4 +425,60 @@ export class PropertyDetailPage implements OnInit {
   private formatCurrency(value: number): string {
     return value.toLocaleString('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
   }
+
+  // ✅ Computed per verificare se ci sono coordinate valide
+  hasValidCoordinates = computed(() => {
+    const p = this.property();
+    return p.latitude != null && p.longitude != null && 
+           p.latitude !== 0 && p.longitude !== 0;
+  });
+
+  // ✅ Computed per i marker della mappa (per PropertyMapComponent)
+  mapMarkers = computed((): MapMarkerData[] => {
+    const p = this.property();
+    if (!this.hasValidCoordinates()) return [];
+    
+    return [{
+      id: p.id,
+      label: this.priceLabel(),
+      lat: p.latitude!,
+      lng: p.longitude!,
+      // ✅ AGGIUNTO: Dati per l'anteprima del listing
+      title: p.title,
+      address: `${p.address}, ${p.city}`,
+      imageUrl: p.images && p.images.length > 0 ? p.images[0] : undefined,
+      rooms: p.rooms,
+      area: p.areaMq,
+      dealType: p.dealType === 'Vendita' ? 'SALE' : 'RENT' // ✅ Conversione corretta
+    }];
+  });
+
+  // ✅ Metodo per aprire Google Maps in una nuova scheda
+  openInGoogleMaps(): void {
+    const p = this.property();
+    if (this.hasValidCoordinates()) {
+      const url = `https://www.google.com/maps/search/?api=1&query=${p.latitude},${p.longitude}`;
+      window.open(url, '_blank');
+    } else {
+      // Fallback: cerca per indirizzo
+      const query = encodeURIComponent(`${p.address}, ${p.city}, Italia`);
+      const url = `https://www.google.com/maps/search/?api=1&query=${query}`;
+      window.open(url, '_blank');
+    }
+  }
+
+  // ✅ Computed per l'URL della mappa embed (sicuro)
+  mapEmbedUrl = computed((): SafeResourceUrl => {
+    const p = this.property();
+    if (this.hasValidCoordinates()) {
+      // Usa le coordinate per centrare la mappa con zoom ridotto
+      const url = `https://www.google.com/maps/embed/v1/place?key=${environment.googleMapsApiKey}&q=${p.latitude},${p.longitude}&zoom=5&language=it`;
+      return this.sanitizer.bypassSecurityTrustResourceUrl(url);
+    } else {
+      // Fallback: cerca per indirizzo con zoom ridotto
+      const query = encodeURIComponent(`${p.address}, ${p.city}, Italia`);
+      const url = `https://www.google.com/maps/embed/v1/place?key=${environment.googleMapsApiKey}&q=${query}&zoom=5&language=it`;
+      return this.sanitizer.bypassSecurityTrustResourceUrl(url);
+    }
+  });
 }

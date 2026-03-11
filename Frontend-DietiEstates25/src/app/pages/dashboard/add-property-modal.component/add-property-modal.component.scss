@@ -364,6 +364,80 @@
   opacity: 1;
 }
 
+// ── Autocomplete per Città e Indirizzo con Google Places API ─────────────
+.city-autocomplete,
+.address-autocomplete {
+  position: relative;
+}
+
+.city-suggestions,
+.address-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  margin-top: 4px;
+  max-height: 280px;
+  overflow-y: auto;
+  box-shadow: 0 12px 32px rgba(17, 24, 39, 0.15);
+  z-index: 1000;
+  list-style: none;
+  padding: 0;
+  margin: 4px 0 0 0;
+
+  li {
+    padding: 0.9rem 1rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    border-bottom: 1px solid #f3f4f6;
+
+    &:first-child {
+      border-top-left-radius: 12px;
+      border-top-right-radius: 12px;
+    }
+
+    &:last-child {
+      border-bottom: none;
+      border-bottom-left-radius: 12px;
+      border-bottom-right-radius: 12px;
+    }
+
+    &:hover {
+      background: #f9fafb;
+    }
+
+    .suggestion-icon {
+      font-size: 1.1rem;
+      flex-shrink: 0;
+      opacity: 0.6;
+    }
+
+    .suggestion-content {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+      flex: 1;
+    }
+
+    .suggestion-main {
+      font-weight: 600;
+      color: #111827;
+      font-size: 0.9rem;
+    }
+
+    .suggestion-secondary {
+      font-size: 0.8rem;
+      color: #6b7280;
+    }
+  }
+}
+
 // Animazioni
 @keyframes fadeIn {
   from {
