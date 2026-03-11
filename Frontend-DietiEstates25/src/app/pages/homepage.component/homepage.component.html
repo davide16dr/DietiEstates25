@@ -17,12 +17,34 @@
         </p>
 
         <form class="search-bar" (submit)="onSearch(); $event.preventDefault()">
-          <div class="search-input">
-            <span class="search-icon">📍</span>
-            <input type="text"
-              [value]="searchQuery()"
-              (input)="searchQuery.set($any($event.target).value)"
-              placeholder="Cerca per città, zona o indirizzo..." />
+          <div class="search-input-wrapper">
+            <div class="search-input">
+              <span class="search-icon">📍</span>
+              <input 
+                #searchInput
+                type="text"
+                [value]="searchQuery()"
+                (input)="onSearchInput($event)"
+                placeholder="Cerca per città, zona o indirizzo..."
+                autocomplete="off"
+              />
+            </div>
+
+            @if (showSearchSuggestions && searchSuggestions.length > 0) {
+              <ul class="search-suggestions">
+                @for (suggestion of searchSuggestions; track suggestion.place_id) {
+                  <li (click)="selectSuggestion(suggestion)">
+                    <span class="suggestion-icon">📍</span>
+                    <div class="suggestion-content">
+                      <span class="suggestion-main">{{ suggestion.structured_formatting.main_text }}</span>
+                      @if (suggestion.structured_formatting.secondary_text) {
+                        <span class="suggestion-secondary">{{ suggestion.structured_formatting.secondary_text }}</span>
+                      }
+                    </div>
+                  </li>
+                }
+              </ul>
+            }
           </div>
 
           <div class="search-filters">

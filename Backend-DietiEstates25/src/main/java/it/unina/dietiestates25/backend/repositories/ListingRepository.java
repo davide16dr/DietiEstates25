@@ -47,4 +47,27 @@ public interface ListingRepository extends JpaRepository<Listing, UUID> {
         @Param("energyClass") String energyClass,
         @Param("elevator") Boolean elevator
     );
+    
+    /**
+     * Cerca listing in un'area geografica definita da bounds (rettangolo)
+     * Utile per ricerca per indirizzo con Google Maps API
+     */
+    @Query(value = "SELECT DISTINCT l.* FROM listings l " +
+           "JOIN properties p ON p.id = l.property_id " +
+           "WHERE p.latitude BETWEEN :minLat AND :maxLat " +
+           "AND p.longitude BETWEEN :minLng AND :maxLng " +
+           "AND l.status = 'ACTIVE' " +
+           "AND (CAST(:type AS VARCHAR) IS NULL OR l.type = :type) " +
+           "AND (CAST(:priceMin AS INTEGER) IS NULL OR l.price_amount >= :priceMin) " +
+           "AND (CAST(:priceMax AS INTEGER) IS NULL OR l.price_amount <= :priceMax)",
+           nativeQuery = true)
+    List<Listing> findInGeoBounds(
+        @Param("minLat") double minLat,
+        @Param("maxLat") double maxLat,
+        @Param("minLng") double minLng,
+        @Param("maxLng") double maxLng,
+        @Param("type") String type,
+        @Param("priceMin") Integer priceMin,
+        @Param("priceMax") Integer priceMax
+    );
 }
