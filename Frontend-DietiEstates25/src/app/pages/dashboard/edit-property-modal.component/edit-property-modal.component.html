@@ -146,31 +146,71 @@
       </div>
 
       <div class="form-row">
-        <!-- Città -->
-        <div class="form-group">
+        <!-- Città con Autocomplete -->
+        <div class="form-group city-autocomplete">
           <label for="city">Città *</label>
           <input
+            #cityInput
             type="text"
             id="city"
             formControlName="city"
-            placeholder="Es: Milano"
+            placeholder="Es: Milano, Roma, Napoli..."
             [class.error]="hasError('city')"
+            (input)="onCityInput($event)"
+            autocomplete="off"
           />
+          
+          @if (showCitySuggestions() && citySuggestions().length > 0) {
+            <ul class="city-suggestions">
+              @for (suggestion of citySuggestions(); track suggestion.place_id) {
+                <li (click)="selectCity(suggestion)">
+                  <span class="suggestion-icon">📍</span>
+                  <div class="suggestion-content">
+                    <span class="suggestion-main">{{ suggestion.structured_formatting.main_text }}</span>
+                    @if (suggestion.structured_formatting.secondary_text) {
+                      <span class="suggestion-secondary">{{ suggestion.structured_formatting.secondary_text }}</span>
+                    }
+                  </div>
+                </li>
+              }
+            </ul>
+          }
+          
           @if (hasError('city')) {
             <span class="error-message">{{ getErrorMessage('city') }}</span>
           }
         </div>
 
-        <!-- Indirizzo -->
-        <div class="form-group" style="grid-column: span 2;">
+        <!-- Indirizzo con Autocomplete -->
+        <div class="form-group address-autocomplete" style="grid-column: span 2;">
           <label for="address">Indirizzo Completo *</label>
           <input
+            #addressInput
             type="text"
             id="address"
             formControlName="address"
-            placeholder="Via, numero civico"
+            placeholder="Es: Via Dante 15, Corso Buenos Aires 23..."
             [class.error]="hasError('address')"
+            (input)="onAddressInput($event)"
+            autocomplete="off"
           />
+          
+          @if (showAddressSuggestions() && addressSuggestions().length > 0) {
+            <ul class="address-suggestions">
+              @for (suggestion of addressSuggestions(); track suggestion.place_id) {
+                <li (click)="selectAddress(suggestion)">
+                  <span class="suggestion-icon">🏠</span>
+                  <div class="suggestion-content">
+                    <span class="suggestion-main">{{ suggestion.structured_formatting.main_text }}</span>
+                    @if (suggestion.structured_formatting.secondary_text) {
+                      <span class="suggestion-secondary">{{ suggestion.structured_formatting.secondary_text }}</span>
+                    }
+                  </div>
+                </li>
+              }
+            </ul>
+          }
+          
           @if (hasError('address')) {
             <span class="error-message">{{ getErrorMessage('address') }}</span>
           }

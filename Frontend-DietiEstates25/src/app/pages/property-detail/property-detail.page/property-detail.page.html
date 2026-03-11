@@ -116,6 +116,34 @@
           <h2 class="card-title">Descrizione</h2>
           <p class="card-text">{{ property().description }}</p>
         </div>
+
+        <!-- ✅ SEZIONE MAPPA con PropertyMapComponent (Maps JavaScript API) -->
+        @if (hasValidCoordinates()) {
+          <div class="card map-card">
+            <div class="map-header">
+              <h2 class="card-title">Posizione</h2>
+              <button 
+                class="open-maps-btn" 
+                type="button" 
+                (click)="openInGoogleMaps()"
+                title="Apri in Google Maps"
+              >
+                <span class="maps-icon">🗺️</span>
+                <span>Apri in Google Maps</span>
+              </button>
+            </div>
+            
+            <!-- Usa il componente PropertyMapComponent esistente -->
+            <div class="map-wrapper">
+              <app-property-map [markers]="mapMarkers()"></app-property-map>
+            </div>
+            
+            <div class="map-address">
+              <span class="pin-icon">📍</span>
+              <span>{{ property().address }}, {{ property().city }}</span>
+            </div>
+          </div>
+        }
       </main>
 
       <aside class="right">

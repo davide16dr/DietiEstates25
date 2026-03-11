@@ -24,12 +24,10 @@
   
       <section class="content">
         @if (viewMode() === 'map') {
-          <!--
           <app-property-map
             [markers]="markers()"
             (markerClick)="onOpenProperty($event)">
           </app-property-map>
-          -->
         } @else {
           <div class="cards" [class.list]="viewMode() === 'list'">
             @for (p of paginatedListings(); track p.id) {

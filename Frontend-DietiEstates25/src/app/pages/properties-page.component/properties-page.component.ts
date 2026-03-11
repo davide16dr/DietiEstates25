@@ -5,7 +5,7 @@ import { PropertyFiltersComponent } from '../../shared/components/properties/pro
 import { PropertyFiltersValue } from '../../shared/models/Property.js';
 import { PropertyCardComponent } from "../../shared/components/properties/property-card.component/property-card.component";
 import { PropertyCard } from '../../shared/models/Property.js';
-import { RouterLink, ActivatedRoute } from '@angular/router';
+import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { ViewToggleComponent } from '../../shared/components/view-toggle.component/view-toggle.component.js';
 import { MapMarkerData, PropertyMapComponent } from '../../shared/components/properties/property-map.component/property-map.component.js';
 import { ListingService, ListingResponse } from '../../shared/services/listing.service';
@@ -25,7 +25,8 @@ export type ViewMode = 'grid' | 'list' | 'map';
     RouterLink,
     ViewToggleComponent,
     PropertyFiltersComponent,
-    PropertyCardComponent
+    PropertyCardComponent,
+    PropertyMapComponent //  AGGIUNTO
   ],
   templateUrl: './properties-page.component.html',
   styleUrls: ['./properties-page.component.scss'],
@@ -67,7 +68,8 @@ export class PropertiesPageComponent implements OnInit {
     private listingService: ListingService,
     private savedSearchService: SavedSearchService,
     private authService: AuthService,
-    private toast: ToastService
+    private toast: ToastService,
+    private router: Router
   ) {}
 
   ngOnInit() {
@@ -101,14 +103,31 @@ export class PropertiesPageComponent implements OnInit {
   private loadListings() {
     this.loading.set(true);
     
+    console.log('🔍 === DEBUG RICERCA IMMOBILI ===');
+    console.log('📋 Filtri applicati:', this.filtersValue());
+    
     this.listingService.searchListings(this.filtersValue()).subscribe({
       next: (response) => {
+        console.log('📥 Risposta dal backend:', response);
+        console.log('📊 Numero risultati dal backend:', response.length);
+        
+        // Log dettagliato di ogni immobile
+        response.forEach((listing, index) => {
+          console.log(`  [${index}] ${listing.title}`);
+          console.log(`      Città: "${listing.city}"`);
+          console.log(`      Indirizzo: "${listing.address}"`);
+          console.log(`      Tipo: ${listing.propertyType}`);
+          console.log(`      Status: ${listing.status}`);
+        });
+        
         // Converto i dati del backend nel formato del frontend
         const properties = response.map(listing => this.mapToPropertyCard(listing));
         this.listings.set(properties);
         this.loading.set(false);
-        this.currentPage.set(1); // Reset alla prima pagina quando si caricano nuovi annunci
+        this.currentPage.set(1);
+        
         console.log(`✅ Caricati ${properties.length} annunci dal database`);
+        console.log('🔍 === FINE DEBUG ===');
       },
       error: (error) => {
         console.error('❌ Errore nel caricamento degli annunci:', error);
@@ -235,6 +254,13 @@ export class PropertiesPageComponent implements OnInit {
       label: this.mapLabelFromPrice(p.priceLabel),
       lat: p.lat,
       lng: p.lng,
+      // ✅ AGGIUNTO: Dati per l'anteprima del listing
+      title: p.title,
+      address: `${p.address}, ${p.city}`,
+      imageUrl: p.imageUrl,
+      rooms: p.rooms,
+      area: p.area,
+      dealType: p.mode === 'Vendita' ? 'SALE' : 'RENT' // ✅ Conversione corretta
     }))
   );
 
@@ -278,6 +304,7 @@ export class PropertiesPageComponent implements OnInit {
 
   onOpenProperty(id: string) {
     console.log('Open property:', id);
+    this.router.navigate(['/pages/property-detail', id]);
   }
 
   openSaveSearchModal() {
