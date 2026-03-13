@@ -31,3 +31,12 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Local environment ###
+.env
+.env.local
+
+### Runtime/generated files ###
+uploads/
+.DS_Store
+**/.DS_Store
