@@ -1,10 +1,23 @@
 <div class="dashboard-shell">
     <app-dashboard-sidebar
       [collapsed]="sidebarCollapsed()"
+      [mobileOpen]="mobileOpen()"
       (toggle)="toggleSidebar()"
     />
+
+    @if (mobileOpen()) {
+      <div class="mobile-overlay" (click)="closeMobileSidebar()"></div>
+    }
   
     <main class="dashboard-main" [class.main-expanded]="sidebarCollapsed()">
+      <div class="mobile-topbar">
+        <button class="hamburger-btn" type="button" (click)="toggleMobileSidebar()" aria-label="Apri menu">
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+        </button>
+        <span class="mobile-topbar-title">DietiEstates<span>25</span></span>
+      </div>
       <div class="content-scroll">
         <router-outlet />
       </div>

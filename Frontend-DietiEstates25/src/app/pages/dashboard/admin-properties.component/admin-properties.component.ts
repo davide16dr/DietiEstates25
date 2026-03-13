@@ -195,7 +195,7 @@ export class AdminPropertiesComponent implements OnInit {
       description: property.description || `${property.category} situato in ${property.address}. ${property.rooms} locali, ${property.bathrooms} bagni, ${property.surface} mq.`,
       propertyType: property.category,
       address: property.address,
-      city: property.city || property.address.split(',')[1]?.trim() || 'Milano',
+      city: property.city || property.address.split(',')[1]?.trim() || 'Napoli',
       image: property.image,
       imageUrls: property.imageUrls || [property.image]
     };

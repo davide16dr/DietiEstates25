@@ -75,10 +75,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 var claims = jwtService.extractAllClaims(token);
                 var roles = (String) claims.get("role");
 
-                // Log per il debug dei ruoli estratti
-                System.out.println("Ruoli estratti dal token: " + roles);
-                System.out.println("Claims estratti: " + claims);
-
                 // Crea le authorities basate sui ruoli
                 var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + roles));
 

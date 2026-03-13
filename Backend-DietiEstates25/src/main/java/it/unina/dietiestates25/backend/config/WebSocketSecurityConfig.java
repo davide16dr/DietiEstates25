@@ -1,6 +1,8 @@
 package it.unina.dietiestates25.backend.config;
 
 import it.unina.dietiestates25.backend.security.JwtService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -25,6 +27,8 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @EnableWebSocketMessageBroker
 @Order(Ordered.HIGHEST_PRECEDENCE + 99)
 public class WebSocketSecurityConfig implements WebSocketMessageBrokerConfigurer {
+
+    private static final Logger log = LoggerFactory.getLogger(WebSocketSecurityConfig.class);
 
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
@@ -61,8 +65,8 @@ public class WebSocketSecurityConfig implements WebSocketMessageBrokerConfigurer
                                 accessor.setUser(authentication);
                             }
                         } catch (Exception e) {
-                            // Token non valido, ignora
-                            System.err.println("Token JWT non valido per WebSocket: " + e.getMessage());
+                            // Token non valido, connessione WebSocket non autenticata
+                            log.debug("Token JWT non valido per WebSocket: {}", e.getMessage());
                         }
                     }
                 }

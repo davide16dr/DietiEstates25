@@ -1,4 +1,4 @@
-import { Component, input, inject, computed } from '@angular/core';
+import { Component, input, inject, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -15,7 +15,11 @@ export class NavbarComponent {
   private authService = inject(AuthService);
   
   showAuthActions = computed(() => !this.authService.isAuthenticated());
+  menuOpen = signal(false);
   
   brandText = input<string>('DietiEstates');
   brandSuffix = input<string>('25');
+
+  toggleMenu() { this.menuOpen.update(v => !v); }
+  closeMenu()  { this.menuOpen.set(false); }
 }

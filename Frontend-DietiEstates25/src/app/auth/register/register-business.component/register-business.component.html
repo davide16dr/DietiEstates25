@@ -2,7 +2,11 @@
     <section class="hero">
       <div class="hero-content">
         <button type="button" class="back-btn" (click)="goHome()" aria-label="Torna alla Home">
-          <span class="back-icon">←</span>
+          <span class="back-icon">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
           <span class="back-text">Torna alla Home</span>
         </button>
 
@@ -111,7 +115,7 @@
           <label class="field">
             <span class="field-label">Comune</span>
             <div class="field-input">
-              <input type="text" formControlName="city" placeholder="Milano" />
+              <input type="text" formControlName="city" placeholder="Napoli" />
             </div>
             @if (form.get('city')?.touched && form.get('city')?.invalid) {
               <div class="field-error">Inserisci il comune.</div>

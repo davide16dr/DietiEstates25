@@ -1,146 +1,269 @@
 <div class="register-page">
-    <section class="hero">
-      <div class="hero-content">
-        <button type="button" class="back-btn" (click)="goHome()" aria-label="Torna alla Home">
-          <span class="back-icon">←</span>
-          <span class="back-text">Torna alla Home</span>
-        </button>
+  <section class="hero">
+    <div class="hero-content">
+      <button type="button" class="back-btn" (click)="goHome()" aria-label="Torna alla Home">
+        <span class="back-icon">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <span class="back-text">Torna alla Home</span>
+      </button>
 
-        <button type="button" class="brand" (click)="goHome()" aria-label="Vai alla Home">
-          <div class="brand-icon">
-            <img src="/assets/dietiEstates25_onlyLogo.png" alt="DietiEstates Logo" class="logo-image">
-          </div>
-          <span class="brand-text">DietiEstates<span class="brand-suffix">25</span></span>
-        </button>
-  
-        <div class="hero-copy">
-          <h1>Unisciti a noi</h1>
-          <p class="subtitle">
-            Crea il tuo account e inizia a esplorare migliaia di immobili in tutta Italia.
-          </p>
-  
-          <div class="bullets">
-            <span>• Ricerca avanzata</span>
-            <span>• Notifiche personalizzate</span>
-            <span>• Ricerche salvate</span>
-          </div>
+      <button type="button" class="brand" (click)="goHome()" aria-label="Vai alla Home">
+        <div class="brand-icon">
+          <img src="/assets/dietiEstates25_onlyLogo.png" alt="DietiEstates Logo" class="logo-image">
         </div>
-  
-        <p class="copyright">© 2025 DietiEstates25</p>
+        <span class="brand-text">DietiEstates<span class="brand-suffix">25</span></span>
+      </button>
+
+      <div class="hero-copy">
+        <h1>Unisciti a noi</h1>
+        <p class="subtitle">
+          Crea il tuo account e inizia a esplorare migliaia di immobili in tutta Italia.
+        </p>
+        <div class="bullets">
+          <span>• Ricerca avanzata</span>
+          <span>• Notifiche personalizzate</span>
+          <span>• Ricerche salvate</span>
+        </div>
       </div>
-    </section>
-  
-    <section class="form-wrapper">
-      <div class="card">
-        <h2>Crea un account</h2>
-        <p class="card-subtitle">Inserisci i tuoi dati per registrarti</p>
-  
-        <div class="business-box">
-          <div class="business-text">
-            <div class="business-title">Sei un’azienda?</div>
-            <div class="business-subtitle">Agenzia immobiliare o professionista: registra il tuo profilo dedicato.</div>
-          </div>
-          <button type="button" class="business-btn" (click)="goBusinessRegister()">
-            Registrati qui!
-          </button>
-        </div>
-  
-        <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
-          @if (errorMessage()) {
-            <div class="error-alert">
-              <span class="error-icon">⚠️</span>
-              <p class="error-msg">{{ errorMessage() }}</p>
-            </div>
-          }
 
-          <div class="row-2">
-            <label class="field">
-              <span class="field-label">Nome</span>
-              <div class="field-input">
-                <input type="text" formControlName="firstName" placeholder="Mario" />
-              </div>
-              @if (form.get('firstName')?.invalid && form.get('firstName')?.touched) {
-                <div class="field-error">
-                  Inserisci un nome valido.
-                </div>
-              }
-            </label>
-  
-            <label class="field">
-              <span class="field-label">Cognome</span>
-              <div class="field-input">
-                <input type="text" formControlName="lastName" placeholder="Rossi" />
-              </div>
-              @if (form.get('lastName')?.invalid && form.get('lastName')?.touched) {
-                <div class="field-error">
-                  Inserisci un cognome valido.
-                </div>
-              }
-            </label>
+      <div class="trust-badges">
+        <span class="trust-badge">✓ Registrazione gratuita</span>
+        <span class="trust-badge">✓ Nessuna carta richiesta</span>
+        <span class="trust-badge">✓ Dati protetti e sicuri</span>
+      </div>
+
+      <p class="copyright">© 2025 DietiEstates25</p>
+    </div>
+  </section>
+
+  <section class="form-wrapper">
+    <div class="card">
+      <h2>Crea un account</h2>
+      <p class="card-subtitle">Inserisci i tuoi dati per registrarti</p>
+
+      <div class="business-box">
+        <div class="business-text">
+          <div class="business-title">Sei un'azienda?</div>
+          <div class="business-subtitle">Agenzia immobiliare o professionista: registra il tuo profilo dedicato.</div>
+        </div>
+        <button type="button" class="business-btn" (click)="goBusinessRegister()">
+          Registrati qui!
+        </button>
+      </div>
+
+      <!-- Indicatore di progresso -->
+      <div class="step-indicator">
+        <div class="step-track">
+          <div class="step-dot" [class.active]="currentStep() >= 1" [class.done]="currentStep() > 1">
+            @if (currentStep() > 1) { ✓ } @else { 1 }
           </div>
-  
+          <div class="step-line" [class.done]="currentStep() > 1"></div>
+          <div class="step-dot" [class.active]="currentStep() >= 2">2</div>
+        </div>
+        <p class="step-label">
+          Passo {{ currentStep() }} di 2 —
+          {{ currentStep() === 1 ? 'Credenziali di accesso' : 'Informazioni personali' }}
+        </p>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+        @if (errorMessage()) {
+          <div class="error-alert">
+            <span class="error-icon">⚠️</span>
+            <p class="error-msg">{{ errorMessage() }}</p>
+          </div>
+        }
+
+        <!-- STEP 1: email + password -->
+        @if (currentStep() === 1) {
+
           <label class="field">
-            <span class="field-label">Email</span>
-            <div class="field-input">
-              <input type="email" formControlName="email" placeholder="nome@esempio.it" />
+            <span class="field-label">Email <span class="req">*</span></span>
+            <div class="field-input"
+              [class.valid]="form.get('email')?.valid && form.get('email')?.dirty"
+              [class.input-error]="form.get('email')?.invalid && form.get('email')?.touched">
+              <input type="email" formControlName="email" placeholder="nome@esempio.it" autocomplete="email" />
+              @if (form.get('email')?.valid && form.get('email')?.dirty) {
+                <span class="valid-icon" aria-hidden="true">✓</span>
+              }
             </div>
             @if (form.get('email')?.invalid && form.get('email')?.touched) {
-              <div class="field-error">
-                Inserisci un indirizzo email valido.
-              </div>
+              <div class="field-error">Inserisci un indirizzo email valido.</div>
             }
           </label>
-  
+
           <label class="field">
-            <span class="field-label">Telefono (opzionale)</span>
-            <div class="field-input">
-              <input type="tel" formControlName="phone" placeholder="+39 123 456 7890" />
+            <span class="field-label">Password <span class="req">*</span></span>
+            <div class="field-input"
+              [class.input-error]="form.get('password')?.invalid && form.get('password')?.touched">
+              <input [type]="showPassword() ? 'text' : 'password'"
+                formControlName="password"
+                placeholder="••••••••"
+                autocomplete="new-password" />
+              <button type="button" class="toggle-pass"
+                (click)="showPassword.set(!showPassword())"
+                [attr.aria-label]="showPassword() ? 'Nascondi password' : 'Mostra password'">
+                @if (!showPassword()) {
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                    <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                    <line x1="1" y1="1" x2="23" y2="23"/>
+                  </svg>
+                } @else {
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                }
+              </button>
             </div>
+            @if (form.get('password')?.invalid && form.get('password')?.touched) {
+              <div class="field-error">La password deve essere di almeno 8 caratteri.</div>
+            }
+            @if (passwordValue()) {
+              <div class="strength-bar">
+                <div class="strength-segment"
+                  [class.active]="passwordStrength() >= 1"
+                  [class.weak]="passwordStrength() === 1"
+                  [class.medium]="passwordStrength() === 2"
+                  [class.strong]="passwordStrength() >= 3"></div>
+                <div class="strength-segment"
+                  [class.active]="passwordStrength() >= 2"
+                  [class.medium]="passwordStrength() === 2"
+                  [class.strong]="passwordStrength() >= 3"></div>
+                <div class="strength-segment"
+                  [class.active]="passwordStrength() >= 3"
+                  [class.strong]="passwordStrength() >= 3"></div>
+                <span class="strength-label"
+                  [class.weak]="passwordStrength() === 1"
+                  [class.medium]="passwordStrength() === 2"
+                  [class.strong]="passwordStrength() >= 3">{{ strengthLabel() }}</span>
+              </div>
+              <ul class="pass-rules" aria-label="Requisiti password">
+                <li [class.ok]="passwordRules().length">{{ passwordRules().length ? '✓' : '○' }} Almeno 8 caratteri</li>
+                <li [class.ok]="passwordRules().letter">{{ passwordRules().letter ? '✓' : '○' }} Almeno una lettera</li>
+                <li [class.ok]="passwordRules().number">{{ passwordRules().number ? '✓' : '○' }} Almeno un numero</li>
+              </ul>
+            }
           </label>
-  
+
+          <label class="field">
+            <span class="field-label">Conferma password <span class="req">*</span></span>
+            <div class="field-input"
+              [class.input-error]="form.get('confirmPassword')?.touched && (form.get('confirmPassword')?.invalid || form.hasError('passwordMismatch'))">
+              <input [type]="showConfirm() ? 'text' : 'password'"
+                formControlName="confirmPassword"
+                placeholder="••••••••"
+                autocomplete="new-password" />
+              <button type="button" class="toggle-pass"
+                (click)="showConfirm.set(!showConfirm())"
+                [attr.aria-label]="showConfirm() ? 'Nascondi conferma password' : 'Mostra conferma password'">
+                @if (!showConfirm()) {
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                    <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                    <line x1="1" y1="1" x2="23" y2="23"/>
+                  </svg>
+                } @else {
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                }
+              </button>
+            </div>
+            @if (form.get('confirmPassword')?.touched && form.hasError('passwordMismatch')) {
+              <div class="field-error">Le password non coincidono.</div>
+            }
+          </label>
+
+          <button type="button" class="primary-btn" (click)="nextStep()">
+            Avanti
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left:6px">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </button>
+        }
+
+        <!-- STEP 2: dati personali -->
+        @if (currentStep() === 2) {
+
           <div class="row-2">
             <label class="field">
-              <span class="field-label">Password</span>
-              <div class="field-input">
-                <input type="password" formControlName="password" placeholder="••••••••" />
+              <span class="field-label">Nome <span class="req">*</span></span>
+              <div class="field-input"
+                [class.valid]="form.get('firstName')?.valid && form.get('firstName')?.dirty"
+                [class.input-error]="form.get('firstName')?.invalid && form.get('firstName')?.touched">
+                <input type="text" formControlName="firstName" placeholder="Mario" autocomplete="given-name" />
+                @if (form.get('firstName')?.valid && form.get('firstName')?.dirty) {
+                  <span class="valid-icon" aria-hidden="true">✓</span>
+                }
               </div>
+              @if (form.get('firstName')?.invalid && form.get('firstName')?.touched) {
+                <div class="field-error">Inserisci un nome valido (min. 2 caratteri).</div>
+              }
             </label>
-  
+
             <label class="field">
-              <span class="field-label">Conferma</span>
-              <div class="field-input">
-                <input type="password" formControlName="confirmPassword" placeholder="••••••••" />
+              <span class="field-label">Cognome <span class="req">*</span></span>
+              <div class="field-input"
+                [class.valid]="form.get('lastName')?.valid && form.get('lastName')?.dirty"
+                [class.input-error]="form.get('lastName')?.invalid && form.get('lastName')?.touched">
+                <input type="text" formControlName="lastName" placeholder="Rossi" autocomplete="family-name" />
+                @if (form.get('lastName')?.valid && form.get('lastName')?.dirty) {
+                  <span class="valid-icon" aria-hidden="true">✓</span>
+                }
               </div>
+              @if (form.get('lastName')?.invalid && form.get('lastName')?.touched) {
+                <div class="field-error">Inserisci un cognome valido (min. 2 caratteri).</div>
+              }
             </label>
           </div>
-  
-          <button class="primary-btn" type="submit" [disabled]="isSubmitting()">
-            {{ isSubmitting() ? 'Registrazione...' : 'Registrati' }}
+
+          <label class="field">
+            <span class="field-label">Telefono <span class="optional">(opzionale)</span></span>
+            <div class="field-input">
+              <input type="tel" formControlName="phone" placeholder="+39 123 456 7890" autocomplete="tel" />
+            </div>
+          </label>
+
+          <div class="step2-actions">
+            <button type="button" class="back-step-btn" (click)="prevStep()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+              </svg>
+              Indietro
+            </button>
+            <button class="primary-btn submit-btn" type="submit" [disabled]="isSubmitting()">
+              {{ isSubmitting() ? 'Registrazione...' : 'Crea il tuo account' }}
+            </button>
+          </div>
+        }
+
+        <div class="divider" aria-hidden="true">
+          <span>OPPURE CONTINUA CON</span>
+        </div>
+
+        <div class="social-row">
+          <button type="button" class="social-btn" (click)="onSocialRegister('google')" aria-label="Google">
+            <img src="assets/google_logo.png" class="social-icon" alt="Google" />
           </button>
-  
-          <div class="divider" aria-hidden="true">
-            <span>OPPURE CONTINUA CON</span>
-          </div>
-  
-          <div class="social-row">
-            <button type="button" class="social-btn" (click)="onSocialRegister('google')" aria-label="Google">
-              <img src="assets/google_logo.png" class="social-icon" alt="Google" />
-            </button>
-  
-            <button type="button" class="social-btn" (click)="onSocialRegister('facebook')" aria-label="Facebook">
-              <img src="assets/facebook_logo.png" class="social-icon" alt="Facebook" />
-            </button>
-  
-            <button type="button" class="social-btn" (click)="onSocialRegister('github')" aria-label="GitHub">
-              <img src="assets/github_logo.png" class="social-icon" alt="GitHub" />
-            </button>
-          </div>
-  
-          <p class="login-link">
-            Hai già un account?
-            <a routerLink="/auth/login">Accedi</a>
-          </p>
-        </form>
-      </div>
-    </section>
-  </div>
+          <button type="button" class="social-btn" (click)="onSocialRegister('facebook')" aria-label="Facebook">
+            <img src="assets/facebook_logo.png" class="social-icon" alt="Facebook" />
+          </button>
+          <button type="button" class="social-btn" (click)="onSocialRegister('github')" aria-label="GitHub">
+            <img src="assets/github_logo.png" class="social-icon" alt="GitHub" />
+          </button>
+        </div>
+
+        <p class="login-link">
+          Hai già un account?
+          <a routerLink="/auth/login">Accedi</a>
+        </p>
+      </form>
+    </div>
+  </section>
+</div>

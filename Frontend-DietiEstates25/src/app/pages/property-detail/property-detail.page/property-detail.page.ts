@@ -98,14 +98,14 @@ export class PropertyDetailPage implements OnInit {
     availability: 'Disponibile',
     title: 'Elegante Appartamento in Centro',
     address: 'Via Monte Napoleone 15',
-    city: 'Milano',
+    city: 'Napoli',
     price: 450000,
     rooms: 4,
     areaMq: 120,
     floorLabel: 'Piano 3',
     energyClass: 'A2',
     description:
-      'Splendido appartamento completamente ristrutturato nel cuore di Milano. Finiture di pregio, pavimenti in parquet, ampie finestre con vista sulla città.',
+      'Splendido appartamento completamente ristrutturato nel cuore di Napoli. Finiture di pregio, pavimenti in parquet, ampie finestre con vista sulla città.',
     features: ['Con ascensore', 'Aria condizionata', 'Portineria', 'Cantina'],
     agent: {
       name: 'Lucia Bianchi',

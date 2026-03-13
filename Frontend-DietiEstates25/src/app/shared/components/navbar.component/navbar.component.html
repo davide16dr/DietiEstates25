@@ -1,6 +1,6 @@
 <header class="navbar">
     <div class="navbar-inner">
-      <a class="logo" routerLink="/">
+      <a class="logo" routerLink="/" (click)="closeMenu()">
         <div class="logo-icon">
             <img src="/assets/dietiEstates25_onlyLogo.png" alt="Dieti Estates Logo" class="logo-image">
         </div>
@@ -10,10 +10,26 @@
       </a>
   
       @if (showAuthActions()) {
-        <div class="nav-actions">
+        <div class="nav-actions desktop-nav">
           <a class="btn ghost" routerLink="/auth/login">Accedi</a>
           <a class="btn primary" routerLink="/auth/register">Registrati</a>
         </div>
+
+        <button class="hamburger" type="button"
+          (click)="toggleMenu()"
+          [attr.aria-expanded]="menuOpen()"
+          aria-label="Menu di navigazione">
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+        </button>
+
+        @if (menuOpen()) {
+          <div class="mobile-menu" (click)="closeMenu()">
+            <a class="btn ghost" routerLink="/auth/login">Accedi</a>
+            <a class="btn primary" routerLink="/auth/register">Registrati</a>
+          </div>
+        }
       }
   
       @if (!showAuthActions()) {

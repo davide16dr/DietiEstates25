@@ -14,6 +14,7 @@ import { AuthService } from '../../../shared/services/auth.service';
 })
 export class DashboardComponent implements OnInit {
   readonly sidebarCollapsed = signal(false);
+  readonly mobileOpen = signal(false);
 
   private router = inject(Router);
   private auth = inject(AuthService);
@@ -22,20 +23,18 @@ export class DashboardComponent implements OnInit {
     this.redirectIfRoot();
     this.router.events
       .pipe(filter(e => e instanceof NavigationEnd))
-      .subscribe(() => this.redirectIfRoot());
+      .subscribe(() => {
+        this.redirectIfRoot();
+        this.mobileOpen.set(false);
+      });
   }
 
   private redirectIfRoot(): void {
     const url = this.router.url.split('?')[0];
-    console.log('🔍 Dashboard URL corrente:', url);
     
-    if (url !== '/dashboard') {
-      console.log('✅ URL non è /dashboard, continuo normalmente');
-      return;
-    }
+    if (url !== '/dashboard') return;
 
     const role = this.auth.currentUser()?.role?.toLowerCase();
-    console.log('🔄 Redirect necessario per ruolo:', role);
     
     switch (role) {
       case 'admin':          this.router.navigateByUrl('/dashboard/admin-home', { replaceUrl: true }); break;
@@ -44,7 +43,7 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  toggleSidebar() {
-    this.sidebarCollapsed.update(v => !v);
-  }
+  toggleSidebar()       { this.sidebarCollapsed.update(v => !v); }
+  toggleMobileSidebar() { this.mobileOpen.update(v => !v); }
+  closeMobileSidebar()  { this.mobileOpen.set(false); }
 }

@@ -50,6 +50,10 @@ export class PropertiesPageComponent implements OnInit {
   searchName = signal<string>('');
   savingSearch = signal<boolean>(false);
 
+  // Pannello filtri su mobile
+  showFilters = signal<boolean>(false);
+  toggleFilters() { this.showFilters.update(v => !v); }
+
   filtersValue = signal<PropertyFiltersValue>({
     mode: null,
     type: 'Tutti',
@@ -246,6 +250,23 @@ export class PropertiesPageComponent implements OnInit {
       return 'Nessun risultato trovato';
     }
     return `${start}-${end} di ${total} risultati`;
+  });
+
+  noResultsMessage = computed(() => {
+    if (this.loading() || this.filtered().length > 0) {
+      return '';
+    }
+
+    const city = this.filtersValue().city.trim();
+    if (city) {
+      return `Non sono stati trovati risultati per la citta \"${city}\". Prova ad ampliare la zona o a modificare i filtri.`;
+    }
+
+    if (this.hasActiveFilters()) {
+      return 'Non sono stati trovati risultati con i filtri selezionati. Prova ad allargare i criteri di ricerca.';
+    }
+
+    return 'Al momento non ci sono immobili disponibili con i criteri impostati.';
   });
 
   markers = computed<MapMarkerData[]>(() =>

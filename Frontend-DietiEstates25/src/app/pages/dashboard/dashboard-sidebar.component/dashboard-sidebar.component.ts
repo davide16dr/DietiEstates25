@@ -23,6 +23,7 @@ type MenuItem = {
 export class DashboardSidebarComponent implements OnInit {
   // Modern Angular: input()/output() invece di @Input()/@Output()
   collapsed = input.required<boolean>();
+  mobileOpen = input<boolean>(false);
   toggle = output<void>();
 
   private authService = inject(AuthService);
