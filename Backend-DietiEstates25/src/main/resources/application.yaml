@@ -1,0 +1,71 @@
+spring:
+  application:
+    name: BackendDietiEstates25
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/dietiestates25
+    username: massimocolucci
+    password:
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      connection-test-query: SELECT 1
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        jdbc:
+          lob:
+            non_contextual_creation: true
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 10000
+          timeout: 10000
+          writetimeout: 10000
+          quitwait: false
+
+app:
+  google:
+    maps:
+      api-key: ${GOOGLE_MAPS_API_KEY:}
+  jwt:
+    secret: ${JWT_SECRET:CHANGE_ME_IN_ENV}
+    expiration-ms: 3600000
+  storage:
+    upload-dir: uploads
+    max-images-per-listing: 10
+    allowed-extensions: jpg,jpeg,png,webp
+  email:
+    enabled: ${MAIL_ENABLED:false}
+  oauth:
+    google:
+      client-id: ${GOOGLE_CLIENT_ID:}
+    github:
+      client-id: ${GITHUB_CLIENT_ID:}
+      client-secret: ${GITHUB_CLIENT_SECRET:}
+    facebook:
+      app-id: ${FACEBOOK_APP_ID:}
+      app-secret: ${FACEBOOK_APP_SECRET:}
+
+server:
+  port: 8080
