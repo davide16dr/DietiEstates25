@@ -1,6 +1,8 @@
 package it.unina.dietiestates25.backend;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.boot.CommandLineRunner;
@@ -59,10 +61,10 @@ public class DataSeeder implements CommandLineRunner {
         if (agencyRepository.count() == 0) {
             agency = new Agency();
             agency.setId(UUID.randomUUID());
-            agency.setName("Agenzia Immobiliare Milano Centro");
+            agency.setName("Agenzia Immobiliare Napoli Centro");
             agency.setVatNumber("12345678901");
-            agency.setAddress("Via Dante 10");
-            agency.setCity("Milano");
+            agency.setAddress("Via Toledo 256");
+            agency.setCity("Napoli");
             agency.setPhoneE164("+390212345678");
             agency.setEmail("info@agenziamc.it");
             agency = agencyRepository.save(agency);
@@ -71,11 +73,18 @@ public class DataSeeder implements CommandLineRunner {
             agency = agencyRepository.findAll().get(0);
             System.out.println("🏢 Agenzia esistente: " + agency.getName());
         }
+
+        // Garantisce sede coerente anche su database già esistente.
+        agency.setName("Agenzia Immobiliare Napoli Centro");
+        agency.setAddress("Via Toledo 256");
+        agency.setCity("Napoli");
+        agency = agencyRepository.save(agency);
         
         createTestUsers(agency);
 
         // Evita di inserire dati se già esistono più di 15 annunci
         if (listingRepository.count() >= 15) {
+            enforceNapoliMajorityOnExistingData();
             System.out.println("✅ Database già popolato con abbastanza dati, skip seeding properties");
             return;
         }
@@ -85,9 +94,9 @@ public class DataSeeder implements CommandLineRunner {
         // ✅ USA LA STESSA AGENZIA già creata sopra (non crearne una nuova!)
 
         // Proprietà 1 - Appartamento in vendita
-        Property prop1 = createProperty(agency, "Milano", "Via Monte Napoleone 15", 
+        Property prop1 = createProperty(agency, "Napoli", "Via Monte Napoleone 15", 
             45.4689, 9.1963, "Appartamento", 4, 2, 120, 3, true, "A",
-            "Elegante appartamento nel cuore di Milano");
+            "Elegante appartamento nel cuore di Napoli");
         prop1 = propertyRepository.save(prop1);
 
         Listing listing1 = createListing(prop1, ListingType.SALE, 450000, 
@@ -98,7 +107,7 @@ public class DataSeeder implements CommandLineRunner {
         createImage(listing1, "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800", 0);
 
         // Proprietà 2 - Attico in vendita
-        Property prop2 = createProperty(agency, "Milano", "Piazza Duomo 1",
+        Property prop2 = createProperty(agency, "Napoli", "Piazza Duomo 1",
             45.4642, 9.1900, "Attico", 5, 3, 180, 8, true, "A",
             "Attico di lusso con terrazzo panoramico");
         prop2 = propertyRepository.save(prop2);
@@ -111,20 +120,20 @@ public class DataSeeder implements CommandLineRunner {
         createImage(listing2, "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800", 0);
 
         // Proprietà 3 - Bilocale in affitto
-        Property prop3 = createProperty(agency, "Milano", "Alzaia Naviglio Grande 42",
+        Property prop3 = createProperty(agency, "Napoli", "Alzaia Naviglio Grande 42",
             45.4484, 9.1732, "Bilocale", 2, 1, 55, 2, false, "C",
             "Bilocale moderno zona Navigli");
         prop3 = propertyRepository.save(prop3);
 
         Listing listing3 = createListing(prop3, ListingType.RENT, 1200,
             "Bilocale Moderno zona Navigli",
-            "Grazioso bilocale appena ristrutturato nella zona più trendy di Milano. 2 locali, bagno nuovo, cucina a vista.");
+            "Grazioso bilocale appena ristrutturato in una zona centrale di Napoli. 2 locali, bagno nuovo, cucina a vista.");
         listing3 = listingRepository.save(listing3);
         
         createImage(listing3, "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800", 0);
 
         // Proprietà 4 - Trilocale in vendita
-        Property prop4 = createProperty(agency, "Milano", "Corso Buenos Aires 10",
+        Property prop4 = createProperty(agency, "Napoli", "Corso Buenos Aires 10",
             45.4783, 9.2058, "Trilocale", 3, 1, 98, 4, true, "A",
             "Trilocale ristrutturato zona Buenos Aires");
         prop4 = propertyRepository.save(prop4);
@@ -137,7 +146,7 @@ public class DataSeeder implements CommandLineRunner {
         createImage(listing4, "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800", 0);
 
         // Proprietà 5 - Loft in vendita
-        Property prop5 = createProperty(agency, "Milano", "Via Tortona 30",
+        Property prop5 = createProperty(agency, "Napoli", "Via Tortona 30",
             45.4509, 9.1654, "Loft", 3, 2, 140, 1, false, "A",
             "Loft di design in zona Tortona");
         prop5 = propertyRepository.save(prop5);
@@ -150,7 +159,7 @@ public class DataSeeder implements CommandLineRunner {
         createImage(listing5, "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800", 0);
 
         // Proprietà 6 - Monolocale in affitto
-        Property prop6 = createProperty(agency, "Milano", "Viale Sabotino 5",
+        Property prop6 = createProperty(agency, "Napoli", "Viale Sabotino 5",
             45.4512, 9.2019, "Monolocale", 1, 1, 35, 1, false, "B",
             "Monolocale zona Porta Romana");
         prop6 = propertyRepository.save(prop6);
@@ -163,7 +172,7 @@ public class DataSeeder implements CommandLineRunner {
         createImage(listing6, "https://images.unsplash.com/photo-1502672260066-6bc35f0f1edb?w=800", 0);
 
         // Proprietà 7 - Villa con giardino in vendita
-        Property prop7 = createProperty(agency, "Milano", "Via Inganni 85",
+        Property prop7 = createProperty(agency, "Napoli", "Via Inganni 85",
             45.4621, 9.1182, "Villa", 6, 3, 250, 0, false, "B",
             "Villa indipendente con giardino");
         prop7 = propertyRepository.save(prop7);
@@ -176,7 +185,7 @@ public class DataSeeder implements CommandLineRunner {
         createImage(listing7, "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800", 0);
 
         // Proprietà 8 - Appartamento in affitto zona Centrale
-        Property prop8 = createProperty(agency, "Milano", "Via Vittor Pisani 12",
+        Property prop8 = createProperty(agency, "Napoli", "Via Vittor Pisani 12",
             45.4847, 9.2023, "Appartamento", 3, 1, 85, 5, true, "C",
             "Appartamento zona Stazione Centrale");
         prop8 = propertyRepository.save(prop8);
@@ -189,20 +198,20 @@ public class DataSeeder implements CommandLineRunner {
         createImage(listing8, "https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=800", 0);
 
         // Proprietà 9 - Penthouse in vendita
-        Property prop9 = createProperty(agency, "Milano", "Corso Sempione 45",
+        Property prop9 = createProperty(agency, "Napoli", "Corso Sempione 45",
             45.4773, 9.1672, "Penthouse", 4, 2, 160, 10, true, "A",
             "Penthouse esclusivo zona Arco della Pace");
         prop9 = propertyRepository.save(prop9);
 
         Listing listing9 = createListing(prop9, ListingType.SALE, 980000,
             "Penthouse con Vista Skyline",
-            "Esclusivo penthouse di 160 mq con terrazzo panoramico. Vista sullo skyline di Milano. 4 locali, 2 bagni, finiture di pregio.");
+            "Esclusivo penthouse di 160 mq con terrazzo panoramico. Vista sullo skyline di Napoli. 4 locali, 2 bagni, finiture di pregio.");
         listing9 = listingRepository.save(listing9);
         
         createImage(listing9, "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800", 0);
 
         // Proprietà 10 - Bilocale in vendita Isola
-        Property prop10 = createProperty(agency, "Milano", "Via Confalonieri 8",
+        Property prop10 = createProperty(agency, "Napoli", "Via Confalonieri 8",
             45.4868, 9.1876, "Bilocale", 2, 1, 60, 3, true, "B",
             "Bilocale moderno zona Isola");
         prop10 = propertyRepository.save(prop10);
@@ -215,7 +224,7 @@ public class DataSeeder implements CommandLineRunner {
         createImage(listing10, "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=800", 0);
 
         // Proprietà 11 - Trilocale in affitto City Life
-        Property prop11 = createProperty(agency, "Milano", "Piazza Tre Torri 2",
+        Property prop11 = createProperty(agency, "Napoli", "Piazza Tre Torri 2",
             45.4703, 9.1524, "Trilocale", 3, 2, 95, 12, true, "A",
             "Trilocale moderno City Life");
         prop11 = propertyRepository.save(prop11);
@@ -228,20 +237,20 @@ public class DataSeeder implements CommandLineRunner {
         createImage(listing11, "https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=800", 0);
 
         // Proprietà 12 - Rustico in vendita
-        Property prop12 = createProperty(agency, "Milano", "Via Ripamonti 200",
+        Property prop12 = createProperty(agency, "Napoli", "Via Ripamonti 200",
             45.4289, 9.2089, "Rustico", 4, 2, 180, 0, false, "D",
             "Rustico ristrutturato con corte");
         prop12 = propertyRepository.save(prop12);
 
         Listing listing12 = createListing(prop12, ListingType.SALE, 550000,
             "Rustico con Corte Privata",
-            "Affascinante rustico ristrutturato con corte privata. 4 locali, 2 bagni, travi a vista, camino. Atmosfera unica a Milano.");
+            "Affascinante rustico ristrutturato con corte privata. 4 locali, 2 bagni, travi a vista, camino. Atmosfera unica a Napoli.");
         listing12 = listingRepository.save(listing12);
         
         createImage(listing12, "https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=800", 0);
 
         // Proprietà 13 - Studio in affitto Brera
-        Property prop13 = createProperty(agency, "Milano", "Via Fiori Chiari 5",
+        Property prop13 = createProperty(agency, "Napoli", "Via Fiori Chiari 5",
             45.4715, 9.1856, "Studio", 1, 1, 40, 2, false, "C",
             "Studio nel cuore di Brera");
         prop13 = propertyRepository.save(prop13);
@@ -254,7 +263,7 @@ public class DataSeeder implements CommandLineRunner {
         createImage(listing13, "https://images.unsplash.com/photo-1600573472550-8090b5e0745e?w=800", 0);
 
         // Proprietà 14 - Quadrilocale in vendita
-        Property prop14 = createProperty(agency, "Milano", "Viale Papiniano 42",
+        Property prop14 = createProperty(agency, "Napoli", "Viale Papiniano 42",
             45.4589, 9.1678, "Quadrilocale", 4, 2, 130, 6, true, "B",
             "Quadrilocale signorile zona Sant'Agostino");
         prop14 = propertyRepository.save(prop14);
@@ -267,7 +276,7 @@ public class DataSeeder implements CommandLineRunner {
         createImage(listing14, "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?w=800", 0);
 
         // Proprietà 15 - Appartamento in affitto Città Studi
-        Property prop15 = createProperty(agency, "Milano", "Via Celoria 18",
+        Property prop15 = createProperty(agency, "Napoli", "Via Celoria 18",
             45.4756, 9.2278, "Appartamento", 2, 1, 50, 1, false, "D",
             "Appartamento zona Città Studi");
         prop15 = propertyRepository.save(prop15);
@@ -280,7 +289,7 @@ public class DataSeeder implements CommandLineRunner {
         createImage(listing15, "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=800", 0);
 
         // Proprietà 16 - Appartamento di design gestito da Sofia Verde
-        Property prop16 = createProperty(agency, "Milano", "Via Brera 28",
+        Property prop16 = createProperty(agency, "Napoli", "Via Brera 28",
             45.4721, 9.1868, "Appartamento", 3, 2, 110, 2, false, "A+",
             "Appartamento di design nel cuore di Brera");
         prop16 = propertyRepository.save(prop16);
@@ -459,5 +468,41 @@ public class DataSeeder implements CommandLineRunner {
         img.setUrl(url);
         img.setSortOrder(sortOrder);
         listingImageRepository.save(img);
+    }
+
+    private void enforceNapoliMajorityOnExistingData() {
+        List<Property> allProperties = propertyRepository.findAll();
+        if (allProperties.isEmpty()) {
+            return;
+        }
+
+        long napoliCount = allProperties.stream()
+            .filter(p -> p.getCity() != null && p.getCity().equalsIgnoreCase("Napoli"))
+            .count();
+
+        int requiredNapoliMajority = (allProperties.size() / 2) + 1;
+        if (napoliCount >= requiredNapoliMajority) {
+            return;
+        }
+
+        int toConvert = (int) (requiredNapoliMajority - napoliCount);
+        List<Property> changed = new ArrayList<>();
+        for (Property property : allProperties) {
+            if (toConvert == 0) {
+                break;
+            }
+
+            String city = property.getCity();
+            if (city == null || !city.equalsIgnoreCase("Napoli")) {
+                property.setCity("Napoli");
+                changed.add(property);
+                toConvert--;
+            }
+        }
+
+        if (!changed.isEmpty()) {
+            propertyRepository.saveAll(changed);
+            System.out.println("📍 Aggiornate " + changed.size() + " proprietà per garantire maggioranza su Napoli");
+        }
     }
 }

@@ -2,6 +2,8 @@ package it.unina.dietiestates25.backend.services;
 
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -19,6 +21,7 @@ import it.unina.dietiestates25.backend.repositories.UserRepository;
 @Service
 public class UserService {
 
+    private static final Logger log = LoggerFactory.getLogger(UserService.class);
     @Autowired
     private UserRepository userRepository;
 
@@ -33,36 +36,27 @@ public class UserService {
 
     @Transactional
     public void changePassword(UUID userId, ChangePasswordRequest request) {
-        System.out.println("🔍 [UserService] Tentativo cambio password per userId: " + userId);
-        
-        // 1. Trova l'utente
+        log.debug("Tentativo cambio password per userId: {}", userId);
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> {
-                    System.out.println("❌ [UserService] Utente NON trovato con ID: " + userId);
+                    log.debug("Utente NON trovato con ID: {}", userId);
                     return new RuntimeException("Utente non trovato");
                 });
 
-        System.out.println("✅ [UserService] Utente trovato: " + user.getEmail());
-
-        // 2. Verifica che la vecchia password sia corretta
         if (!passwordEncoder.matches(request.getOldPassword(), user.getPasswordHash())) {
-            System.out.println("❌ [UserService] Password attuale errata per utente: " + user.getEmail());
+            log.debug("Password attuale errata per userId: {}", userId);
             throw new RuntimeException("La password attuale non è corretta");
         }
 
-        System.out.println("✅ [UserService] Password attuale verificata correttamente");
-
-        // 3. Valida la nuova password
         if (request.getNewPassword() == null || request.getNewPassword().length() < 8) {
             throw new RuntimeException("La nuova password deve contenere almeno 8 caratteri");
         }
 
-        // 4. Hash della nuova password e salvataggio
         String hashedPassword = passwordEncoder.encode(request.getNewPassword());
         user.setPasswordHash(hashedPassword);
         userRepository.save(user);
-        
-        System.out.println("✅ [UserService] Password cambiata con successo per utente: " + user.getEmail());
+        log.debug("Password cambiata con successo per userId: {}", userId);
     }
 
     /**
@@ -78,18 +72,17 @@ public class UserService {
 
         UserRole role = user.getRole();
         if (role != UserRole.AGENT && role != UserRole.AGENCY_MANAGER && role != UserRole.ADMIN) {
-            System.out.println("⚠️ [UserService] Utente " + user.getEmail() + " ha ruolo " + role + ", non richiede membership");
+            log.debug("Utente {} ha ruolo {}, membership non richiesta", user.getId(), role);
             return;
         }
 
-        // Verifica se la membership esiste già
         boolean exists = agencyMembershipRepository.existsByAgency_IdAndUser_Id(
-            user.getAgencyId(), 
+            user.getAgencyId(),
             user.getId()
         );
 
         if (exists) {
-            System.out.println("✅ [UserService] Membership già esistente per " + user.getEmail());
+            log.debug("Membership già esistente per userId: {}", user.getId());
             return;
         }
 
@@ -104,8 +97,7 @@ public class UserService {
         membership.setMembershipRole(role);
 
         agencyMembershipRepository.save(membership);
-        System.out.println("✅ [UserService] Membership creata per " + user.getEmail() + 
-                         " nell'agenzia " + agency.getName() + " con ruolo " + role);
+        log.debug("Membership creata per userId: {} nell'agenzia: {}", user.getId(), agency.getId());
     }
 
     public User getUserById(UUID userId) {
@@ -118,24 +110,20 @@ public class UserService {
      */
     @Transactional
     public User createUserWithPassword(User user, String password) {
-        System.out.println("➕ [UserService] Creazione nuovo utente: " + user.getEmail());
-        
-        // Valida la password
+        log.debug("Creazione nuovo utente");
+
         if (password == null || password.length() < 8) {
             throw new RuntimeException("La password deve contenere almeno 8 caratteri");
         }
-        
-        // Hash della password
+
         String hashedPassword = passwordEncoder.encode(password);
         user.setPasswordHash(hashedPassword);
-        
-        // Salva l'utente
+
         User savedUser = userRepository.save(user);
-        System.out.println("✅ [UserService] Utente salvato: " + savedUser.getId());
-        
-        // Aggiungi la membership all'agenzia se necessario
+        log.debug("Utente salvato: {}", savedUser.getId());
+
         addAgencyMembershipIfNeeded(savedUser);
-        
+
         return savedUser;
     }
 }

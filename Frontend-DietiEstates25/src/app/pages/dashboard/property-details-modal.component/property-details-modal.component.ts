@@ -35,6 +35,7 @@ interface PropertyDetail {
 })
 export class PropertyDetailsModalComponent implements OnInit {
   property = input.required<PropertyDetail>();
+  allowEdit = input<boolean>(true);
   close = output<void>();
   edit = output<PropertyDetail>();
 
@@ -79,6 +80,7 @@ export class PropertyDetailsModalComponent implements OnInit {
   }
 
   onEdit(): void {
+    if (!this.allowEdit()) return;
     this.edit.emit(this.property());
   }
 
@@ -105,5 +107,22 @@ export class PropertyDetailsModalComponent implements OnInit {
       affittato: 'status-rented'
     };
     return classes[status] || '';
+  }
+
+  formatPropertyType(value: string | null | undefined): string {
+    const raw = (value ?? '').trim();
+    if (!raw) return '';
+
+    // Esempio: CASA_INDIPENDENTE -> Casa indipendente
+    const cleaned = raw
+      .replace(/_/g, ' ')
+      .replace(/\s+/g, ' ')
+      .toLowerCase();
+
+    return cleaned
+      .split(' ')
+      .map(w => (w ? w.charAt(0).toUpperCase() + w.slice(1) : ''))
+      .join(' ')
+      .trim();
   }
 }

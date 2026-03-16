@@ -146,6 +146,7 @@
   @if (showDetailsModal() && selectedProperty()) {
     <app-property-details-modal
       [property]="selectedProperty()!"
+      [allowEdit]="false"
       (close)="onCloseDetailsModal()"
     />
   }

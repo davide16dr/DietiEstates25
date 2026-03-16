@@ -1,6 +1,10 @@
 <div class="page">
     <header class="page-header">
       <div class="title">
+        <a class="btn-home" routerLink="/">
+          <span class="material-icons">home</span>
+          Home
+        </a>
         <h1>Immobili</h1>
         <p class="subtitle">{{ countLabel() }}</p>
       </div>
@@ -11,19 +15,32 @@
     </header>
   
     <div class="layout">
-      <app-property-filters
-        [initialValue]="filtersValue()"
-        (search)="onFiltersSearch($event)"
-        (reset)="onFiltersReset($event)">
-      </app-property-filters>
-
-      <button class="btn-save-search filters-save-btn" (click)="openSaveSearchModal()" title="Salva questa ricerca">
-        <span class="material-icons">bookmark_add</span>
-        Salva ricerca
+      <button class="btn-filters-toggle" type="button" (click)="toggleFilters()">
+        <span class="material-icons">tune</span>
+        {{ showFilters() ? 'Nascondi filtri' : 'Mostra filtri' }}
       </button>
+
+      <div class="filters-panel" [class.open]="showFilters()">
+        <app-property-filters
+          [initialValue]="filtersValue()"
+          (search)="onFiltersSearch($event)"
+          (reset)="onFiltersReset($event)">
+        </app-property-filters>
+
+        <button class="btn-save-search filters-save-btn" (click)="openSaveSearchModal()" title="Salva questa ricerca">
+          <span class="material-icons">bookmark_add</span>
+          Salva ricerca
+        </button>
+      </div>
   
       <section class="content">
-        @if (viewMode() === 'map') {
+        @if (!loading() && filtered().length === 0) {
+          <div class="empty-results">
+            <span class="material-icons">search_off</span>
+            <h3>Nessun risultato trovato</h3>
+            <p>{{ noResultsMessage() }}</p>
+          </div>
+        } @else if (viewMode() === 'map') {
           <app-property-map
             [markers]="markers()"
             (markerClick)="onOpenProperty($event)">

@@ -6,7 +6,6 @@ import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,7 +22,6 @@ import it.unina.dietiestates25.backend.services.OfferService;
 
 @RestController
 @RequestMapping("/api/client/offers")
-@CrossOrigin(origins = "http://localhost:4200", allowCredentials = "true")
 public class ClientOfferController {
 
     private final OfferService offerService;

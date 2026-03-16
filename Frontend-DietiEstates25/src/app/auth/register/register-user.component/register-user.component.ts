@@ -1,4 +1,4 @@
-import { Component, signal, inject } from '@angular/core';
+import { Component, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
@@ -19,20 +19,50 @@ export class RegisterUserComponent {
 
   isSubmitting = signal(false);
   errorMessage = signal<string | null>(null);
+  currentStep = signal<1 | 2>(1);
+  showPassword = signal(false);
+  showConfirm = signal(false);
+  passwordValue = signal('');
+
+  passwordStrength = computed(() => {
+    const p = this.passwordValue();
+    if (!p) return 0;
+    let score = 0;
+    if (p.length >= 8) score++;
+    if (/[a-zA-Z]/.test(p) && /[0-9]/.test(p)) score++;
+    if (p.length >= 10 && /[^a-zA-Z0-9]/.test(p)) score++;
+    return score;
+  });
+
+  strengthLabel = computed(() => {
+    switch (this.passwordStrength()) {
+      case 1: return 'Debole';
+      case 2: return 'Media';
+      case 3: return 'Forte';
+      default: return '';
+    }
+  });
+
+  passwordRules = computed(() => ({
+    length: this.passwordValue().length >= 8,
+    letter: /[a-zA-Z]/.test(this.passwordValue()),
+    number: /[0-9]/.test(this.passwordValue()),
+  }));
 
   form: FormGroup = this.fb.group({
     firstName: ['', [Validators.required, Validators.minLength(2)]],
     lastName: ['', [Validators.required, Validators.minLength(2)]],
     email: ['', [Validators.required, Validators.email]],
     phone: [''],
-    password: ['', [Validators.required, Validators.minLength(6)]],
-    confirmPassword: ['', [Validators.required, Validators.minLength(6)]],
+    password: ['', [Validators.required, Validators.minLength(8)]],
+    confirmPassword: ['', [Validators.required]],
   }, { validators: this.passwordMatchValidator });
 
   constructor() {
     this.form.valueChanges.subscribe(() => {
       if (this.errorMessage()) this.errorMessage.set(null);
     });
+    this.form.get('password')?.valueChanges.subscribe(v => this.passwordValue.set(v ?? ''));
   }
 
   private passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
@@ -48,6 +78,32 @@ export class RegisterUserComponent {
 
   goBusinessRegister(): void {
     this.router.navigateByUrl('/auth/register-business');
+  }
+
+  nextStep(): void {
+    const email = this.form.get('email');
+    const password = this.form.get('password');
+    const confirmPassword = this.form.get('confirmPassword');
+    email?.markAsTouched();
+    password?.markAsTouched();
+    confirmPassword?.markAsTouched();
+
+    const hasPasswordMismatch = this.form.hasError('passwordMismatch');
+    if (email?.valid && password?.valid && confirmPassword?.valid && !hasPasswordMismatch) {
+      this.currentStep.set(2);
+      this.errorMessage.set(null);
+    } else {
+      this.errorMessage.set(
+        hasPasswordMismatch
+          ? 'Le password non coincidono. Controlla i campi.'
+          : 'Completa correttamente tutti i campi obbligatori.'
+      );
+    }
+  }
+
+  prevStep(): void {
+    this.currentStep.set(1);
+    this.errorMessage.set(null);
   }
 
   onSubmit(): void {

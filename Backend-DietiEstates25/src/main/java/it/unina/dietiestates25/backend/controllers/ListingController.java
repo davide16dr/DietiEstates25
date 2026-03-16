@@ -2,6 +2,8 @@ package it.unina.dietiestates25.backend.controllers;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,6 +23,8 @@ import it.unina.dietiestates25.backend.services.ListingService;
 @RequestMapping("/api/listings")
 public class ListingController {
 
+    private static final Logger log = LoggerFactory.getLogger(ListingController.class);
+
     private final ListingService listingService;
 
     public ListingController(ListingService listingService) {
@@ -29,28 +33,23 @@ public class ListingController {
 
     @GetMapping("/agent/my-listings")
     public ResponseEntity<List<ListingResponse>> getMyListings(Authentication authentication) {
-        System.out.println("Authentication: " + authentication);
-        System.out.println("Principal: " + (authentication != null ? authentication.getPrincipal() : "null"));
-        
         if (authentication == null || authentication.getPrincipal() == null) {
             return ResponseEntity.status(401).build();
         }
-        
-        // Estrai l'ID dell'utente dal UserPrincipal
+
         var principal = authentication.getPrincipal();
         java.util.UUID agentId = null;
-        
+
         if (principal instanceof it.unina.dietiestates25.backend.security.UserPrincipal) {
             agentId = ((it.unina.dietiestates25.backend.security.UserPrincipal) principal).getId();
         } else {
             return ResponseEntity.status(400).build();
         }
-        
+
         if (agentId == null) {
             return ResponseEntity.status(400).build();
         }
-        
-        System.out.println("Recupero proprietà per agentId: " + agentId);
+
         List<ListingResponse> listings = listingService.getListingsByAgentId(agentId);
         return ResponseEntity.ok(listings);
     }
@@ -60,28 +59,24 @@ public class ListingController {
      */
     @GetMapping("/agency/all")
     public ResponseEntity<List<ListingResponse>> getAllAgencyListings(Authentication authentication) {
-        System.out.println("🏢 Recupero tutti gli immobili dell'agenzia");
-        
         if (authentication == null || authentication.getPrincipal() == null) {
             return ResponseEntity.status(401).build();
         }
-        
+
         var principal = authentication.getPrincipal();
         java.util.UUID userId = null;
-        
+
         if (principal instanceof it.unina.dietiestates25.backend.security.UserPrincipal) {
             userId = ((it.unina.dietiestates25.backend.security.UserPrincipal) principal).getId();
         } else {
             return ResponseEntity.status(400).build();
         }
-        
+
         try {
             List<ListingResponse> listings = listingService.getAllAgencyListings(userId);
-            System.out.println("✅ Recuperati " + listings.size() + " immobili dell'agenzia");
             return ResponseEntity.ok(listings);
         } catch (Exception e) {
-            System.err.println("❌ Errore nel recupero immobili agenzia: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Errore nel recupero immobili agenzia");
             return ResponseEntity.status(500).build();
         }
     }
@@ -153,12 +148,8 @@ public class ListingController {
             @RequestParam("listing") String listingJson,
             @RequestParam(value = "images", required = false) List<org.springframework.web.multipart.MultipartFile> images) {
         
-        System.out.println("=== CREATE LISTING REQUEST (MULTIPART) ===");
-        System.out.println("Property JSON: " + propertyJson);
-        System.out.println("Listing JSON: " + listingJson);
-        System.out.println("Images count: " + (images != null ? images.size() : 0));
-        System.out.println("==========================================");
-        
+        log.debug("Richiesta creazione listing, immagini: {}", (images != null ? images.size() : 0));
+
         if (authentication == null || authentication.getPrincipal() == null) {
             return ResponseEntity.status(401).build();
         }
@@ -188,14 +179,13 @@ public class ListingController {
             ListingResponse response = listingService.createListingWithProperty(agentId, request, images);
             return ResponseEntity.status(201).body(response);
         } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
-            System.err.println("❌ Errore parsing JSON: " + e.getMessage());
+            log.warn("Errore parsing JSON nella creazione listing");
             return ResponseEntity.status(400).body(null);
         } catch (IllegalArgumentException e) {
-            System.err.println("❌ Errore durante la creazione dell'annuncio: " + e.getMessage());
+            log.warn("Argomento non valido nella creazione listing");
             return ResponseEntity.status(400).body(null);
         } catch (Exception e) {
-            System.err.println("❌ Errore inaspettato durante la creazione dell'annuncio: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Errore inaspettato nella creazione listing");
             return ResponseEntity.status(500).body(null);
         }
     }
@@ -209,19 +199,8 @@ public class ListingController {
             @RequestParam(value = "existingImageUrls", required = false) String existingImageUrlsJson,
             @RequestParam(value = "images", required = false) List<org.springframework.web.multipart.MultipartFile> images) {
         
-        System.out.println("=== UPDATE LISTING REQUEST (MULTIPART) ===");
-        System.out.println("Listing ID: " + id);
-        System.out.println("Property JSON: " + propertyJson);
-        System.out.println("Listing JSON: " + listingJson);
-        System.out.println("Existing Images JSON: " + existingImageUrlsJson);
-        System.out.println("New Images count: " + (images != null ? images.size() : 0));
-        
-        // ✅ DEBUG: Verifica quale metodo verrà chiamato
-        boolean hasImageManagement = existingImageUrlsJson != null || (images != null && !images.isEmpty());
-        System.out.println("🔍 hasImageManagement: " + hasImageManagement);
-        System.out.println("🔍 Chiamerà: " + (hasImageManagement ? "updateListingWithImages()" : "updateListing()"));
-        System.out.println("==========================================");
-        
+        log.debug("Richiesta aggiornamento listing: {}", id);
+
         if (authentication == null || authentication.getPrincipal() == null) {
             return ResponseEntity.status(401).build();
         }
@@ -252,10 +231,8 @@ public class ListingController {
             }
             
             if (existingImageUrlsJson != null) {
-                System.out.println("🔍 Parsing existingImageUrlsJson: " + existingImageUrlsJson);
-                existingImageUrls = mapper.readValue(existingImageUrlsJson, 
+                existingImageUrls = mapper.readValue(existingImageUrlsJson,
                     mapper.getTypeFactory().constructCollectionType(List.class, String.class));
-                System.out.println("✅ Parsed existingImageUrls count: " + (existingImageUrls != null ? existingImageUrls.size() : 0));
             }
             
             // Crea il request object
@@ -266,19 +243,16 @@ public class ListingController {
             ListingResponse response = listingService.updateListingWithImages(id, userId, request, existingImageUrls, images);
             return ResponseEntity.ok(response);
         } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
-            System.err.println("❌ Errore parsing JSON: " + e.getMessage());
-            e.printStackTrace();
+            log.warn("Errore parsing JSON nell'aggiornamento listing");
             return ResponseEntity.status(400).body(null);
         } catch (IllegalArgumentException e) {
-            System.err.println("❌ Errore durante l'aggiornamento dell'annuncio: " + e.getMessage());
-            e.printStackTrace();
+            log.warn("Argomento non valido nell'aggiornamento listing");
             return ResponseEntity.status(400).body(null);
         } catch (SecurityException e) {
-            System.err.println("❌ Accesso negato: " + e.getMessage());
+            log.warn("Accesso negato nell'aggiornamento listing");
             return ResponseEntity.status(403).body(null);
         } catch (Exception e) {
-            System.err.println("❌ Errore inaspettato durante l'aggiornamento: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Errore inaspettato nell'aggiornamento listing");
             return ResponseEntity.status(500).body(null);
         }
     }

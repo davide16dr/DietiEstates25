@@ -80,7 +80,7 @@ $shadow-soft: 0 18px 40px rgba(15, 31, 53, 0.12);
 .search-input-wrapper {
   flex: 1;
   position: relative;
-  min-width: 280px;
+  min-width: 200px;
 }
 
 .search-input {
@@ -427,7 +427,73 @@ background-color: #dcfce7;
     padding-top: 2.4rem;
   }
 
+  // ── Search bar mobile: card con campi ben definiti ──
+  .search-bar {
+    border-radius: 20px;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 1rem;
+    gap: 0.75rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.14);
+  }
+
+  .search-input-wrapper {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .search-input {
+    background: #f9fafb;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    padding: 0.65rem 1rem;
+  }
+
+  // Segmented control: sfondo grigio, chip attivo bianco
+  .search-filters {
+    display: flex;
+    gap: 0;
+    background: #f3f4f6;
+    border-radius: 12px;
+    padding: 4px;
+
+    .chip {
+      flex: 1;
+      text-align: center;
+      border-radius: 9px;
+      border: none;
+      padding: 0.5rem;
+      background: transparent;
+      box-shadow: none;
+      font-size: 0.9rem;
+      color: #6b7280;
+      transition: all 0.18s ease;
+
+      &.active {
+        background: #ffffff;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+        color: #166534;
+        font-weight: 600;
+      }
+    }
+  }
+
+  // Bottone Cerca: full-width, facile da premere col pollice
+  .btn.primary {
+    width: 100%;
+    padding: 0.85rem;
+    font-size: 1rem;
+    border-radius: 12px;
+    justify-content: center;
+  }
+
   .features-grid {
     grid-template-columns: 1fr;
+  }
+
+  .stats-inner {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    padding: 1.5rem 1rem;
   }
 }

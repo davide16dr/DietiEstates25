@@ -49,11 +49,11 @@ describe('ListingService', () => {
         price: 100000,
         currency: 'EUR',
         address: 'Via Roma 1',
-        city: 'Milano',
+        city: 'Napoli',
         rooms: 3,
         area: 80,
         floor: 2,
-        energyClass: 'A',
+        energyClass: 'A'
         hasElevator: true,
         latitude: 45.0,
         longitude: 9.0,

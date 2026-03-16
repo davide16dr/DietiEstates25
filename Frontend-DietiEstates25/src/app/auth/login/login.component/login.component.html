@@ -2,7 +2,11 @@
   <section class="hero">
     <div class="hero-content">
       <button type="button" class="back-btn" routerLink="/" aria-label="Torna alla Home">
-        <span class="back-icon">←</span>
+        <span class="back-icon">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
         <span class="back-text">Torna alla Home</span>
       </button>
 
@@ -19,6 +23,12 @@
           La piattaforma immobiliare più completa d'Italia.<br />
           Vendita, affitto e molto altro.
         </p>
+      </div>
+
+      <div class="trust-badges">
+        <span class="trust-badge">✓ Accesso sicuro e protetto</span>
+        <span class="trust-badge">✓ I tuoi dati sono al sicuro</span>
+        <span class="trust-badge">✓ Nessuna pubblicità invasiva</span>
       </div>
 
       <p class="copyright">© 2025 DietiEstates25</p>
@@ -39,31 +49,52 @@
         }
 
         <label class="field">
-          <span class="field-label">Email</span>
-          <div class="field-input">
-            <input type="email" formControlName="email" placeholder="nome@esempio.it" />
+          <span class="field-label">Email <span class="req">*</span></span>
+          <div class="field-input"
+            [class.valid]="form.get('email')?.valid && form.get('email')?.dirty"
+            [class.input-error]="form.get('email')?.invalid && form.get('email')?.touched">
+            <input type="email" formControlName="email" placeholder="nome@esempio.it" autocomplete="email" />
+            @if (form.get('email')?.valid && form.get('email')?.dirty) {
+              <span class="valid-icon" aria-hidden="true">✓</span>
+            }
           </div>
           @if (form.get('email')?.invalid && form.get('email')?.touched) {
-            <div class="field-error">
-              Inserisci un indirizzo email valido.
-            </div>
+            <div class="field-error">Inserisci un indirizzo email valido.</div>
           }
         </label>
 
         <label class="field">
-          <span class="field-label">Password</span>
-          <div class="field-input">
-            <input type="password" formControlName="password" placeholder="••••••••" />
+          <span class="field-label">Password <span class="req">*</span></span>
+          <div class="field-input"
+            [class.input-error]="form.get('password')?.invalid && form.get('password')?.touched">
+            <input [type]="showPassword() ? 'text' : 'password'"
+              formControlName="password"
+              placeholder="••••••••"
+              autocomplete="current-password" />
+            <button type="button" class="toggle-pass"
+              (click)="showPassword.set(!showPassword())"
+              [attr.aria-label]="showPassword() ? 'Nascondi password' : 'Mostra password'">
+              @if (!showPassword()) {
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                  <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                  <line x1="1" y1="1" x2="23" y2="23"/>
+                </svg>
+              } @else {
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              }
+            </button>
           </div>
           @if (form.get('password')?.invalid && form.get('password')?.touched) {
-            <div class="field-error">
-              Inserisci una password di almeno 6 caratteri.
-            </div>
+            <div class="field-error">Inserisci una password di almeno 6 caratteri.</div>
           }
         </label>
 
         <button class="primary-btn" type="submit" [disabled]="isSubmitting()">
-          {{ isSubmitting() ? '⏳ Accesso in corso...' : 'Accedi' }}
+          {{ isSubmitting() ? 'Accesso in corso...' : 'Accedi al tuo account' }}
         </button>
 
         <p class="forgot-password-link">

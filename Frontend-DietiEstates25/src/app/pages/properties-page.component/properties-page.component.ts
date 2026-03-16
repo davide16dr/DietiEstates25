@@ -1,4 +1,4 @@
-import { Component, signal, computed, OnInit } from '@angular/core';
+import { Component, signal, computed, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { PropertyFiltersComponent } from '../../shared/components/properties/property-filters.component/property-filters.component.js';
@@ -32,8 +32,12 @@ export type ViewMode = 'grid' | 'list' | 'map';
   styleUrls: ['./properties-page.component.scss'],
 })
 
-export class PropertiesPageComponent implements OnInit {
+export class PropertiesPageComponent implements OnInit, OnDestroy {
   viewMode = signal<ViewMode>('grid');
+
+  private readonly phoneMaxWidthPx = 640;
+  private phoneMq: MediaQueryList | null = null;
+  private phoneMqListener: ((e: MediaQueryListEvent) => void) | null = null;
   
   // Segnale per gli annunci caricati dal backend
   listings = signal<PropertyCard[]>([]);
@@ -49,6 +53,10 @@ export class PropertiesPageComponent implements OnInit {
   showSaveModal = signal<boolean>(false);
   searchName = signal<string>('');
   savingSearch = signal<boolean>(false);
+
+  // Pannello filtri su mobile
+  showFilters = signal<boolean>(false);
+  toggleFilters() { this.showFilters.update(v => !v); }
 
   filtersValue = signal<PropertyFiltersValue>({
     mode: null,
@@ -73,6 +81,8 @@ export class PropertiesPageComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    this.initPhoneViewModeGuard();
+
     // Leggi i query parameters dall'URL
     this.route.queryParams.subscribe(params => {
       const search = params['search'];
@@ -98,6 +108,32 @@ export class PropertiesPageComponent implements OnInit {
       // Carica gli annunci dal backend
       this.loadListings();
     });
+  }
+
+  ngOnDestroy(): void {
+    if (this.phoneMq && this.phoneMqListener) {
+      this.phoneMq.removeEventListener('change', this.phoneMqListener);
+    }
+  }
+
+  private initPhoneViewModeGuard(): void {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+      return;
+    }
+
+    this.phoneMq = window.matchMedia(`(max-width: ${this.phoneMaxWidthPx}px)`);
+
+    const apply = (isPhone: boolean) => {
+      // Su telefono: niente vista "griglia/4" => forziamo la verticale
+      if (isPhone && this.viewMode() === 'grid') {
+        this.viewMode.set('list');
+      }
+    };
+
+    apply(this.phoneMq.matches);
+
+    this.phoneMqListener = (e: MediaQueryListEvent) => apply(e.matches);
+    this.phoneMq.addEventListener('change', this.phoneMqListener);
   }
 
   private loadListings() {
@@ -248,6 +284,23 @@ export class PropertiesPageComponent implements OnInit {
     return `${start}-${end} di ${total} risultati`;
   });
 
+  noResultsMessage = computed(() => {
+    if (this.loading() || this.filtered().length > 0) {
+      return '';
+    }
+
+    const city = this.filtersValue().city.trim();
+    if (city) {
+      return `Non sono stati trovati risultati per la citta \"${city}\". Prova ad ampliare la zona o a modificare i filtri.`;
+    }
+
+    if (this.hasActiveFilters()) {
+      return 'Non sono stati trovati risultati con i filtri selezionati. Prova ad allargare i criteri di ricerca.';
+    }
+
+    return 'Al momento non ci sono immobili disponibili con i criteri impostati.';
+  });
+
   markers = computed<MapMarkerData[]>(() =>
     this.filtered().map((p) => ({
       id: p.id,
@@ -265,6 +318,11 @@ export class PropertiesPageComponent implements OnInit {
   );
 
   onChangeView(mode: ViewMode) {
+    // Su telefono: permettiamo solo Verticale o Mappa
+    if (this.phoneMq?.matches && mode === 'grid') {
+      this.viewMode.set('list');
+      return;
+    }
     this.viewMode.set(mode);
   }
 

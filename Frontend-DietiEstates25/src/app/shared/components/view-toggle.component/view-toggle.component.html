@@ -1,5 +1,5 @@
 <div class="view-toggle" role="tablist" aria-label="Cambia vista">
-    <button class="vt-btn" [class.active]="value() === 'grid'" (click)="valueChange.emit('grid')" aria-label="Vista griglia">
+    <button class="vt-btn vt-grid" [class.active]="value() === 'grid'" (click)="valueChange.emit('grid')" aria-label="Vista griglia">
       <img src="assets/icons/grid_view.png" alt="Griglia" />
     </button>
     <button class="vt-btn" [class.active]="value() === 'list'" (click)="valueChange.emit('list')" aria-label="Vista lista">

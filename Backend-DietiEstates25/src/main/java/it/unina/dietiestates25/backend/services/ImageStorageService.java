@@ -1,5 +1,7 @@
 package it.unina.dietiestates25.backend.services;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,6 +18,7 @@ import java.util.UUID;
 @Service
 public class ImageStorageService {
 
+    private static final Logger log = LoggerFactory.getLogger(ImageStorageService.class);
     @Value("${app.storage.upload-dir}")
     private String uploadDir;
 
@@ -34,7 +37,7 @@ public class ImageStorageService {
         try {
             rootLocation = Paths.get(uploadDir).toAbsolutePath().normalize();
             Files.createDirectories(rootLocation);
-            System.out.println("📁 Directory upload inizializzata: " + rootLocation);
+            log.info("Directory upload inizializzata: {}", rootLocation);
         } catch (IOException e) {
             throw new RuntimeException("Impossibile creare la directory di upload", e);
         }
@@ -57,18 +60,20 @@ public class ImageStorageService {
             String extension = getFileExtension(originalFilename);
             String filename = listingId + "_" + System.currentTimeMillis() + "_" + UUID.randomUUID() + "." + extension;
 
-            // Crea sottodirectory per listing (migliora organizzazione per centinaia di annunci)
-            Path listingDir = rootLocation.resolve(listingId.toString());
+            Path listingDir = rootLocation.resolve(listingId.toString()).normalize();
+            if (!listingDir.startsWith(rootLocation)) {
+                throw new SecurityException("Path non valido per il listingId");
+            }
             Files.createDirectories(listingDir);
 
-            // Salva il file
-            Path targetLocation = listingDir.resolve(filename);
+            Path targetLocation = listingDir.resolve(filename).normalize();
+            if (!targetLocation.startsWith(rootLocation)) {
+                throw new SecurityException("Path destinazione non valido");
+            }
             Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
 
-            // Restituisci path relativo: listings/{listingId}/{filename}
             String relativePath = listingId.toString() + "/" + filename;
-            System.out.println("✅ Immagine salvata: " + relativePath);
-            
+            log.debug("Immagine salvata: {}", relativePath);
             return relativePath;
 
         } catch (IOException e) {
@@ -94,11 +99,15 @@ public class ImageStorageService {
      */
     public void deleteImage(String relativePath) {
         try {
-            Path filePath = rootLocation.resolve(relativePath);
+            Path filePath = rootLocation.resolve(relativePath).normalize();
+            if (!filePath.startsWith(rootLocation)) {
+                log.warn("Tentativo di path traversal in deleteImage: {}", relativePath);
+                return;
+            }
             Files.deleteIfExists(filePath);
-            System.out.println("🗑️ Immagine eliminata: " + relativePath);
+            log.debug("Immagine eliminata");
         } catch (IOException e) {
-            System.err.println("⚠️ Errore nell'eliminazione dell'immagine: " + relativePath);
+            log.warn("Errore nell'eliminazione dell'immagine");
         }
     }
 
@@ -115,14 +124,14 @@ public class ImageStorageService {
                         try {
                             Files.delete(path);
                         } catch (IOException e) {
-                            System.err.println("⚠️ Errore eliminazione file: " + path);
+                            log.warn("Errore eliminazione file durante pulizia listing");
                         }
                     });
                 Files.deleteIfExists(listingDir);
-                System.out.println("🗑️ Cartella listing eliminata: " + listingId);
+                log.debug("Cartella listing eliminata: {}", listingId);
             }
         } catch (IOException e) {
-            System.err.println("⚠️ Errore nell'eliminazione della cartella: " + listingId);
+            log.warn("Errore nell'eliminazione della cartella per listingId: {}", listingId);
         }
     }
 
@@ -174,6 +183,10 @@ public class ImageStorageService {
         if (rootLocation == null) {
             init();
         }
-        return rootLocation.resolve(relativePath);
+        Path filePath = rootLocation.resolve(relativePath).normalize();
+        if (!filePath.startsWith(rootLocation)) {
+            throw new SecurityException("Accesso negato: path non valido");
+        }
+        return filePath;
     }
 }

@@ -14,9 +14,13 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Service
 public class SavedSearchService {
 
+    private static final Logger log = LoggerFactory.getLogger(SavedSearchService.class);
     @Autowired
     private SavedSearchRepository savedSearchRepository;
 
@@ -27,12 +31,7 @@ public class SavedSearchService {
      * Recupera tutte le ricerche salvate attive di un utente
      */
     public List<SavedSearchResponse> getAllSavedSearches(UUID userId) {
-        System.out.println("🔍 [SavedSearchService] Recupero ricerche salvate per userId: " + userId);
-        
         List<SavedSearch> searches = savedSearchRepository.findAllByClient_IdAndActiveTrue(userId);
-        
-        System.out.println("✅ [SavedSearchService] Trovate " + searches.size() + " ricerche salvate");
-        
         return searches.stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
@@ -43,13 +42,9 @@ public class SavedSearchService {
      */
     @Transactional
     public SavedSearchResponse createSavedSearch(UUID userId, SavedSearchRequest request) {
-        System.out.println("🔍 [SavedSearchService] Creazione nuova ricerca salvata per userId: " + userId);
-        
-        // Validazione
         if (request.getName() == null || request.getName().trim().isEmpty()) {
             throw new RuntimeException("Il nome della ricerca è obbligatorio");
         }
-        
         if (request.getFilters() == null || request.getFilters().isEmpty()) {
             throw new RuntimeException("I filtri sono obbligatori");
         }
@@ -66,9 +61,7 @@ public class SavedSearchService {
         savedSearch.setActive(true);
         
         SavedSearch saved = savedSearchRepository.save(savedSearch);
-        
-        System.out.println("✅ [SavedSearchService] Ricerca salvata creata con ID: " + saved.getId());
-        
+        log.debug("Ricerca salvata creata con ID: {}", saved.getId());
         return convertToResponse(saved);
     }
 
@@ -77,8 +70,6 @@ public class SavedSearchService {
      */
     @Transactional
     public SavedSearchResponse updateSavedSearch(UUID userId, UUID searchId, SavedSearchRequest request) {
-        System.out.println("🔍 [SavedSearchService] Aggiornamento ricerca salvata ID: " + searchId);
-        
         SavedSearch savedSearch = savedSearchRepository.findById(searchId)
                 .orElseThrow(() -> new RuntimeException("Ricerca salvata non trovata"));
         
@@ -97,9 +88,6 @@ public class SavedSearchService {
         }
         
         SavedSearch updated = savedSearchRepository.save(savedSearch);
-        
-        System.out.println("✅ [SavedSearchService] Ricerca salvata aggiornata con successo");
-        
         return convertToResponse(updated);
     }
 
@@ -108,21 +96,15 @@ public class SavedSearchService {
      */
     @Transactional
     public void deleteSavedSearch(UUID userId, UUID searchId) {
-        System.out.println("🔍 [SavedSearchService] Eliminazione ricerca salvata ID: " + searchId);
-        
         SavedSearch savedSearch = savedSearchRepository.findById(searchId)
                 .orElseThrow(() -> new RuntimeException("Ricerca salvata non trovata"));
-        
-        // Verifica che la ricerca appartenga all'utente
+
         if (!savedSearch.getClient().getId().equals(userId)) {
             throw new RuntimeException("Non sei autorizzato a eliminare questa ricerca");
         }
-        
-        // Soft delete
+
         savedSearch.setActive(false);
         savedSearchRepository.save(savedSearch);
-        
-        System.out.println("✅ [SavedSearchService] Ricerca salvata eliminata con successo");
     }
 
     /**

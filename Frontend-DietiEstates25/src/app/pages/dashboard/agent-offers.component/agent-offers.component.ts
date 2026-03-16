@@ -132,7 +132,7 @@ export class AgentOffersComponent implements OnInit, OnDestroy {
         id: '1',
         propertyId: '101',
         propertyTitle: 'Appartamento moderno',
-        propertyAddress: 'Milano Centro',
+        propertyAddress: 'Napoli Centro',
         propertyPrice: 350000,
         clientName: 'Mario Rossi',
         clientEmail: 'mario.rossi@email.com',

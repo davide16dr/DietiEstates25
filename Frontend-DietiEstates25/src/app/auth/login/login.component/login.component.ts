@@ -22,6 +22,7 @@ export class LoginComponent {
   isSubmitting = signal(false);
   isSocialSubmitting = signal<OAuthProvider | null>(null);
   errorMessage = signal<string | null>(null);
+  showPassword = signal(false);
 
   form: FormGroup = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
