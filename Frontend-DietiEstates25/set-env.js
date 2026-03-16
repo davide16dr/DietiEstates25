@@ -11,6 +11,19 @@ const envConfigFile = `export const environment = {
   production: false,
   googleMapsApiKey: '${process.env.GOOGLE_MAPS_API_KEY}',
   apiUrl: 'http://localhost:8080/api',
+  
+  // OAuth Configuration
+  oauth: {
+    google: {
+      clientId: '${process.env.GOOGLE_CLIENT_ID}'
+    },
+    github: {
+      clientId: '${process.env.GITHUB_CLIENT_ID}'
+    },
+    facebook: {
+      appId: '${process.env.FACEBOOK_APP_ID}'
+    }
+  }
 };
 `;
 

@@ -2,9 +2,16 @@ spring:
   application:
     name: BackendDietiEstates25
 
+# ✅ LIMITE UPLOAD FILE - Aumentato per supportare immagini grandi
+  servlet:
+    multipart:
+      max-file-size: 10MB      # Dimensione massima per singolo file
+      max-request-size: 50MB   # Dimensione massima totale della richiesta
+      enabled: true
+
   datasource:
     url: jdbc:postgresql://localhost:5432/dietiestates25
-    username: massimocolucci
+    username: davideranavolo
     password:
     driver-class-name: org.postgresql.Driver
     hikari:

@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, from, throwError } from 'rxjs';
 import { tap, switchMap } from 'rxjs/operators';
 import { AuthService, AuthResponse } from './auth.service';
+import { environment } from '../../../environments/environment'; // ✅ AGGIUNTO
 
 export type OAuthProvider = 'google' | 'github' | 'facebook';
 
@@ -17,10 +18,10 @@ export class OAuthService {
 
   private readonly BACKEND_URL = 'http://localhost:8080/auth/oauth';
 
-  // ─── CLIENT IDs (imposta i valori reali in environment.ts) ───────────────
-  private readonly GOOGLE_CLIENT_ID  = (window as any).__env?.googleClientId  ?? '';
-  private readonly GITHUB_CLIENT_ID  = (window as any).__env?.githubClientId  ?? '';
-  private readonly FACEBOOK_APP_ID   = (window as any).__env?.facebookAppId   ?? '';
+  // ✅ CORRETTO: Legge da environment.ts invece di (window as any).__env
+  private readonly GOOGLE_CLIENT_ID  = environment.oauth?.google?.clientId ?? '';
+  private readonly GITHUB_CLIENT_ID  = environment.oauth?.github?.clientId ?? '';
+  private readonly FACEBOOK_APP_ID   = environment.oauth?.facebook?.appId ?? '';
 
   // ─────────────────────────────────────────────────────────────────────────
   // ENTRY POINT
