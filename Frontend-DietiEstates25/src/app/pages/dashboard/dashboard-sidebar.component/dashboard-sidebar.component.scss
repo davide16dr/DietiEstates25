@@ -66,9 +66,10 @@
     gap:12px;
     padding:4px 8px;
   }
+  .profile-meta{ min-width: 0; }
   .profile-avatar{
     width:38px;height:38px;border-radius:999px;
-    background:#f0a314;
+    background:#0f7a55;
     color:#fff;
     display:flex;align-items:center;justify-content:center;
     font-weight:900;
@@ -76,6 +77,10 @@
   }
   .profile-name{ font-weight:900; color:#111827; font-size: 14px; }
   .profile-role{ font-size:11px; color:#6b7280; margin-top:2px; }
+
+  @media (max-width: 768px) {
+    .profile-role{ font-size: 12px; }
+  }
   
   /* MENU: può scrollare se necessario */
   .menu{
@@ -173,7 +178,7 @@
       left: 0;
       top: 0;
       height: 100dvh;
-      z-index: 200;
+      z-index: 1200;
       transform: translateX(-100%);
       transition: transform 0.25s ease;
       box-shadow: 4px 0 24px rgba(0, 0, 0, 0.18);
@@ -188,4 +193,17 @@
     .sidebar.collapsed {
       width: 280px !important;
     }
+
+    .profile {
+      padding: 6px 10px;
+    }
+
+    .profile-avatar {
+      width: 44px;
+      height: 44px;
+      font-size: 16px;
+    }
+
+    .profile-name { font-size: 15px; }
+    .profile-role { font-size: 12px; }
   }

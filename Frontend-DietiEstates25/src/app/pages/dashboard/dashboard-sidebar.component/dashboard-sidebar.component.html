@@ -1,10 +1,10 @@
 <aside class="sidebar" [class.collapsed]="collapsed()" [class.mobile-open]="mobileOpen()">
     <div class="profile">
       <div class="profile-avatar">{{ userInitials }}</div>
-      @if (!collapsed()) {
+      @if (!collapsed() || mobileOpen()) {
         <div class="profile-meta">
           <div class="profile-name">{{ userName }}</div>
-          <div class="profile-role">{{ userRole }}</div>
+           <div class="profile-role">{{ displayRole }}</div>
         </div>
       }
     </div>
@@ -17,13 +17,13 @@
           routerLinkActive="active"
         >
           <span class="ico">{{ item.icon }}</span>
-          @if (!collapsed()) {
+          @if (!collapsed() || mobileOpen()) {
             <span class="lbl">{{ item.label }}</span>
           }
-          @if (!collapsed() && item.badge) {
+          @if ((!collapsed() || mobileOpen()) && item.badge) {
             <span class="badge">{{ item.badge }}</span>
           }
-          @if (!collapsed() && !item.badge) {
+          @if ((!collapsed() || mobileOpen()) && !item.badge) {
             <span class="chev">›</span>
           }
         </a>
@@ -33,21 +33,21 @@
     <div class="sidebar-footer">
       <button class="footer-btn" type="button" (click)="openChangePasswordModal()">
         <span class="ico">🔒</span>
-        @if (!collapsed()) {
+        @if (!collapsed() || mobileOpen()) {
           <span class="lbl">Cambia Password</span>
         }
       </button>
 
       <button class="footer-btn" type="button" (click)="goBackToSite()">
         <span class="ico">⌂</span>
-        @if (!collapsed()) {
+        @if (!collapsed() || mobileOpen()) {
           <span class="lbl">Torna al sito</span>
         }
       </button>
   
       <button class="footer-btn danger" type="button" (click)="logout()">
         <span class="ico">⎋</span>
-        @if (!collapsed()) {
+        @if (!collapsed() || mobileOpen()) {
           <span class="lbl">Esci</span>
         }
       </button>

@@ -46,6 +46,31 @@
   }
 }
 
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid #eceef0;
+  background: #fff;
+  color: #6b7280;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #f6f7f8;
+    color: #111827;
+  }
+}
+
+.back-ic {
+  font-size: 18px;
+  line-height: 1;
+}
+
 .close-btn {
   width: 36px;
   height: 36px;
@@ -224,18 +249,21 @@
 
 .feature-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
+  min-width: 0;
 }
 
 .feature-icon {
   font-size: 24px;
+  flex: 0 0 auto;
 }
 
 .feature-info {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
 }
 
 .feature-label {
@@ -250,6 +278,9 @@
   font-size: 16px;
   font-weight: 700;
   color: #111827;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.2;
 }
 
 // Sezioni
@@ -425,4 +456,83 @@
   .stats-grid {
     grid-template-columns: 1fr;
   }
+}
+
+@media (max-width: 640px) {
+  .modal-overlay {
+    padding: 0;
+    align-items: stretch;
+    justify-content: stretch;
+  }
+
+  .modal-container {
+    max-width: 100%;
+    max-height: 100dvh;
+    border-radius: 0;
+    margin: 0;
+  }
+
+  .modal-header {
+    padding: 14px 16px;
+    gap: 10px;
+
+    h2 {
+      font-size: 18px;
+      line-height: 1.2;
+      flex: 1 1 auto;
+      text-align: center;
+    }
+  }
+
+  .back-btn {
+    height: 34px;
+    padding: 0 10px;
+    flex-shrink: 0;
+  }
+
+  .close-btn {
+    flex-shrink: 0;
+  }
+
+  .property-gallery {
+    height: 220px;
+  }
+
+  .carousel-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 20px;
+  }
+
+  .property-header,
+  .property-features,
+  .property-section {
+    padding: 16px;
+  }
+
+  .property-price { font-size: 22px; }
+  .property-title { font-size: 18px; }
+
+  .address-item {
+    align-items: flex-start;
+  }
+
+  .address-label {
+    min-width: 84px;
+  }
+
+  .modal-footer {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    padding: 14px 16px;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+  }
+}
+
+@media (max-width: 420px) {
+  .back-btn span:last-child { display: none; }
 }

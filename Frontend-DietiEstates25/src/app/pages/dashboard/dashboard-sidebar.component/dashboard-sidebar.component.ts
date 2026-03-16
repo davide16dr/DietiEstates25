@@ -66,13 +66,35 @@ export class DashboardSidebarComponent implements OnInit {
     return this.currentUser()?.role?.toLocaleLowerCase() ?? '';
   }
 
+  get displayRole(): string {
+    const role = this.currentUser()?.role?.toLowerCase();
+    switch (role) {
+      case 'admin': return 'Admin';
+      case 'agency_manager': return 'Gestore';
+      case 'agent': return 'Agente';
+      default: return 'Cliente';
+    }
+  }
+
+  get userRoleLabel(): string {
+    const role = this.userRole;
+    switch (role) {
+      case 'agent': return 'Agente';
+      case 'agency_manager': return 'Manager Agenzia';
+      case 'admin': return 'Admin';
+      case 'user': return 'Utente';
+      default: return role ? role.replaceAll('_', ' ') : '';
+    }
+  }
+
   get userInitials(): string {
     const user = this.currentUser();
-    if (!user) return '';
+    if (!user) return 'U';
     if (user.firstName && user.lastName) return (user.firstName[0] + user.lastName[0]).toUpperCase();
     const parts = (user.email ?? '').split('@')[0].split('.');
     if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
-    return (user.email ?? '').substring(0, 2).toUpperCase();
+    const fallback = (user.email ?? '').substring(0, 2).toUpperCase();
+    return fallback || 'U';
   }
 
   get isAgent(): boolean { return this.currentUser()?.role?.toLowerCase() === 'agent'; }

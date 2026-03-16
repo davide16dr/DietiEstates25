@@ -1,6 +1,10 @@
 <div class="modal-overlay" (click)="onClose()">
   <div class="modal-container" (click)="$event.stopPropagation()">
     <div class="modal-header">
+      <button class="back-btn" type="button" (click)="onClose()">
+        <span class="back-ic">←</span>
+        <span>Immobili</span>
+      </button>
       <h2>Dettagli Immobile</h2>
       <button class="close-btn" (click)="onClose()">×</button>
     </div>
@@ -55,7 +59,7 @@
           <span class="feature-icon">🏠</span>
           <div class="feature-info">
             <span class="feature-label">Tipo</span>
-            <span class="feature-value">{{ property().propertyType }}</span>
+            <span class="feature-value">{{ formatPropertyType(property().propertyType) }}</span>
           </div>
         </div>
 
@@ -172,9 +176,11 @@
       <button type="button" class="btn-secondary" (click)="onClose()">
         Chiudi
       </button>
-      <button type="button" class="btn-primary" (click)="onEdit()">
-        Modifica Immobile
-      </button>
+      @if (allowEdit()) {
+        <button type="button" class="btn-primary" (click)="onEdit()">
+          Modifica Immobile
+        </button>
+      }
     </div>
   </div>
 </div>
