@@ -48,7 +48,9 @@ public class OfferStatusHistory {
     @Column(columnDefinition = "text")
     private String note;
 
-    public OfferStatusHistory() {}
+    // Costruttore vuoto richiesto da JPA.
+    public OfferStatusHistory() {
+    }
 
     @PrePersist
     public void ensureIdAndChangedAt() {

@@ -13,6 +13,7 @@ public class EmailService {
     private static final Logger log = LoggerFactory.getLogger(EmailService.class);
 
     private static final String DEV_DISABLED_PREFIX = "[EMAIL DISABILITATO IN SVILUPPO]";
+    private static final String LOG_TO_PREFIX = "To: {}";
     private static final String BODY_LABEL = "Body:";
     private static final String BODY_SEPARATOR = "---";
 
@@ -37,7 +38,7 @@ public class EmailService {
         // Se l'invio email è disabilitato, mostra il messaggio in console
         if (!emailEnabled) {
             log.info(DEV_DISABLED_PREFIX);
-            log.info("To: {}", toEmail);
+            log.info(LOG_TO_PREFIX, toEmail);
             log.info("Subject: Benvenuto in DietiEstates25 - Registrazione Confermata");
             log.info(BODY_LABEL);
             log.info(BODY_SEPARATOR);
@@ -73,7 +74,7 @@ public class EmailService {
         // Se l'invio email è disabilitato, mostra il messaggio in console
         if (!emailEnabled) {
             log.info(DEV_DISABLED_PREFIX);
-            log.info("To: {}", toEmail);
+            log.info(LOG_TO_PREFIX, toEmail);
             log.info("Subject: Benvenuto in DietiEstates25 - Account Agente Creato");
             log.info(BODY_LABEL);
             log.info(BODY_SEPARATOR);
@@ -109,7 +110,7 @@ public class EmailService {
         // Se l'invio email è disabilitato, mostra il messaggio in console
         if (!emailEnabled) {
             log.info(DEV_DISABLED_PREFIX);
-            log.info("To: {}", toEmail);
+            log.info(LOG_TO_PREFIX, toEmail);
             log.info("Subject: Benvenuto in DietiEstates25 - Account Gestore Creato");
             log.info(BODY_LABEL);
             log.info(BODY_SEPARATOR);
@@ -141,7 +142,7 @@ public class EmailService {
     public void sendPasswordResetEmail(String toEmail, String firstName, String resetLink) {
         if (!emailEnabled) {
             log.info(DEV_DISABLED_PREFIX);
-            log.info("To: {}", toEmail);
+            log.info(LOG_TO_PREFIX, toEmail);
             log.info("Subject: DietiEstates25 - Reset Password");
             log.info(BODY_LABEL);
             log.info(BODY_SEPARATOR);

@@ -249,17 +249,17 @@ public class UserController {
             User user = userService.getUserById(userId);
             
             // Aggiorna i campi forniti
-            if (updateData.containsKey("firstName")) {
-                user.setFirstName((String) updateData.get("firstName"));
+            if (updateData.containsKey(KEY_FIRST_NAME)) {
+                user.setFirstName((String) updateData.get(KEY_FIRST_NAME));
             }
-            if (updateData.containsKey("lastName")) {
-                user.setLastName((String) updateData.get("lastName"));
+            if (updateData.containsKey(KEY_LAST_NAME)) {
+                user.setLastName((String) updateData.get(KEY_LAST_NAME));
             }
-            if (updateData.containsKey("phoneE164")) {
-                user.setPhoneE164((String) updateData.get("phoneE164"));
+            if (updateData.containsKey(KEY_PHONE_E164)) {
+                user.setPhoneE164((String) updateData.get(KEY_PHONE_E164));
             }
-            if (updateData.containsKey("active")) {
-                user.setActive((Boolean) updateData.get("active"));
+            if (updateData.containsKey(KEY_ACTIVE)) {
+                user.setActive((Boolean) updateData.get(KEY_ACTIVE));
             }
             
             User updatedUser = userRepository.save(user);

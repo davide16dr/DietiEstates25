@@ -8,6 +8,7 @@ public class UpdateListingRequest {
     private ListingUpdate listing;
 
     // Costruttore vuoto richiesto da Jackson.
+    // Costruttore vuoto richiesto da Jackson per la deserializzazione.
     public UpdateListingRequest() {
     }
 
@@ -59,6 +60,7 @@ public class UpdateListingRequest {
         private Double longitude;
 
         // Costruttore vuoto richiesto da Jackson.
+        // Costruttore vuoto richiesto da Jackson per la deserializzazione.
         public PropertyUpdate() {
         }
 
@@ -174,6 +176,7 @@ public class UpdateListingRequest {
         private String status;
 
         // Costruttore vuoto richiesto da Jackson.
+        // Costruttore vuoto richiesto da Jackson per la deserializzazione.
         public ListingUpdate() {
         }
 

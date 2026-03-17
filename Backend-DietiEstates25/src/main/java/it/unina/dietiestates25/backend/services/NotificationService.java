@@ -3,6 +3,8 @@ package it.unina.dietiestates25.backend.services;
 import java.util.List;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +20,8 @@ import it.unina.dietiestates25.backend.repositories.UserRepository;
 
 @Service
 public class NotificationService {
+
+    private static final Logger log = LoggerFactory.getLogger(NotificationService.class);
 
     private static final String TYPE_OFFER_STATUS_CHANGED = "OFFER_STATUS_CHANGED";
     private static final String TYPE_OFFER_UPDATES = "OFFER_UPDATES";
@@ -100,7 +104,7 @@ public class NotificationService {
         
         // Se le notifiche in-app sono disabilitate, non inviare NESSUNA notifica
         if (!prefs.isInappEnabled()) {
-            System.out.println(LOG_PREFIX_SKIP + notificationType + " NON inviata a " + userId + LOG_INAPP_DISABLED);
+            log.debug("{}{} NON inviata a {}{}", LOG_PREFIX_SKIP, notificationType, userId, LOG_INAPP_DISABLED);
             return false;
         }
         
@@ -115,7 +119,7 @@ public class NotificationService {
         };
         
         if (!shouldSend) {
-            System.out.println(LOG_PREFIX_SKIP + notificationType + " NON inviata a " + userId + LOG_PREFERENCE_DISABLED);
+            log.debug("{}{} NON inviata a {}{}", LOG_PREFIX_SKIP, notificationType, userId, LOG_PREFERENCE_DISABLED);
         }
         
         return shouldSend;
@@ -159,7 +163,7 @@ public class NotificationService {
         notification.setBody(body);
 
         notificationRepository.save(notification);
-        System.out.println(LOG_PREFIX_OK + "OFFER inviata a " + clientId);
+        log.debug("{}OFFER inviata a {}", LOG_PREFIX_OK, clientId);
     }
 
     @Transactional
@@ -208,7 +212,7 @@ public class NotificationService {
         notification.setBody(body);
 
         notificationRepository.save(notification);
-        System.out.println(LOG_PREFIX_OK + "VISIT inviata a " + clientId);
+        log.debug("{}VISIT inviata a {}", LOG_PREFIX_OK, clientId);
     }
 
     @Transactional
@@ -233,7 +237,7 @@ public class NotificationService {
         notification.setBody(body);
 
         notificationRepository.save(notification);
-        System.out.println(LOG_PREFIX_OK + "PRICE_CHANGE inviata a " + clientId);
+        log.debug("{}PRICE_CHANGE inviata a {}", LOG_PREFIX_OK, clientId);
     }
 
     @Transactional
@@ -259,7 +263,7 @@ public class NotificationService {
         notification.setBody(body);
 
         notificationRepository.save(notification);
-        System.out.println(LOG_PREFIX_OK + "NEW_MATCHING inviata a " + clientId);
+        log.debug("{}NEW_MATCHING inviata a {}", LOG_PREFIX_OK, clientId);
     }
 
     @Transactional
@@ -283,7 +287,7 @@ public class NotificationService {
         notification.setBody(body);
 
         notificationRepository.save(notification);
-        System.out.println(LOG_PREFIX_OK + "LISTING_UPDATED inviata a " + clientId);
+        log.debug("{}LISTING_UPDATED inviata a {}", LOG_PREFIX_OK, clientId);
     }
     
     /**
@@ -313,7 +317,7 @@ public class NotificationService {
         notification.setBody(body);
 
         notificationRepository.save(notification);
-        System.out.println(LOG_PREFIX_OK + "AGENT inviata a " + agentId + " - tipo: " + notificationType);
+        log.debug("{}AGENT inviata a {} - tipo: {}", LOG_PREFIX_OK, agentId, notificationType);
     }
     
     /**
@@ -326,8 +330,8 @@ public class NotificationService {
                 .filter(SavedSearch::isActive)
                 .toList();
         
-        System.out.println("🔍 Verifico matching per nuovo immobile: " + newListing.getTitle());
-        System.out.println("📋 Ricerche salvate attive trovate: " + allActiveSearches.size());
+        log.debug("Verifico matching per nuovo immobile: {}", newListing.getTitle());
+        log.debug("Ricerche salvate attive trovate: {}", allActiveSearches.size());
         
         int notificationsSent = 0;
         
@@ -342,7 +346,7 @@ public class NotificationService {
             }
         }
         
-        System.out.println(LOG_PREFIX_OK + "Inviate " + notificationsSent + " notifiche per nuovo immobile corrispondente");
+        log.debug("{}Inviate {} notifiche per nuovo immobile corrispondente", LOG_PREFIX_OK, notificationsSent);
     }
     
     /**

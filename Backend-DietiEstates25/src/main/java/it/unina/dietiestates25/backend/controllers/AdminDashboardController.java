@@ -161,23 +161,23 @@ public class AdminDashboardController {
             .orElseThrow(() -> new RuntimeException(MSG_AGENCY_NOT_FOUND));
 
         // Aggiorna i campi forniti
-        if (updates.containsKey("name")) {
-            agency.setName(updates.get("name"));
+        if (updates.containsKey(KEY_NAME)) {
+            agency.setName(updates.get(KEY_NAME));
         }
-        if (updates.containsKey("vatNumber")) {
-            agency.setVatNumber(updates.get("vatNumber"));
+        if (updates.containsKey(KEY_VAT_NUMBER)) {
+            agency.setVatNumber(updates.get(KEY_VAT_NUMBER));
         }
-        if (updates.containsKey("email")) {
-            agency.setEmail(updates.get("email"));
+        if (updates.containsKey(KEY_EMAIL)) {
+            agency.setEmail(updates.get(KEY_EMAIL));
         }
-        if (updates.containsKey("phoneE164")) {
-            agency.setPhoneE164(updates.get("phoneE164"));
+        if (updates.containsKey(KEY_PHONE_E164)) {
+            agency.setPhoneE164(updates.get(KEY_PHONE_E164));
         }
-        if (updates.containsKey("address")) {
-            agency.setAddress(updates.get("address"));
+        if (updates.containsKey(KEY_ADDRESS)) {
+            agency.setAddress(updates.get(KEY_ADDRESS));
         }
-        if (updates.containsKey("city")) {
-            agency.setCity(updates.get("city"));
+        if (updates.containsKey(KEY_CITY)) {
+            agency.setCity(updates.get(KEY_CITY));
         }
 
         Agency updatedAgency = agencyRepository.save(agency);

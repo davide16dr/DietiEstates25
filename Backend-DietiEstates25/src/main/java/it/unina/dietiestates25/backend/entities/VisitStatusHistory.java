@@ -38,7 +38,9 @@ public class VisitStatusHistory {
     @Column(columnDefinition = "text")
     private String note;
 
-    public VisitStatusHistory() {}
+    // Costruttore vuoto richiesto da JPA.
+    public VisitStatusHistory() {
+    }
 
     @PrePersist
     public void ensureIdAndChangedAt() {

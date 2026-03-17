@@ -44,6 +44,8 @@ public class OAuthService {
     private static final String MSG_FACEBOOK_TOKEN_INVALID = "Facebook access_token non valido";
     private static final String MSG_FACEBOOK_TOKEN_ERROR = "Impossibile autenticarsi con Facebook: ";
     private static final String MSG_ACCOUNT_DISABLED = "Account disattivato. Contatta il supporto.";
+    private static final String HEADER_ACCEPT = "Accept";
+    private static final String KEY_EMAIL = "email";
 
     private final UserRepository userRepository;
     private final JwtService jwtService;
@@ -127,7 +129,7 @@ public class OAuthService {
 
             HttpRequest tokenRequest = HttpRequest.newBuilder()
                     .uri(URI.create("https://github.com/login/oauth/access_token"))
-                    .header("Accept", "application/json")
+                    .header(HEADER_ACCEPT, "application/json")
                     .header("Content-Type", "application/x-www-form-urlencoded")
                     .POST(HttpRequest.BodyPublishers.ofString(tokenRequestBody))
                     .build();
@@ -150,7 +152,7 @@ public class OAuthService {
             HttpRequest userRequest = HttpRequest.newBuilder()
                     .uri(URI.create("https://api.github.com/user"))
                     .header("Authorization", "Bearer " + accessToken)
-                    .header("Accept", "application/vnd.github+json")
+                    .header(HEADER_ACCEPT, "application/vnd.github+json")
                     .GET()
                     .build();
 
@@ -164,7 +166,7 @@ public class OAuthService {
             JsonNode userJson = objectMapper.readTree(userResponse.body());
 
             // GitHub potrebbe non esporre l'email pubblicamente – chiama /user/emails
-            String email = userJson.path("email").asText(null);
+            String email = userJson.path(KEY_EMAIL).asText(null);
             if (email == null || email.isBlank()) {
                 email = getGithubPrimaryEmail(accessToken);
             }
@@ -187,7 +189,7 @@ public class OAuthService {
         HttpRequest emailRequest = HttpRequest.newBuilder()
                 .uri(URI.create("https://api.github.com/user/emails"))
                 .header("Authorization", "Bearer " + accessToken)
-                .header("Accept", "application/vnd.github+json")
+            .header(HEADER_ACCEPT, "application/vnd.github+json")
                 .GET()
                 .build();
 
@@ -253,7 +255,7 @@ public class OAuthService {
             }
             JsonNode meJson = objectMapper.readTree(meResponse.body());
 
-            String email = meJson.path("email").asText(null);
+            String email = meJson.path(KEY_EMAIL).asText(null);
             if (email == null || email.isBlank()) {
                 // Facebook può non dare l'email se l'utente non ha concesso il permesso
                 String fbId = meJson.path("id").asText("unknown");

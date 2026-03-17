@@ -28,6 +28,8 @@ import it.unina.dietiestates25.backend.repositories.ListingImageRepository;
 public class ListingService {
 
     private static final Logger log = LoggerFactory.getLogger(ListingService.class);
+    private static final String DEBUG_END_MARKER = "=== FINE DEBUG ===";
+    private static final String LISTINGS_UPLOADS_PATH = "/uploads/listings/";
 
     private final ListingRepository listingRepository;
     private final PropertyRepository propertyRepository;
@@ -118,7 +120,7 @@ public class ListingService {
             log.debug("  [{}] {} - {}", i, l.getTitle(), l.getProperty().getCity());
         }
 
-        log.debug("=== FINE DEBUG ===");
+        log.debug(DEBUG_END_MARKER);
 
         return listings.stream()
                 .map(this::mapToResponse)
@@ -273,7 +275,7 @@ public class ListingService {
                     ListingImage listingImage = new ListingImage();
                     listingImage.setListing(listing);
                     // ✅ Salva URL completo per il frontend
-                    listingImage.setUrl("http://localhost:8080/uploads/listings/" + imagePath);
+                    listingImage.setUrl("http://localhost:8080" + LISTINGS_UPLOADS_PATH + imagePath);
                     listingImage.setSortOrder(sortOrder++);
                     listingImageRepository.save(listingImage);
                 }
@@ -333,7 +335,7 @@ public class ListingService {
 
         log.debug("isAgent: {}", isAgent);
         log.debug("isManager: {}", isManager);
-        log.debug("=== FINE DEBUG ===");
+        log.debug(DEBUG_END_MARKER);
 
         if (!isAgent && !isManager) {
             throw new SecurityException("User does not have permission to update this listing");
@@ -386,7 +388,7 @@ public class ListingService {
                 }
 
                 log.debug("Status dopo setStatus(): {}", listing.getStatus());
-                log.debug("=== FINE DEBUG ===");
+                log.debug(DEBUG_END_MARKER);
             }
         }
 
@@ -529,7 +531,7 @@ public class ListingService {
             } else {
                 log.debug("  NESSUNA (existingImageUrls è null)");
             }
-            log.debug("=== FINE DEBUG ===");
+            log.debug(DEBUG_END_MARKER);
 
             // 2. Identifica le immagini da eliminare
             List<ListingImage> imagesToDelete = new java.util.ArrayList<>();
@@ -558,9 +560,9 @@ public class ListingService {
 
                 // Estrai il path relativo dall'URL completo
                 String url = img.getUrl();
-                if (url.contains("/uploads/listings/")) {
+                if (url.contains(LISTINGS_UPLOADS_PATH)) {
                     String relativePath = url
-                            .substring(url.indexOf("/uploads/listings/") + "/uploads/listings/".length());
+                            .substring(url.indexOf(LISTINGS_UPLOADS_PATH) + LISTINGS_UPLOADS_PATH.length());
                     deleteListingImageSafely(relativePath);
                 }
             }
@@ -604,7 +606,7 @@ public class ListingService {
                 for (int i = 0; i < newImagePaths.size(); i++) {
                     ListingImage listingImage = new ListingImage();
                     listingImage.setListing(listing);
-                    listingImage.setUrl("http://localhost:8080/uploads/listings/" + newImagePaths.get(i));
+                    listingImage.setUrl("http://localhost:8080" + LISTINGS_UPLOADS_PATH + newImagePaths.get(i));
                     listingImage.setSortOrder(nextSortOrder + i);
                     listingImageRepository.save(listingImage);
                     log.debug("Salvata immagine {}/{} con sortOrder={}", i + 1, newImagePaths.size(), nextSortOrder + i);

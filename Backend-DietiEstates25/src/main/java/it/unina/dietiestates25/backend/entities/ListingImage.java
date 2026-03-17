@@ -35,7 +35,9 @@ public class ListingImage {
     @Column(name = "created_at", nullable = false)
     private java.time.Instant createdAt;
 
-    public ListingImage() {}
+    // Costruttore vuoto richiesto da JPA.
+    public ListingImage() {
+    }
 
     @PrePersist
     public void ensureIdAndCreatedAt() {

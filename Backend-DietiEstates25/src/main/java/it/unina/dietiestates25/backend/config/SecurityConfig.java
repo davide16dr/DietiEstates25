@@ -27,6 +27,10 @@ import it.unina.dietiestates25.backend.security.RateLimitFilter;
 @EnableWebSecurity
 public class SecurityConfig {
 
+    private static final String API_LISTINGS_WILDCARD = "/api/listings/*";
+    private static final String ROLE_AGENT = "AGENT";
+    private static final String ROLE_AGENCY_MANAGER = "AGENCY_MANAGER";
+
     private final JwtAuthFilter jwtAuthFilter;
     private final RateLimitFilter rateLimitFilter;
 
@@ -86,14 +90,14 @@ public class SecurityConfig {
                     "/uploads/**"  // 📸 Permetti accesso pubblico alle immagini
                 ).permitAll()
                 // Endpoint pubblici solo GET per listings
-                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/listings", "/api/listings/search", "/api/listings/*").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/listings", "/api/listings/search", API_LISTINGS_WILDCARD).permitAll()
                 // Endpoint privati per agenti
-                .requestMatchers("/api/listings/agent/**").hasRole("AGENT")
+                .requestMatchers("/api/listings/agent/**").hasRole(ROLE_AGENT)
                 // Endpoint privati per manager e admin
-                .requestMatchers("/api/listings/agency/**").hasAnyRole("AGENCY_MANAGER", "ADMIN")
+                .requestMatchers("/api/listings/agency/**").hasAnyRole(ROLE_AGENCY_MANAGER, "ADMIN")
                 // PUT/DELETE su listings richiedono AGENT o MANAGER
-                .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/listings/*").hasAnyRole("AGENT", "AGENCY_MANAGER")
-                .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/listings/*").hasAnyRole("AGENT", "AGENCY_MANAGER")
+                .requestMatchers(org.springframework.http.HttpMethod.PUT, API_LISTINGS_WILDCARD).hasAnyRole(ROLE_AGENT, ROLE_AGENCY_MANAGER)
+                .requestMatchers(org.springframework.http.HttpMethod.DELETE, API_LISTINGS_WILDCARD).hasAnyRole(ROLE_AGENT, ROLE_AGENCY_MANAGER)
                 .anyRequest().authenticated()
             )
             .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)

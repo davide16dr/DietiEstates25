@@ -40,7 +40,9 @@ public class SavedSearch extends Auditable {
     @Column(name = "is_active", nullable = false)
     private boolean active = true;
 
-    public SavedSearch() {}
+    // Costruttore vuoto richiesto da JPA.
+    public SavedSearch() {
+    }
 
     @PrePersist
     public void ensureId() {

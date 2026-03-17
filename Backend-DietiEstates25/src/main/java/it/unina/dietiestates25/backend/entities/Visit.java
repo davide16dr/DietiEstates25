@@ -60,7 +60,9 @@ public class Visit extends Auditable {
     @Column(columnDefinition = "text")
     private String note;
 
-    public Visit() {}
+    // Costruttore vuoto richiesto da JPA.
+    public Visit() {
+    }
 
     @PrePersist
     public void ensureIdAndRequestedAt() {

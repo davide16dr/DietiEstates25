@@ -42,7 +42,9 @@ public class AgencyMembership extends Auditable {
     @Column(name = "membership_role", nullable = false, columnDefinition = "user_role")
     private UserRole membershipRole; // AGENCY_MANAGER / AGENT
 
-    public AgencyMembership() {}
+    // Costruttore vuoto richiesto da JPA.
+    public AgencyMembership() {
+    }
 
     @PrePersist
     public void ensureId() {

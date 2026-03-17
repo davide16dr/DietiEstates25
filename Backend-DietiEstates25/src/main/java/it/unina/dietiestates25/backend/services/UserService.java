@@ -41,16 +41,16 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> {
                     log.debug("Utente NON trovato con ID: {}", userId);
-                    return new RuntimeException("Utente non trovato");
+                    return new IllegalArgumentException("Utente non trovato");
                 });
 
         if (!passwordEncoder.matches(request.getOldPassword(), user.getPasswordHash())) {
             log.debug("Password attuale errata per userId: {}", userId);
-            throw new RuntimeException("La password attuale non è corretta");
+            throw new SecurityException("La password attuale non è corretta");
         }
 
         if (request.getNewPassword() == null || request.getNewPassword().length() < 8) {
-            throw new RuntimeException("La nuova password deve contenere almeno 8 caratteri");
+            throw new IllegalArgumentException("La nuova password deve contenere almeno 8 caratteri");
         }
 
         String hashedPassword = passwordEncoder.encode(request.getNewPassword());
@@ -88,7 +88,7 @@ public class UserService {
 
         // Recupera l'agenzia
         Agency agency = agencyRepository.findById(user.getAgencyId())
-            .orElseThrow(() -> new RuntimeException("Agenzia non trovata: " + user.getAgencyId()));
+            .orElseThrow(() -> new IllegalArgumentException("Agenzia non trovata: " + user.getAgencyId()));
 
         // Crea la membership
         AgencyMembership membership = new AgencyMembership();
@@ -102,7 +102,7 @@ public class UserService {
 
     public User getUserById(UUID userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Utente non trovato"));
+                .orElseThrow(() -> new IllegalArgumentException("Utente non trovato"));
     }
 
     /**
@@ -113,7 +113,7 @@ public class UserService {
         log.debug("Creazione nuovo utente");
 
         if (password == null || password.length() < 8) {
-            throw new RuntimeException("La password deve contenere almeno 8 caratteri");
+            throw new IllegalArgumentException("La password deve contenere almeno 8 caratteri");
         }
 
         String hashedPassword = passwordEncoder.encode(password);

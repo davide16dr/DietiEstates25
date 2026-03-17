@@ -32,6 +32,11 @@ import java.util.stream.Collectors;
 @Slf4j
 public class VisitService {
 
+    private static final String MSG_NEW_VISIT_REQUEST = "Nuova Richiesta di Visita";
+    private static final String MSG_VISIT_NOT_FOUND = "Visit not found";
+    private static final String MSG_UNAUTHORIZED = "Unauthorized";
+    private static final String TIME_ZONE_ROME = "Europe/Rome";
+
     private final VisitRepository visitRepository;
     private final ListingRepository listingRepository;
     private final UserRepository userRepository;
@@ -54,7 +59,7 @@ public class VisitService {
     @Transactional
     public VisitResponseDto requestVisit(VisitRequestDto visitRequestDto, User client) {
         Listing listing = listingRepository.findById(visitRequestDto.getListingId())
-                .orElseThrow(() -> new NotFoundException("Listing not found"));
+            .orElseThrow(() -> new NotFoundException(MSG_VISIT_NOT_FOUND));
 
         if (listing.getStatus() != ListingStatus.ACTIVE) {
             throw new BadRequestException("Cannot request visit for inactive listing");
@@ -122,14 +127,14 @@ public class VisitService {
             notificationService.createAgentNotification(
                 listing.getAgent().getId(),
                 listing,
-                "Nuova Richiesta di Visita",
+                MSG_NEW_VISIT_REQUEST,
                 String.format("Nuova richiesta di visita per la proprietà in %s", propertyAddress)
             );
             
             webSocketNotificationService.sendVisitNotification(
                 listing.getAgent().getId(),
                 "NEW_VISIT_REQUEST",
-                "Nuova Richiesta di Visita",
+                MSG_NEW_VISIT_REQUEST,
                 String.format("Nuova richiesta di visita per %s", propertyAddress),
                 listing.getId(),
                 savedVisit.getId()
@@ -143,11 +148,11 @@ public class VisitService {
     @Transactional
     public VisitResponseDto updateVisitStatus(UUID visitId, VisitUpdateDto updateDto, User agent) {
         Visit visit = visitRepository.findById(visitId)
-                .orElseThrow(() -> new NotFoundException("Visit not found"));
+                .orElseThrow(() -> new NotFoundException(MSG_VISIT_NOT_FOUND));
 
         Listing listing = visit.getListing();
         if (listing.getAgent() == null || !listing.getAgent().getId().equals(agent.getId())) {
-            throw new ForbiddenException("You are not authorized to update this visit");
+            throw new ForbiddenException(MSG_UNAUTHORIZED);
         }
 
         VisitStatus newStatus = updateDto.getStatus();
@@ -195,14 +200,14 @@ public class VisitService {
     @Transactional(readOnly = true)
     public VisitResponseDto getVisitById(UUID visitId, User user) {
         Visit visit = visitRepository.findById(visitId)
-                .orElseThrow(() -> new NotFoundException("Visit not found"));
+                .orElseThrow(() -> new NotFoundException(MSG_VISIT_NOT_FOUND));
 
         Listing listing = visit.getListing();
         boolean isClient = visit.getClient().getId().equals(user.getId());
         boolean isAgent = listing.getAgent() != null && listing.getAgent().getId().equals(user.getId());
 
         if (!isClient && !isAgent) {
-            throw new ForbiddenException("You are not authorized to view this visit");
+            throw new ForbiddenException(MSG_UNAUTHORIZED);
         }
 
         return toDto(visit);
@@ -211,10 +216,10 @@ public class VisitService {
     @Transactional
     public void cancelVisit(UUID clientId, UUID visitId) {
         Visit visit = visitRepository.findById(visitId)
-                .orElseThrow(() -> new NotFoundException("Visit not found"));
+                .orElseThrow(() -> new NotFoundException(MSG_VISIT_NOT_FOUND));
 
         if (!visit.getClient().getId().equals(clientId)) {
-            throw new ForbiddenException("You are not authorized to cancel this visit");
+            throw new ForbiddenException(MSG_UNAUTHORIZED);
         }
 
         if (visit.getStatus() == VisitStatus.DONE || visit.getStatus() == VisitStatus.CANCELLED) {
@@ -251,11 +256,11 @@ public class VisitService {
     @Transactional
     public void confirmVisit(UUID agentId, UUID visitId) {
         Visit visit = visitRepository.findById(visitId)
-                .orElseThrow(() -> new NotFoundException("Visit not found"));
+                .orElseThrow(() -> new NotFoundException(MSG_VISIT_NOT_FOUND));
 
         Listing listing = visit.getListing();
         if (listing.getAgent() == null || !listing.getAgent().getId().equals(agentId)) {
-            throw new ForbiddenException("Unauthorized");
+            throw new ForbiddenException(MSG_UNAUTHORIZED);
         }
 
         if (visit.getStatus() != VisitStatus.REQUESTED) {
@@ -286,11 +291,11 @@ public class VisitService {
     @Transactional
     public void completeVisit(UUID agentId, UUID visitId) {
         Visit visit = visitRepository.findById(visitId)
-                .orElseThrow(() -> new NotFoundException("Visit not found"));
+                .orElseThrow(() -> new NotFoundException(MSG_VISIT_NOT_FOUND));
 
         Listing listing = visit.getListing();
         if (listing.getAgent() == null || !listing.getAgent().getId().equals(agentId)) {
-            throw new ForbiddenException("Unauthorized");
+            throw new ForbiddenException(MSG_UNAUTHORIZED);
         }
 
         if (visit.getStatus() != VisitStatus.CONFIRMED) {
@@ -322,11 +327,11 @@ public class VisitService {
     @Transactional
     public void rejectVisit(UUID agentId, UUID visitId, String reason) {
         Visit visit = visitRepository.findById(visitId)
-                .orElseThrow(() -> new NotFoundException("Visit not found"));
+                .orElseThrow(() -> new NotFoundException(MSG_VISIT_NOT_FOUND));
 
         Listing listing = visit.getListing();
         if (listing.getAgent() == null || !listing.getAgent().getId().equals(agentId)) {
-            throw new ForbiddenException("Unauthorized");
+            throw new ForbiddenException(MSG_UNAUTHORIZED);
         }
 
         // ✅ CORRETTO: Rifiuta solo visite in stato REQUESTED
@@ -361,11 +366,11 @@ public class VisitService {
     @Transactional
     public void cancelVisitByAgent(UUID agentId, UUID visitId, String reason) {
         Visit visit = visitRepository.findById(visitId)
-                .orElseThrow(() -> new NotFoundException("Visit not found"));
+                .orElseThrow(() -> new NotFoundException(MSG_VISIT_NOT_FOUND));
 
         Listing listing = visit.getListing();
         if (listing.getAgent() == null || !listing.getAgent().getId().equals(agentId)) {
-            throw new ForbiddenException("Unauthorized");
+            throw new ForbiddenException(MSG_UNAUTHORIZED);
         }
 
         // ✅ Annulla solo visite in stato CONFIRMED
@@ -430,14 +435,14 @@ public class VisitService {
             notificationService.createAgentNotification(
                 listing.getAgent().getId(),
                 listing,
-                "Nuova Richiesta di Visita",
+                MSG_NEW_VISIT_REQUEST,
                 String.format("Nuova richiesta di visita per la proprietà in %s", propertyAddress)
             );
             
             webSocketNotificationService.sendVisitNotification(
                 listing.getAgent().getId(),
                 "NEW_VISIT_REQUEST",
-                "Nuova Richiesta di Visita",
+                MSG_NEW_VISIT_REQUEST,
                 String.format("Nuova richiesta di visita per %s", propertyAddress),
                 listing.getId(),
                 savedVisit.getId()
@@ -471,8 +476,8 @@ public class VisitService {
         LocalDateTime startOfDay = LocalDateTime.parse(date + "T00:00:00");
         LocalDateTime endOfDay = LocalDateTime.parse(date + "T23:59:59");
         
-        Instant startInstant = startOfDay.atZone(ZoneId.of("Europe/Rome")).toInstant();
-        Instant endInstant = endOfDay.atZone(ZoneId.of("Europe/Rome")).toInstant();
+        Instant startInstant = startOfDay.atZone(ZoneId.of(TIME_ZONE_ROME)).toInstant();
+        Instant endInstant = endOfDay.atZone(ZoneId.of(TIME_ZONE_ROME)).toInstant();
         
         // Get all confirmed visits for the agent on that date
         List<Visit> confirmedVisits = visitRepository.findAllByAgent_IdAndStatusAndScheduledForBetween(
@@ -485,7 +490,7 @@ public class VisitService {
         // Extract and format the time slots (HH:mm)
         return confirmedVisits.stream()
             .map(visit -> {
-                LocalDateTime ldt = visit.getScheduledFor().atZone(ZoneId.of("Europe/Rome")).toLocalDateTime();
+                LocalDateTime ldt = visit.getScheduledFor().atZone(ZoneId.of(TIME_ZONE_ROME)).toLocalDateTime();
                 return ldt.format(DateTimeFormatter.ofPattern("HH:mm"));
             })
             .collect(Collectors.toList());
@@ -496,15 +501,6 @@ public class VisitService {
             case REQUESTED -> newStatus == VisitStatus.CONFIRMED || newStatus == VisitStatus.CANCELLED;
             case CONFIRMED -> newStatus == VisitStatus.DONE || newStatus == VisitStatus.CANCELLED;
             case CANCELLED, DONE -> false;
-        };
-    }
-
-    private String getStatusMessage(VisitStatus status) {
-        return switch (status) {
-            case CONFIRMED -> "confermata";
-            case CANCELLED -> "cancellata";
-            case DONE -> "completata";
-            default -> "aggiornata";
         };
     }
 
@@ -553,7 +549,7 @@ public class VisitService {
         response.setScheduledFor(visit.getScheduledFor());
         // Formatted date and time for frontend (Europe/Rome timezone)
         if (visit.getScheduledFor() != null) {
-            LocalDateTime ldt = visit.getScheduledFor().atZone(ZoneId.of("Europe/Rome")).toLocalDateTime();
+            LocalDateTime ldt = visit.getScheduledFor().atZone(ZoneId.of(TIME_ZONE_ROME)).toLocalDateTime();
             response.setScheduledDate(ldt.format(DateTimeFormatter.ISO_LOCAL_DATE));
             response.setScheduledTime(ldt.format(DateTimeFormatter.ofPattern("HH:mm")));
         }

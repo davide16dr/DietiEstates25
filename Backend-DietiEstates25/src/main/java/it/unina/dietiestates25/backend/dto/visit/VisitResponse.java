@@ -24,7 +24,9 @@ public class VisitResponse {
     private String scheduledTime;
     private String listingId;
 
-    public VisitResponse() {}
+    // Costruttore vuoto richiesto da Jackson per la deserializzazione.
+    public VisitResponse() {
+    }
 
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }

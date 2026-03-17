@@ -36,8 +36,9 @@ public class ListingResponse {
     // Immagini
     private List<String> imageUrls;
     
-    // Costruttore vuoto richiesto da Jackson.
-    public ListingResponse() {}
+    // Costruttore vuoto richiesto da Jackson per la deserializzazione.
+    public ListingResponse() {
+    }
 
     // Getters e Setters
     public UUID getId() { return id; }

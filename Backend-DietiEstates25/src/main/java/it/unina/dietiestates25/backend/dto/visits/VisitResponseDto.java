@@ -15,7 +15,9 @@ public class VisitResponseDto {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    public VisitResponseDto() {}
+    // Costruttore vuoto richiesto da Jackson per la deserializzazione.
+    public VisitResponseDto() {
+    }
 
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }

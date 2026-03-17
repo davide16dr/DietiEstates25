@@ -56,7 +56,9 @@ public class AdminStatsResponse {
         public void setStatus(String status) { this.status = status; }
     }
 
-    public AdminStatsResponse() {}
+    // Costruttore vuoto richiesto da Jackson per la deserializzazione.
+    public AdminStatsResponse() {
+    }
 
     public Map<String, Integer> getGestori() { return gestori; }
     public void setGestori(Map<String, Integer> gestori) { this.gestori = gestori; }

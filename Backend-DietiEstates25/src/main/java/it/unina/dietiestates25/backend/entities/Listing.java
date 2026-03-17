@@ -64,7 +64,9 @@ public class Listing extends Auditable {
     @OrderBy("sortOrder ASC")
     private List<ListingImage> images = new ArrayList<>();
 
-    public Listing() {}
+    // Costruttore vuoto richiesto da JPA.
+    public Listing() {
+    }
 
     @PrePersist
     public void ensureId() {

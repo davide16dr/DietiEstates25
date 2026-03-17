@@ -2,7 +2,6 @@ package it.unina.dietiestates25.backend.services;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,16 +55,16 @@ public class OfferService {
     public OfferResponse submitOffer(UUID clientId, OfferRequest request) {
         // Validate listing exists
         Listing listing = listingRepository.findById(request.getPropertyId())
-                .orElseThrow(() -> new RuntimeException(MSG_LISTING_NOT_FOUND));
+                .orElseThrow(() -> new IllegalArgumentException(MSG_LISTING_NOT_FOUND));
 
         // Validate listing has an agent
         if (listing.getAgent() == null) {
-            throw new RuntimeException("Listing has no agent assigned");
+            throw new IllegalStateException("Listing has no agent assigned");
         }
 
         // Get client
         User client = userRepository.findById(clientId)
-                .orElseThrow(() -> new RuntimeException("Client not found"));
+            .orElseThrow(() -> new IllegalArgumentException("Client not found"));
 
         // Check if client already has an active offer for this listing
         List<Offer> existingOffers = offerRepository.findAllByListing_IdAndClient_Id(
@@ -76,7 +75,7 @@ public class OfferService {
                           o.getStatus() == OfferStatus.COUNTEROFFER);
         
         if (hasActiveOffer) {
-            throw new RuntimeException("You already have an active offer for this property");
+            throw new IllegalStateException("You already have an active offer for this property");
         }
 
         // Create offer
@@ -125,22 +124,22 @@ public class OfferService {
         List<Offer> offers = offerRepository.findAllByClient_Id(clientId);
         return offers.stream()
                 .map(this::mapToResponse)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Transactional
     public void acceptCounterOffer(UUID clientId, UUID offerId) {
         Offer offer = offerRepository.findById(offerId)
-                .orElseThrow(() -> new RuntimeException(MSG_OFFER_NOT_FOUND));
+            .orElseThrow(() -> new IllegalArgumentException(MSG_OFFER_NOT_FOUND));
 
         // Verify client owns this offer
         if (!offer.getClient().getId().equals(clientId)) {
-            throw new RuntimeException(MSG_UNAUTHORIZED);
+            throw new SecurityException(MSG_UNAUTHORIZED);
         }
 
         // Verify status is COUNTEROFFER
         if (offer.getStatus() != OfferStatus.COUNTEROFFER) {
-            throw new RuntimeException("Offer is not in counter-offer state");
+            throw new IllegalStateException("Offer is not in counter-offer state");
         }
 
         offer.setStatus(OfferStatus.ACCEPTED);
@@ -177,11 +176,11 @@ public class OfferService {
     @Transactional
     public void submitCounterToCounter(UUID clientId, UUID offerId, CounterOfferRequest request) {
         Offer offer = offerRepository.findById(offerId)
-                .orElseThrow(() -> new RuntimeException(MSG_OFFER_NOT_FOUND));
+            .orElseThrow(() -> new IllegalArgumentException(MSG_OFFER_NOT_FOUND));
 
         // Verify client owns this offer
         if (!offer.getClient().getId().equals(clientId)) {
-            throw new RuntimeException(MSG_UNAUTHORIZED);
+            throw new SecurityException(MSG_UNAUTHORIZED);
         }
 
         // Update offer with new amount
@@ -267,32 +266,32 @@ public class OfferService {
         return agentListings.stream()
                 .flatMap(listing -> offerRepository.findAllByListing_Id(listing.getId()).stream())
                 .map(this::mapToResponse)
-                .collect(Collectors.toList());
+            .toList();
     }
 
     public List<OfferResponse> getPropertyOffers(UUID agentId, UUID propertyId) {
         // Verify agent owns this listing
         Listing listing = listingRepository.findById(propertyId)
-                .orElseThrow(() -> new RuntimeException(MSG_LISTING_NOT_FOUND));
+                .orElseThrow(() -> new IllegalArgumentException(MSG_LISTING_NOT_FOUND));
 
         if (!listing.getAgent().getId().equals(agentId)) {
-            throw new RuntimeException(MSG_UNAUTHORIZED);
+            throw new SecurityException(MSG_UNAUTHORIZED);
         }
 
         List<Offer> offers = offerRepository.findAllByListing_Id(propertyId);
         return offers.stream()
                 .map(this::mapToResponse)
-                .collect(Collectors.toList());
+            .toList();
     }
 
     @Transactional
     public void acceptOffer(UUID agentId, UUID offerId) {
         Offer offer = offerRepository.findById(offerId)
-                .orElseThrow(() -> new RuntimeException(MSG_OFFER_NOT_FOUND));
+                .orElseThrow(() -> new IllegalArgumentException(MSG_OFFER_NOT_FOUND));
 
         // Verify agent owns the listing
         if (!offer.getListing().getAgent().getId().equals(agentId)) {
-            throw new RuntimeException(MSG_UNAUTHORIZED);
+            throw new SecurityException(MSG_UNAUTHORIZED);
         }
 
         offer.setStatus(OfferStatus.ACCEPTED);
@@ -324,11 +323,11 @@ public class OfferService {
     @Transactional
     public void rejectOffer(UUID agentId, UUID offerId, String reason) {
         Offer offer = offerRepository.findById(offerId)
-                .orElseThrow(() -> new RuntimeException(MSG_OFFER_NOT_FOUND));
+                .orElseThrow(() -> new IllegalArgumentException(MSG_OFFER_NOT_FOUND));
 
         // Verify agent owns the listing
         if (!offer.getListing().getAgent().getId().equals(agentId)) {
-            throw new RuntimeException(MSG_UNAUTHORIZED);
+            throw new SecurityException(MSG_UNAUTHORIZED);
         }
 
         offer.setStatus(OfferStatus.REJECTED);
@@ -361,11 +360,11 @@ public class OfferService {
     @Transactional
     public void makeCounterOffer(UUID agentId, UUID offerId, CounterOfferRequest request) {
         Offer offer = offerRepository.findById(offerId)
-                .orElseThrow(() -> new RuntimeException(MSG_OFFER_NOT_FOUND));
+                .orElseThrow(() -> new IllegalArgumentException(MSG_OFFER_NOT_FOUND));
 
         // Verify agent owns the listing
         if (!offer.getListing().getAgent().getId().equals(agentId)) {
-            throw new RuntimeException(MSG_UNAUTHORIZED);
+            throw new SecurityException(MSG_UNAUTHORIZED);
         }
 
         // ✅ CORRETTO: Aggiorna l'amount con la controproposta dell'agente
@@ -402,7 +401,7 @@ public class OfferService {
         List<Listing> agentListings = listingRepository.findAllByAgent_Id(agentId);
         List<Offer> allOffers = agentListings.stream()
                 .flatMap(listing -> offerRepository.findAllByListing_Id(listing.getId()).stream())
-                .collect(Collectors.toList());
+            .toList();
 
         long total = allOffers.size();
         long pending = allOffers.stream().filter(o -> o.getStatus() == OfferStatus.SUBMITTED).count();

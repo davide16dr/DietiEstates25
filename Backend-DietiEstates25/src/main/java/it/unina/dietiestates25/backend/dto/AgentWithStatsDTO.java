@@ -15,7 +15,9 @@ public class AgentWithStatsDTO {
     private int soldProperties;
     private int rentedProperties;
 
-    public AgentWithStatsDTO() {}
+    // Costruttore vuoto richiesto da Jackson per la deserializzazione.
+    public AgentWithStatsDTO() {
+    }
 
     // Getters and Setters
     public UUID getId() { return id; }

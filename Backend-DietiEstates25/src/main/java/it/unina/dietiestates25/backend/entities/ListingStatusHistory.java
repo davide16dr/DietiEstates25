@@ -38,7 +38,9 @@ public class ListingStatusHistory {
     @Column(columnDefinition = "text")
     private String reason;
 
-    public ListingStatusHistory() {}
+    // Costruttore vuoto richiesto da JPA.
+    public ListingStatusHistory() {
+    }
 
     @PrePersist
     public void ensureIdAndChangedAt() {

@@ -12,7 +12,9 @@ public class SavedSearchResponse {
     private Instant createdAt;
     private Instant updatedAt;
 
-    public SavedSearchResponse() {}
+    // Costruttore vuoto richiesto da Jackson per la deserializzazione.
+    public SavedSearchResponse() {
+    }
 
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }

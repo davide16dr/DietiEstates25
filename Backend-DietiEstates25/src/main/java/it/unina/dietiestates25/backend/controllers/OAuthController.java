@@ -18,6 +18,8 @@ import jakarta.validation.Valid;
 @RequestMapping("/auth/oauth")
 public class OAuthController {
 
+    private static final String KEY_ERROR = "error";
+
     private final OAuthService oAuthService;
 
     public OAuthController(OAuthService oAuthService) {
@@ -38,13 +40,13 @@ public class OAuthController {
             return ResponseEntity.ok(response);
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", e.getMessage()));
+                    .body(Map.of(KEY_ERROR, e.getMessage()));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", e.getMessage()));
+                    .body(Map.of(KEY_ERROR, e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "Errore durante l'autenticazione social: " + e.getMessage()));
+                    .body(Map.of(KEY_ERROR, "Errore durante l'autenticazione social: " + e.getMessage()));
         }
     }
 }

@@ -35,8 +35,9 @@ public class RegisterBusinessRequest {
     @Pattern(regexp = "^\\+[0-9]{1,3}[0-9]{6,15}$", message = "Phone must be in E.164 format")
     private String phoneE164;
 
-    // Costruttori
-    public RegisterBusinessRequest() {}
+    // Costruttore vuoto richiesto da Jackson per la deserializzazione.
+    public RegisterBusinessRequest() {
+    }
 
     // Getters e Setters
     public String getEmail() { return email; }

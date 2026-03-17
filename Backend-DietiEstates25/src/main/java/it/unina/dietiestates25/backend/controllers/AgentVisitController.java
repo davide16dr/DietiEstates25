@@ -21,6 +21,9 @@ import it.unina.dietiestates25.backend.services.VisitService;
 @RestController
 @RequestMapping("/api/agent/visits")
 public class AgentVisitController {
+
+    private static final String MSG_UNAUTHORIZED = "Unauthorized";
+    private static final String MSG_NOT_FOUND = "not found";
     
     private final VisitService visitService;
 
@@ -65,10 +68,10 @@ public class AgentVisitController {
             return ResponseEntity.ok().build();
         } catch (RuntimeException e) {
             String msg = e.getMessage() != null ? e.getMessage() : "";
-            if (msg.contains("Unauthorized")) {
+            if (msg.contains(MSG_UNAUTHORIZED)) {
                 return ResponseEntity.status(403).build();
             }
-            if (msg.contains("not found")) {
+            if (msg.contains(MSG_NOT_FOUND)) {
                 return ResponseEntity.status(404).build();
             }
             return ResponseEntity.status(400).build();
@@ -87,10 +90,10 @@ public class AgentVisitController {
             return ResponseEntity.ok().build();
         } catch (RuntimeException e) {
             String msg = e.getMessage() != null ? e.getMessage() : "";
-            if (msg.contains("Unauthorized")) {
+            if (msg.contains(MSG_UNAUTHORIZED)) {
                 return ResponseEntity.status(403).build();
             }
-            if (msg.contains("not found")) {
+            if (msg.contains(MSG_NOT_FOUND)) {
                 return ResponseEntity.status(404).build();
             }
             return ResponseEntity.status(400).build();
@@ -111,10 +114,10 @@ public class AgentVisitController {
             return ResponseEntity.ok().build();
         } catch (RuntimeException e) {
             String msg = e.getMessage() != null ? e.getMessage() : "";
-            if (msg.contains("Unauthorized")) {
+            if (msg.contains(MSG_UNAUTHORIZED)) {
                 return ResponseEntity.status(403).build();
             }
-            if (msg.contains("not found")) {
+            if (msg.contains(MSG_NOT_FOUND)) {
                 return ResponseEntity.status(404).build();
             }
             return ResponseEntity.status(400).build();
@@ -135,10 +138,10 @@ public class AgentVisitController {
             return ResponseEntity.ok().build();
         } catch (RuntimeException e) {
             String msg = e.getMessage() != null ? e.getMessage() : "";
-            if (msg.contains("Unauthorized")) {
+            if (msg.contains(MSG_UNAUTHORIZED)) {
                 return ResponseEntity.status(403).build();
             }
-            if (msg.contains("not found")) {
+            if (msg.contains(MSG_NOT_FOUND)) {
                 return ResponseEntity.status(404).build();
             }
             return ResponseEntity.status(400).build();
