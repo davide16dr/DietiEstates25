@@ -26,6 +26,7 @@ import it.unina.dietiestates25.backend.security.JwtService;
 public class AuthService {
 
     private static final long RESET_TOKEN_VALIDITY_SECONDS = 3600; // 1 ora
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
@@ -121,7 +122,7 @@ public class AuthService {
 
         // Genera un token sicuro (48 byte → 64 caratteri Base64 URL-safe)
         byte[] randomBytes = new byte[48];
-        new SecureRandom().nextBytes(randomBytes);
+        SECURE_RANDOM.nextBytes(randomBytes);
         String token = Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
 
         user.setResetToken(token);

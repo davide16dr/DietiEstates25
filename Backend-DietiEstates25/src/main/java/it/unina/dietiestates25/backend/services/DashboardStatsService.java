@@ -39,7 +39,7 @@ public class DashboardStatsService {
 
     public ClientStatsResponse getClientStats(UUID clientId) {
         long totalVisits = visitRepository.findAllByClient_Id(clientId).size();
-        long pendingVisits = visitRepository.findAllByClient_IdAndStatus(clientId, VisitStatus.REQUESTED).size() +
+        long pendingVisits = (long) visitRepository.findAllByClient_IdAndStatus(clientId, VisitStatus.REQUESTED).size() +
                             visitRepository.findAllByClient_IdAndStatus(clientId, VisitStatus.CONFIRMED).size();
         long completedVisits = visitRepository.findAllByClient_IdAndStatus(clientId, VisitStatus.DONE).size();
 

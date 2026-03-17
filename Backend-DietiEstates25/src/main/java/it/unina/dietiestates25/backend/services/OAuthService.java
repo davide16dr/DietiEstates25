@@ -120,7 +120,13 @@ public class OAuthService {
                     .POST(HttpRequest.BodyPublishers.ofString(tokenRequestBody))
                     .build();
 
-            HttpResponse<String> tokenResponse = httpClient.send(tokenRequest, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> tokenResponse;
+            try {
+                tokenResponse = httpClient.send(tokenRequest, HttpResponse.BodyHandlers.ofString());
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new SecurityException("GitHub token request interrupted", e);
+            }
             JsonNode tokenJson = objectMapper.readTree(tokenResponse.body());
             String accessToken = tokenJson.path("access_token").asText();
 
@@ -136,7 +142,13 @@ public class OAuthService {
                     .GET()
                     .build();
 
-            HttpResponse<String> userResponse = httpClient.send(userRequest, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> userResponse;
+            try {
+                userResponse = httpClient.send(userRequest, HttpResponse.BodyHandlers.ofString());
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new SecurityException("GitHub user request interrupted", e);
+            }
             JsonNode userJson = objectMapper.readTree(userResponse.body());
 
             // GitHub potrebbe non esporre l'email pubblicamente – chiama /user/emails
@@ -159,7 +171,7 @@ public class OAuthService {
         }
     }
 
-    private String getGithubPrimaryEmail(String accessToken) throws IOException, InterruptedException {
+    private String getGithubPrimaryEmail(String accessToken) throws IOException {
         HttpRequest emailRequest = HttpRequest.newBuilder()
                 .uri(URI.create("https://api.github.com/user/emails"))
                 .header("Authorization", "Bearer " + accessToken)
@@ -167,7 +179,13 @@ public class OAuthService {
                 .GET()
                 .build();
 
-        HttpResponse<String> emailResponse = httpClient.send(emailRequest, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> emailResponse;
+        try {
+            emailResponse = httpClient.send(emailRequest, HttpResponse.BodyHandlers.ofString());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new SecurityException("GitHub email request interrupted", e);
+        }
         JsonNode emails = objectMapper.readTree(emailResponse.body());
 
         for (JsonNode e : emails) {
@@ -194,7 +212,13 @@ public class OAuthService {
                     .GET()
                     .build();
 
-            HttpResponse<String> debugResponse = httpClient.send(debugRequest, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> debugResponse;
+            try {
+                debugResponse = httpClient.send(debugRequest, HttpResponse.BodyHandlers.ofString());
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new SecurityException("Facebook debug request interrupted", e);
+            }
             JsonNode debugJson = objectMapper.readTree(debugResponse.body());
             boolean isValid = debugJson.path("data").path("is_valid").asBoolean(false);
 
@@ -208,7 +232,13 @@ public class OAuthService {
                     .GET()
                     .build();
 
-            HttpResponse<String> meResponse = httpClient.send(meRequest, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> meResponse;
+            try {
+                meResponse = httpClient.send(meRequest, HttpResponse.BodyHandlers.ofString());
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new SecurityException("Facebook user request interrupted", e);
+            }
             JsonNode meJson = objectMapper.readTree(meResponse.body());
 
             String email = meJson.path("email").asText(null);

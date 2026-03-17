@@ -77,8 +77,8 @@ public class VisitService {
         }
 
         // ✅ CORRETTO: Verifica se il cliente ha già una visita in un intervallo di ±30 minuti
-        Instant startRange = scheduledFor.minusSeconds(30 * 60); // 30 minuti prima
-        Instant endRange = scheduledFor.plusSeconds(30 * 60);    // 30 minuti dopo
+        Instant startRange = scheduledFor.minusSeconds(30L * 60); // 30 minuti prima
+        Instant endRange = scheduledFor.plusSeconds(30L * 60);    // 30 minuti dopo
         
         boolean clientHasConflict = visitRepository.hasClientVisitInTimeRange(
             client.getId(),

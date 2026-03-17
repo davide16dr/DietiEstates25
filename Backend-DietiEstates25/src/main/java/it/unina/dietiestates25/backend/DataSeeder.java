@@ -433,8 +433,8 @@ public class DataSeeder implements CommandLineRunner {
         p.setAgency(agency);
         p.setCity(city);
         p.setAddress(address);
-        p.setLatitude(new BigDecimal(lat));
-        p.setLongitude(new BigDecimal(lng));
+        p.setLatitude(BigDecimal.valueOf(lat));
+        p.setLongitude(BigDecimal.valueOf(lng));
         p.setPropertyType(type);
         p.setRooms(rooms);
         p.setBathrooms(bathrooms);

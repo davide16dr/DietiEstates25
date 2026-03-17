@@ -239,15 +239,15 @@ public class ListingService {
 
         if (geocodingResult != null) {
             // Usa le coordinate geocodificate
-            property.setLatitude(new java.math.BigDecimal(geocodingResult.latitude()));
-            property.setLongitude(new java.math.BigDecimal(geocodingResult.longitude()));
+            property.setLatitude(java.math.BigDecimal.valueOf(geocodingResult.latitude()));
+            property.setLongitude(java.math.BigDecimal.valueOf(geocodingResult.longitude()));
             System.out.println("✅ Coordinate GPS ottenute: lat=" + geocodingResult.latitude() + ", lng="
                     + geocodingResult.longitude());
         } else {
             // Fallback: coordinate di default (centro Italia)
             System.err.println("⚠️ Geocoding fallito per: " + fullAddress + " - uso coordinate di default");
-            property.setLatitude(new java.math.BigDecimal("41.9028")); // Roma
-            property.setLongitude(new java.math.BigDecimal("12.4964"));
+            property.setLatitude(java.math.BigDecimal.valueOf(41.9028)); // Roma
+            property.setLongitude(java.math.BigDecimal.valueOf(12.4964));
         }
         // Salva la proprietà
         property = propertyRepository.save(property);
@@ -455,8 +455,8 @@ public class ListingService {
                 // ✅ PRIORITÀ 1: Usa le coordinate inviate dal frontend (da Google Places
                 // Autocomplete)
                 if (propertyUpdate.getLatitude() != null && propertyUpdate.getLongitude() != null) {
-                    property.setLatitude(new java.math.BigDecimal(propertyUpdate.getLatitude()));
-                    property.setLongitude(new java.math.BigDecimal(propertyUpdate.getLongitude()));
+                    property.setLatitude(java.math.BigDecimal.valueOf(propertyUpdate.getLatitude()));
+                    property.setLongitude(java.math.BigDecimal.valueOf(propertyUpdate.getLongitude()));
                     System.out.println("✅ Coordinate GPS ricevute dal frontend: lat=" + propertyUpdate.getLatitude()
                             + ", lng=" + propertyUpdate.getLongitude());
                 } else {
@@ -469,8 +469,8 @@ public class ListingService {
                             .geocodeAddress(fullAddress);
 
                     if (geocodingResult != null) {
-                        property.setLatitude(new java.math.BigDecimal(geocodingResult.latitude()));
-                        property.setLongitude(new java.math.BigDecimal(geocodingResult.longitude()));
+                        property.setLatitude(java.math.BigDecimal.valueOf(geocodingResult.latitude()));
+                        property.setLongitude(java.math.BigDecimal.valueOf(geocodingResult.longitude()));
                         System.out.println("✅ Coordinate GPS aggiornate: lat=" + geocodingResult.latitude() + ", lng="
                                 + geocodingResult.longitude());
                     } else {
