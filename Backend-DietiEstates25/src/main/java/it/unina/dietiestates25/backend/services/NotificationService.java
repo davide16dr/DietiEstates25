@@ -135,32 +135,17 @@ public class NotificationService {
         User client = userRepository.findById(clientId).orElse(null);
         if (client == null) return;
 
-        String title;
-        String body;
-
-        switch (status) {
-            case STATUS_ACCEPTED:
-                title = "✅ Offerta Accettata!";
-                body = String.format("La tua offerta per '%s' è stata accettata!", listing.getTitle());
-                break;
-            case STATUS_REJECTED:
-                title = "❌ Offerta Rifiutata";
-                body = String.format("La tua offerta per '%s' è stata rifiutata.", listing.getTitle());
-                break;
-            case STATUS_COUNTEROFFER:
-                title = "🔄 Controproposta Ricevuta";
-                body = String.format("Hai ricevuto una controproposta di €%,d per '%s'", counterOfferAmount, listing.getTitle());
-                break;
-            default:
-                return;
+        String[] content = buildOfferStatusNotificationContent(listing, status, counterOfferAmount);
+        if (content == null) {
+            return;
         }
 
         Notification notification = new Notification();
         notification.setUser(client);
         notification.setType(NotificationType.OFFER_STATUS_CHANGED);
         notification.setListing(listing);
-        notification.setTitle(title);
-        notification.setBody(body);
+        notification.setTitle(content[0]);
+        notification.setBody(content[1]);
 
         notificationRepository.save(notification);
         log.debug("{}OFFER inviata a {}", LOG_PREFIX_OK, clientId);
@@ -176,40 +161,17 @@ public class NotificationService {
         User client = userRepository.findById(clientId).orElse(null);
         if (client == null) return;
 
-        String title;
-        String body;
-
-        switch (status) {
-            case "CONFIRMED":
-                title = "✅ Visita Confermata";
-                body = String.format("La tua visita per '%s' è stata confermata!", listing.getTitle());
-                break;
-            case STATUS_REJECTED:
-                title = "❌ Visita Rifiutata";
-                body = String.format("La tua richiesta di visita per '%s' è stata rifiutata.", listing.getTitle());
-                break;
-            case STATUS_CANCELLED:
-                title = "🚫 Visita Cancellata";
-                body = String.format("La visita per '%s' è stata cancellata.", listing.getTitle());
-                break;
-            case STATUS_COMPLETED:
-                title = "✅ Visita Completata";
-                body = String.format("La visita per '%s' è stata completata.", listing.getTitle());
-                break;
-            case STATUS_CANCELLED_BY_AGENT:
-                title = "🚫 Visita Annullata";
-                body = String.format("L'agente ha annullato la visita per '%s'.", listing.getTitle());
-                break;
-            default:
-                return;
+        String[] content = buildVisitStatusNotificationContent(listing, status);
+        if (content == null) {
+            return;
         }
 
         Notification notification = new Notification();
         notification.setUser(client);
         notification.setType(NotificationType.VISIT_STATUS_CHANGED);
         notification.setListing(listing);
-        notification.setTitle(title);
-        notification.setBody(body);
+        notification.setTitle(content[0]);
+        notification.setBody(content[1]);
 
         notificationRepository.save(notification);
         log.debug("{}VISIT inviata a {}", LOG_PREFIX_OK, clientId);
@@ -289,6 +251,45 @@ public class NotificationService {
         notificationRepository.save(notification);
         log.debug("{}LISTING_UPDATED inviata a {}", LOG_PREFIX_OK, clientId);
     }
+
+    private String[] buildOfferStatusNotificationContent(Listing listing, String status, Integer counterOfferAmount) {
+        switch (status) {
+            case STATUS_ACCEPTED:
+                return new String[] { "✅ Offerta Accettata!",
+                        String.format("La tua offerta per '%s' è stata accettata!", listing.getTitle()) };
+            case STATUS_REJECTED:
+                return new String[] { "❌ Offerta Rifiutata",
+                        String.format("La tua offerta per '%s' è stata rifiutata.", listing.getTitle()) };
+            case STATUS_COUNTEROFFER:
+                return new String[] { "🔄 Controproposta Ricevuta",
+                        String.format("Hai ricevuto una controproposta di €%,d per '%s'", counterOfferAmount,
+                                listing.getTitle()) };
+            default:
+                return null;
+        }
+    }
+
+    private String[] buildVisitStatusNotificationContent(Listing listing, String status) {
+        switch (status) {
+            case "CONFIRMED":
+                return new String[] { "✅ Visita Confermata",
+                        String.format("La tua visita per '%s' è stata confermata!", listing.getTitle()) };
+            case STATUS_REJECTED:
+                return new String[] { "❌ Visita Rifiutata",
+                        String.format("La tua richiesta di visita per '%s' è stata rifiutata.", listing.getTitle()) };
+            case STATUS_CANCELLED:
+                return new String[] { "🚫 Visita Cancellata",
+                        String.format("La visita per '%s' è stata cancellata.", listing.getTitle()) };
+            case STATUS_COMPLETED:
+                return new String[] { "✅ Visita Completata",
+                        String.format("La visita per '%s' è stata completata.", listing.getTitle()) };
+            case STATUS_CANCELLED_BY_AGENT:
+                return new String[] { "🚫 Visita Annullata",
+                        String.format("L'agente ha annullato la visita per '%s'.", listing.getTitle()) };
+            default:
+                return null;
+        }
+    }
     
     /**
      * Crea una notifica generica per un agente (CON CONTROLLO PREFERENZE)
@@ -355,92 +356,86 @@ public class NotificationService {
     private boolean listingMatchesSearch(Listing listing, SavedSearch search) {
         java.util.Map<String, Object> filters = search.getFilters();
         it.unina.dietiestates25.backend.entities.Property property = listing.getProperty();
-        
-        // Verifica tipo (SALE/RENT)
-        if (filters.containsKey("type")) {
-            String searchType = (String) filters.get("type");
-            if (!listing.getType().name().equals(searchType)) {
-                return false;
-            }
+
+        return matchesType(filters, listing)
+                && matchesCity(filters, property)
+                && matchesPropertyType(filters, property)
+                && matchesMinimum(filters, "priceMin", listing.getPriceAmount())
+                && matchesMaximum(filters, "priceMax", listing.getPriceAmount())
+                && matchesMinimum(filters, "roomsMin", property.getRooms())
+                && matchesMinimum(filters, "areaMin", property.getAreaM2())
+                && matchesMaximum(filters, "areaMax", property.getAreaM2())
+                && matchesElevator(filters, property)
+                && matchesEnergyClass(filters, property);
+    }
+
+    private boolean matchesType(java.util.Map<String, Object> filters, Listing listing) {
+        if (!filters.containsKey("type")) {
+            return true;
         }
-        
-        // Verifica città
-        if (filters.containsKey("city")) {
-            String searchCity = (String) filters.get("city");
-            if (searchCity != null && !searchCity.isEmpty() && 
-                !searchCity.equalsIgnoreCase(property.getCity())) {
-                return false;
-            }
+
+        String searchType = (String) filters.get("type");
+        return listing.getType().name().equals(searchType);
+    }
+
+    private boolean matchesCity(java.util.Map<String, Object> filters,
+            it.unina.dietiestates25.backend.entities.Property property) {
+        if (!filters.containsKey("city")) {
+            return true;
         }
-        
-        // Verifica tipo di proprietà
-        if (filters.containsKey("propertyType")) {
-            String searchPropertyType = (String) filters.get("propertyType");
-            if (searchPropertyType != null && !searchPropertyType.isEmpty() && 
-                !searchPropertyType.equalsIgnoreCase(property.getPropertyType())) {
-                return false;
-            }
+
+        String searchCity = (String) filters.get("city");
+        return searchCity == null || searchCity.isEmpty() || searchCity.equalsIgnoreCase(property.getCity());
+    }
+
+    private boolean matchesPropertyType(java.util.Map<String, Object> filters,
+            it.unina.dietiestates25.backend.entities.Property property) {
+        if (!filters.containsKey("propertyType")) {
+            return true;
         }
-        
-        // Verifica prezzo minimo
-        if (filters.containsKey("priceMin")) {
-            Integer priceMin = getIntegerFromFilter(filters.get("priceMin"));
-            if (priceMin != null && listing.getPriceAmount() < priceMin) {
-                return false;
-            }
+
+        String searchPropertyType = (String) filters.get("propertyType");
+        return searchPropertyType == null || searchPropertyType.isEmpty()
+                || searchPropertyType.equalsIgnoreCase(property.getPropertyType());
+    }
+
+    private boolean matchesMinimum(java.util.Map<String, Object> filters, String key, Integer value) {
+        if (!filters.containsKey(key)) {
+            return true;
         }
-        
-        // Verifica prezzo massimo
-        if (filters.containsKey("priceMax")) {
-            Integer priceMax = getIntegerFromFilter(filters.get("priceMax"));
-            if (priceMax != null && listing.getPriceAmount() > priceMax) {
-                return false;
-            }
+
+        Integer threshold = getIntegerFromFilter(filters.get(key));
+        return threshold == null || value >= threshold;
+    }
+
+    private boolean matchesMaximum(java.util.Map<String, Object> filters, String key, Integer value) {
+        if (!filters.containsKey(key)) {
+            return true;
         }
-        
-        // Verifica numero minimo di stanze
-        if (filters.containsKey("roomsMin")) {
-            Integer roomsMin = getIntegerFromFilter(filters.get("roomsMin"));
-            if (roomsMin != null && property.getRooms() < roomsMin) {
-                return false;
-            }
+
+        Integer threshold = getIntegerFromFilter(filters.get(key));
+        return threshold == null || value <= threshold;
+    }
+
+    private boolean matchesElevator(java.util.Map<String, Object> filters,
+            it.unina.dietiestates25.backend.entities.Property property) {
+        if (!filters.containsKey("elevator")) {
+            return true;
         }
-        
-        // Verifica area minima
-        if (filters.containsKey("areaMin")) {
-            Integer areaMin = getIntegerFromFilter(filters.get("areaMin"));
-            if (areaMin != null && property.getAreaM2() < areaMin) {
-                return false;
-            }
+
+        Boolean needsElevator = (Boolean) filters.get("elevator");
+        return needsElevator == null || !needsElevator || property.isElevator();
+    }
+
+    private boolean matchesEnergyClass(java.util.Map<String, Object> filters,
+            it.unina.dietiestates25.backend.entities.Property property) {
+        if (!filters.containsKey("energyClass")) {
+            return true;
         }
-        
-        // Verifica area massima
-        if (filters.containsKey("areaMax")) {
-            Integer areaMax = getIntegerFromFilter(filters.get("areaMax"));
-            if (areaMax != null && property.getAreaM2() > areaMax) {
-                return false;
-            }
-        }
-        
-        // Verifica presenza ascensore
-        if (filters.containsKey("elevator")) {
-            Boolean needsElevator = (Boolean) filters.get("elevator");
-            if (needsElevator != null && needsElevator && !property.isElevator()) {
-                return false;
-            }
-        }
-        
-        // Verifica classe energetica
-        if (filters.containsKey("energyClass")) {
-            String searchEnergyClass = (String) filters.get("energyClass");
-            if (searchEnergyClass != null && !searchEnergyClass.isEmpty() && 
-                !searchEnergyClass.equalsIgnoreCase(property.getEnergyClass())) {
-                return false;
-            }
-        }
-        
-        // Se tutti i filtri corrispondono
-        return true;
+
+        String searchEnergyClass = (String) filters.get("energyClass");
+        return searchEnergyClass == null || searchEnergyClass.isEmpty()
+                || searchEnergyClass.equalsIgnoreCase(property.getEnergyClass());
     }
     
     /**

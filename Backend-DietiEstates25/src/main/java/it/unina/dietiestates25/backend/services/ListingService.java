@@ -341,134 +341,9 @@ public class ListingService {
             throw new SecurityException("User does not have permission to update this listing");
         }
 
-        // Salva il prezzo originale per rilevare variazioni
         int oldPrice = listing.getPriceAmount();
-        boolean priceChanged = false;
-
-        // Aggiorna i dati del listing
-        if (request.getListing() != null) {
-            it.unina.dietiestates25.backend.dto.listing.UpdateListingRequest.ListingUpdate listingUpdate = request
-                    .getListing();
-
-            if (listingUpdate.getTitle() != null) {
-                listing.setTitle(listingUpdate.getTitle());
-            }
-            if (listingUpdate.getType() != null) {
-                listing.setType(
-                        it.unina.dietiestates25.backend.entities.enums.ListingType.valueOf(listingUpdate.getType()));
-            }
-            if (listingUpdate.getPriceAmount() != null && listingUpdate.getPriceAmount() != oldPrice) {
-                priceChanged = true;
-                listing.setPriceAmount(listingUpdate.getPriceAmount());
-            }
-            if (listingUpdate.getCurrency() != null) {
-                listing.setCurrency(listingUpdate.getCurrency());
-            }
-            if (listingUpdate.getStatus() != null) {
-                // Mappa lo status dal frontend al backend
-                String status = listingUpdate.getStatus();
-                log.debug("=== DEBUG CAMBIO STATUS ===");
-                log.debug("Status ricevuto dal frontend: {}", status);
-                log.debug("Status attuale nel DB: {}", listing.getStatus());
-
-                if ("disponibile".equals(status)) {
-                    listing.setStatus(ListingStatus.ACTIVE);
-                    log.debug("Nuovo status impostato: ACTIVE");
-                } else if ("venduto".equals(status)) {
-                    listing.setStatus(ListingStatus.SOLD);
-                    log.debug("Nuovo status impostato: SOLD");
-                } else if ("affittato".equals(status)) {
-                    listing.setStatus(ListingStatus.RENTED);
-                    log.debug("Nuovo status impostato: RENTED");
-                } else if ("in_trattativa".equals(status)) {
-                    listing.setStatus(ListingStatus.SUSPENDED);
-                    log.debug("Nuovo status impostato: SUSPENDED");
-                } else {
-                    log.warn("Status non riconosciuto: {}", status);
-                }
-
-                log.debug("Status dopo setStatus(): {}", listing.getStatus());
-                log.debug(DEBUG_END_MARKER);
-            }
-        }
-
-        // Aggiorna i dati della proprietà
-        if (request.getProperty() != null) {
-            Property property = listing.getProperty();
-            it.unina.dietiestates25.backend.dto.listing.UpdateListingRequest.PropertyUpdate propertyUpdate = request
-                    .getProperty();
-
-            // ✅ Traccia se l'indirizzo è cambiato per ri-geocodificare
-            boolean addressChanged = false;
-            String oldAddress = property.getAddress();
-            String oldCity = property.getCity();
-            if (propertyUpdate.getCity() != null) {
-                property.setCity(propertyUpdate.getCity());
-                if (!propertyUpdate.getCity().equals(oldCity)) {
-                    addressChanged = true;
-                }
-            }
-            if (propertyUpdate.getAddress() != null) {
-                property.setAddress(propertyUpdate.getAddress());
-                if (!propertyUpdate.getAddress().equals(oldAddress)) {
-                    addressChanged = true;
-                }
-            }
-            if (propertyUpdate.getPropertyType() != null) {
-                property.setPropertyType(propertyUpdate.getPropertyType());
-            }
-            if (propertyUpdate.getRooms() != null) {
-                property.setRooms(propertyUpdate.getRooms());
-            }
-            if (propertyUpdate.getBathrooms() != null) {
-                property.setBathrooms(propertyUpdate.getBathrooms());
-            }
-            if (propertyUpdate.getAreaM2() != null) {
-                property.setAreaM2(propertyUpdate.getAreaM2());
-            }
-            if (propertyUpdate.getFloor() != null) {
-                property.setFloor(propertyUpdate.getFloor());
-            }
-            if (propertyUpdate.getElevator() != null) {
-                property.setElevator(propertyUpdate.getElevator());
-            }
-            if (propertyUpdate.getEnergyClass() != null) {
-                property.setEnergyClass(propertyUpdate.getEnergyClass());
-            }
-            if (propertyUpdate.getDescription() != null) {
-                property.setDescription(propertyUpdate.getDescription());
-                listing.setPublicText(propertyUpdate.getDescription());
-            }
-
-            // ✅ Se l'indirizzo è cambiato, ri-geocodifica per ottenere nuove coordinate GPS
-            if (addressChanged) {
-                // ✅ PRIORITÀ 1: Usa le coordinate inviate dal frontend (da Google Places
-                // Autocomplete)
-                if (propertyUpdate.getLatitude() != null && propertyUpdate.getLongitude() != null) {
-                    property.setLatitude(java.math.BigDecimal.valueOf(propertyUpdate.getLatitude()));
-                    property.setLongitude(java.math.BigDecimal.valueOf(propertyUpdate.getLongitude()));
-                        log.debug("Coordinate GPS ricevute dal frontend: lat={}, lng={}", propertyUpdate.getLatitude(), propertyUpdate.getLongitude());
-                } else {
-                    // ✅ PRIORITÀ 2: Fallback alla geocodifica lato server (solo se non ricevute dal
-                    // frontend)
-                    String fullAddress = property.getAddress() + ", " + property.getCity();
-                    log.debug("Indirizzo modificato! Ri-geocoding: {}", fullAddress);
-
-                    GoogleGeocodingService.GeocodingResult geocodingResult = googleGeocodingService
-                            .geocodeAddress(fullAddress);
-
-                    if (geocodingResult != null) {
-                        property.setLatitude(java.math.BigDecimal.valueOf(geocodingResult.latitude()));
-                        property.setLongitude(java.math.BigDecimal.valueOf(geocodingResult.longitude()));
-                        log.debug("Coordinate GPS aggiornate: lat={}, lng={}", geocodingResult.latitude(), geocodingResult.longitude());
-                    } else {
-                        log.warn("Geocoding fallito per: {} - mantengo coordinate esistenti", fullAddress);
-                    }
-                }
-            }
-
-            propertyRepository.save(property);
-        }
+        boolean priceChanged = applyListingUpdate(listing, request.getListing(), oldPrice);
+        applyPropertyUpdate(listing, request.getProperty());
 
         // Salva il listing aggiornato
         listing = listingRepository.save(listing);
@@ -489,6 +364,268 @@ public class ListingService {
         } catch (Exception e) {
             log.warn("Errore eliminazione file fisico: {}", e.getMessage());
         }
+    }
+
+    private boolean applyListingUpdate(Listing listing,
+            it.unina.dietiestates25.backend.dto.listing.UpdateListingRequest.ListingUpdate listingUpdate,
+            int oldPrice) {
+        if (listingUpdate == null) {
+            return false;
+        }
+
+        boolean priceChanged = false;
+
+        if (listingUpdate.getTitle() != null) {
+            listing.setTitle(listingUpdate.getTitle());
+        }
+        if (listingUpdate.getType() != null) {
+            listing.setType(it.unina.dietiestates25.backend.entities.enums.ListingType.valueOf(listingUpdate.getType()));
+        }
+        if (listingUpdate.getPriceAmount() != null && listingUpdate.getPriceAmount() != oldPrice) {
+            priceChanged = true;
+            listing.setPriceAmount(listingUpdate.getPriceAmount());
+        }
+        if (listingUpdate.getCurrency() != null) {
+            listing.setCurrency(listingUpdate.getCurrency());
+        }
+        if (listingUpdate.getStatus() != null) {
+            applyListingStatus(listing, listingUpdate.getStatus());
+        }
+
+        return priceChanged;
+    }
+
+    private void applyListingStatus(Listing listing, String status) {
+        log.debug("=== DEBUG CAMBIO STATUS ===");
+        log.debug("Status ricevuto dal frontend: {}", status);
+        log.debug("Status attuale nel DB: {}", listing.getStatus());
+
+        switch (status) {
+            case "disponibile" -> {
+                listing.setStatus(ListingStatus.ACTIVE);
+                log.debug("Nuovo status impostato: ACTIVE");
+            }
+            case "venduto" -> {
+                listing.setStatus(ListingStatus.SOLD);
+                log.debug("Nuovo status impostato: SOLD");
+            }
+            case "affittato" -> {
+                listing.setStatus(ListingStatus.RENTED);
+                log.debug("Nuovo status impostato: RENTED");
+            }
+            case "in_trattativa" -> {
+                listing.setStatus(ListingStatus.SUSPENDED);
+                log.debug("Nuovo status impostato: SUSPENDED");
+            }
+            default -> log.warn("Status non riconosciuto: {}", status);
+        }
+
+        log.debug("Status dopo setStatus(): {}", listing.getStatus());
+        log.debug(DEBUG_END_MARKER);
+    }
+
+    private void applyPropertyUpdate(Listing listing,
+            it.unina.dietiestates25.backend.dto.listing.UpdateListingRequest.PropertyUpdate propertyUpdate) {
+        if (propertyUpdate == null) {
+            return;
+        }
+
+        Property property = listing.getProperty();
+        boolean addressChanged = false;
+        String oldAddress = property.getAddress();
+        String oldCity = property.getCity();
+
+        if (propertyUpdate.getCity() != null) {
+            property.setCity(propertyUpdate.getCity());
+            addressChanged = !propertyUpdate.getCity().equals(oldCity) || addressChanged;
+        }
+        if (propertyUpdate.getAddress() != null) {
+            property.setAddress(propertyUpdate.getAddress());
+            addressChanged = !propertyUpdate.getAddress().equals(oldAddress) || addressChanged;
+        }
+        if (propertyUpdate.getPropertyType() != null) {
+            property.setPropertyType(propertyUpdate.getPropertyType());
+        }
+        if (propertyUpdate.getRooms() != null) {
+            property.setRooms(propertyUpdate.getRooms());
+        }
+        if (propertyUpdate.getBathrooms() != null) {
+            property.setBathrooms(propertyUpdate.getBathrooms());
+        }
+        if (propertyUpdate.getAreaM2() != null) {
+            property.setAreaM2(propertyUpdate.getAreaM2());
+        }
+        if (propertyUpdate.getFloor() != null) {
+            property.setFloor(propertyUpdate.getFloor());
+        }
+        if (propertyUpdate.getElevator() != null) {
+            property.setElevator(propertyUpdate.getElevator());
+        }
+        if (propertyUpdate.getEnergyClass() != null) {
+            property.setEnergyClass(propertyUpdate.getEnergyClass());
+        }
+        if (propertyUpdate.getDescription() != null) {
+            property.setDescription(propertyUpdate.getDescription());
+            listing.setPublicText(propertyUpdate.getDescription());
+        }
+
+        if (addressChanged) {
+            updatePropertyCoordinates(property, propertyUpdate);
+        }
+
+        propertyRepository.save(property);
+    }
+
+    private void updatePropertyCoordinates(Property property,
+            it.unina.dietiestates25.backend.dto.listing.UpdateListingRequest.PropertyUpdate propertyUpdate) {
+        if (propertyUpdate.getLatitude() != null && propertyUpdate.getLongitude() != null) {
+            property.setLatitude(java.math.BigDecimal.valueOf(propertyUpdate.getLatitude()));
+            property.setLongitude(java.math.BigDecimal.valueOf(propertyUpdate.getLongitude()));
+            log.debug("Coordinate GPS ricevute dal frontend: lat={}, lng={}", propertyUpdate.getLatitude(),
+                    propertyUpdate.getLongitude());
+            return;
+        }
+
+        String fullAddress = property.getAddress() + ", " + property.getCity();
+        log.debug("Indirizzo modificato! Ri-geocoding: {}", fullAddress);
+
+        GoogleGeocodingService.GeocodingResult geocodingResult = googleGeocodingService.geocodeAddress(fullAddress);
+
+        if (geocodingResult != null) {
+            property.setLatitude(java.math.BigDecimal.valueOf(geocodingResult.latitude()));
+            property.setLongitude(java.math.BigDecimal.valueOf(geocodingResult.longitude()));
+            log.debug("Coordinate GPS aggiornate: lat={}, lng={}", geocodingResult.latitude(),
+                    geocodingResult.longitude());
+        } else {
+            log.warn("Geocoding fallito per: {} - mantengo coordinate esistenti", fullAddress);
+        }
+    }
+
+    private void logCurrentAndKeptImages(List<ListingImage> currentImages, List<String> existingImageUrls) {
+        log.debug("Immagini attualmente nel DB: {}", currentImages.size());
+        log.debug("=== DEBUG IMMAGINI CORRENTI ===");
+        for (int i = 0; i < currentImages.size(); i++) {
+            log.debug("  [{}] URL: {}", i, currentImages.get(i).getUrl());
+        }
+        log.debug("=== DEBUG IMMAGINI DA MANTENERE ===");
+        if (existingImageUrls != null) {
+            for (int i = 0; i < existingImageUrls.size(); i++) {
+                log.debug("  [{}] URL: {}", i, existingImageUrls.get(i));
+            }
+        } else {
+            log.debug("  NESSUNA (existingImageUrls è null)");
+        }
+        log.debug(DEBUG_END_MARKER);
+    }
+
+    private List<ListingImage> determineImagesToDelete(List<ListingImage> currentImages, List<String> existingImageUrls) {
+        List<ListingImage> imagesToDelete = new java.util.ArrayList<>();
+        if (existingImageUrls != null && !existingImageUrls.isEmpty()) {
+            for (ListingImage img : currentImages) {
+                boolean shouldKeep = existingImageUrls.contains(img.getUrl());
+                log.debug("Confronto: {} -> shouldKeep: {}", img.getUrl(), shouldKeep);
+                if (!shouldKeep) {
+                    imagesToDelete.add(img);
+                }
+            }
+        } else {
+            log.warn("existingImageUrls è vuoto o null - eliminazione di tutte le immagini");
+            imagesToDelete.addAll(currentImages);
+        }
+
+        log.debug("Immagini da eliminare: {}", imagesToDelete.size());
+        log.debug("Immagini da mantenere: {}", currentImages.size() - imagesToDelete.size());
+        return imagesToDelete;
+    }
+
+    private void deleteImagesAndFlush(java.util.UUID listingId, List<String> existingImageUrls,
+            List<ListingImage> imagesToDelete) {
+        for (ListingImage img : imagesToDelete) {
+            log.debug("Eliminazione file fisico: {}", img.getUrl());
+            String url = img.getUrl();
+            if (url.contains(LISTINGS_UPLOADS_PATH)) {
+                String relativePath = url.substring(url.indexOf(LISTINGS_UPLOADS_PATH) + LISTINGS_UPLOADS_PATH.length());
+                deleteListingImageSafely(relativePath);
+            }
+        }
+
+        if (existingImageUrls != null && !existingImageUrls.isEmpty()) {
+            log.debug("Esecuzione DELETE SQL per immagini non in existingImageUrls");
+            listingImageRepository.deleteByListingIdAndUrlNotIn(listingId, existingImageUrls);
+        } else {
+            log.debug("Esecuzione DELETE SQL per tutte le immagini");
+            listingImageRepository.deleteAllByListingId(listingId);
+        }
+
+        log.debug("DELETE SQL eseguito con successo");
+        listingImageRepository.flush();
+        entityManager.clear();
+        log.debug("Cache Hibernate svuotata - le prossime query caricheranno dati freschi dal DB");
+    }
+
+    private void storeNewImages(Listing listing, java.util.UUID listingId, List<MultipartFile> newImages) {
+        if (newImages == null || newImages.isEmpty()) {
+            return;
+        }
+
+        log.debug("Caricamento {} nuove immagini...", newImages.size());
+        List<String> newImagePaths = imageStorageService.storeImages(newImages, listingId);
+        log.debug("File salvati: {}", newImagePaths.size());
+
+        List<ListingImage> remainingImages = listingImageRepository.findByListingIdNative(listingId);
+        int nextSortOrder = remainingImages.size();
+
+        log.debug("Immagini rimaste dopo eliminazione: {}", remainingImages.size());
+        log.debug("Prossimo sortOrder: {}", nextSortOrder);
+
+        for (int i = 0; i < newImagePaths.size(); i++) {
+            ListingImage listingImage = new ListingImage();
+            listingImage.setListing(listing);
+            listingImage.setUrl("http://localhost:8080" + LISTINGS_UPLOADS_PATH + newImagePaths.get(i));
+            listingImage.setSortOrder(nextSortOrder + i);
+            listingImageRepository.save(listingImage);
+            log.debug("Salvata immagine {}/{} con sortOrder={}", i + 1, newImagePaths.size(), nextSortOrder + i);
+        }
+
+        log.debug("Salvate {} nuove immagini", newImagePaths.size());
+    }
+
+    private void reorderKeptImages(java.util.UUID listingId, List<String> existingImageUrls) {
+        if (existingImageUrls == null || existingImageUrls.isEmpty()) {
+            return;
+        }
+
+        List<ListingImage> finalImages = listingImageRepository.findByListingIdNative(listingId);
+
+        log.debug("=== RIORDINAMENTO IMMAGINI ===");
+        log.debug("Immagini da riordinare: {}", finalImages.size());
+
+        for (int i = 0; i < existingImageUrls.size(); i++) {
+            String urlToFind = existingImageUrls.get(i);
+            log.debug("Cerco URL per sortOrder {}: {}", i, urlToFind);
+
+            boolean found = false;
+            for (ListingImage img : finalImages) {
+                if (img.getUrl().equals(urlToFind)) {
+                    found = true;
+                    if (img.getSortOrder() != i) {
+                        log.debug("Riordino immagine da sortOrder {} a {}", img.getSortOrder(), i);
+                        img.setSortOrder(i);
+                        listingImageRepository.save(img);
+                    } else {
+                        log.debug("Immagine già nel sortOrder corretto: {}", i);
+                    }
+                    break;
+                }
+            }
+
+            if (!found) {
+                log.warn("URL non trovato nelle immagini finali: {}", urlToFind);
+            }
+        }
+
+        listingImageRepository.flush();
+        log.debug("=== FINE RIORDINAMENTO ===");
     }
 
     /**
@@ -516,144 +653,13 @@ public class ListingService {
 
         // ✅ GESTIONE IMMAGINI
         try {
-            // 1. Ottieni tutte le immagini attuali del listing
             List<ListingImage> currentImages = listingImageRepository.findByListingId(listingId);
-            log.debug("Immagini attualmente nel DB: {}", currentImages.size());
-            log.debug("=== DEBUG IMMAGINI CORRENTI ===");
-            for (int i = 0; i < currentImages.size(); i++) {
-                log.debug("  [{}] URL: {}", i, currentImages.get(i).getUrl());
-            }
-            log.debug("=== DEBUG IMMAGINI DA MANTENERE ===");
-            if (existingImageUrls != null) {
-                for (int i = 0; i < existingImageUrls.size(); i++) {
-                    log.debug("  [{}] URL: {}", i, existingImageUrls.get(i));
-                }
-            } else {
-                log.debug("  NESSUNA (existingImageUrls è null)");
-            }
-            log.debug(DEBUG_END_MARKER);
+            logCurrentAndKeptImages(currentImages, existingImageUrls);
+            List<ListingImage> imagesToDelete = determineImagesToDelete(currentImages, existingImageUrls);
+            deleteImagesAndFlush(listingId, existingImageUrls, imagesToDelete);
+            storeNewImages(listing, listingId, newImages);
+            reorderKeptImages(listingId, existingImageUrls);
 
-            // 2. Identifica le immagini da eliminare
-            List<ListingImage> imagesToDelete = new java.util.ArrayList<>();
-            if (existingImageUrls != null && !existingImageUrls.isEmpty()) {
-                // Rimuovi solo le immagini che NON sono nella lista existingImageUrls
-                for (ListingImage img : currentImages) {
-                    boolean shouldKeep = existingImageUrls.contains(img.getUrl());
-                    log.debug("Confronto: {} -> shouldKeep: {}", img.getUrl(), shouldKeep);
-                    if (!shouldKeep) {
-                        imagesToDelete.add(img);
-                    }
-                }
-            } else {
-                // Se existingImageUrls è vuoto, elimina tutte le immagini esistenti
-                log.warn("existingImageUrls è vuoto o null - eliminazione di tutte le immagini");
-                imagesToDelete.addAll(currentImages);
-            }
-
-            log.debug("Immagini da eliminare: {}", imagesToDelete.size());
-            log.debug("Immagini da mantenere: {}", currentImages.size() - imagesToDelete.size());
-
-            // 3. Elimina le immagini non volute
-            // ✅ PRIMA: Elimina i file fisici
-            for (ListingImage img : imagesToDelete) {
-                log.debug("Eliminazione file fisico: {}", img.getUrl());
-
-                // Estrai il path relativo dall'URL completo
-                String url = img.getUrl();
-                if (url.contains(LISTINGS_UPLOADS_PATH)) {
-                    String relativePath = url
-                            .substring(url.indexOf(LISTINGS_UPLOADS_PATH) + LISTINGS_UPLOADS_PATH.length());
-                    deleteListingImageSafely(relativePath);
-                }
-            }
-
-            // ✅ POI: Elimina dal database con query SQL diretta
-            if (existingImageUrls != null && !existingImageUrls.isEmpty()) {
-                // Elimina solo le immagini che NON sono nella lista existingImageUrls
-                log.debug("Esecuzione DELETE SQL per immagini non in existingImageUrls");
-                listingImageRepository.deleteByListingIdAndUrlNotIn(listingId, existingImageUrls);
-                log.debug("DELETE SQL eseguito con successo");
-            } else {
-                // Elimina tutte le immagini
-                log.debug("Esecuzione DELETE SQL per tutte le immagini");
-                listingImageRepository.deleteAllByListingId(listingId);
-                log.debug("DELETE SQL eseguito con successo");
-            }
-
-            // ✅ FLUSH delle modifiche per assicurare che siano persistite
-            listingImageRepository.flush();
-
-            // ✅ CRITICO: Clear della cache di Hibernate per forzare il reload dal DB
-            // Questo risolve il problema delle entità eliminate che riappaiono dalla cache
-            entityManager.clear();
-            log.debug("Cache Hibernate svuotata - le prossime query caricheranno dati freschi dal DB");
-
-            // 4. Carica le nuove immagini
-            if (newImages != null && !newImages.isEmpty()) {
-                log.debug("Caricamento {} nuove immagini...", newImages.size());
-
-                List<String> newImagePaths = imageStorageService.storeImages(newImages, listingId);
-                log.debug("File salvati: {}", newImagePaths.size());
-
-                // ✅ USA QUERY NATIVA per bypassare completamente la cache
-                List<ListingImage> remainingImages = listingImageRepository.findByListingIdNative(listingId);
-                int nextSortOrder = remainingImages.size(); // Il prossimo sortOrder dopo le esistenti
-
-                log.debug("Immagini rimaste dopo eliminazione: {}", remainingImages.size());
-                log.debug("Prossimo sortOrder: {}", nextSortOrder);
-
-                // Salva le nuove immagini nel database
-                for (int i = 0; i < newImagePaths.size(); i++) {
-                    ListingImage listingImage = new ListingImage();
-                    listingImage.setListing(listing);
-                    listingImage.setUrl("http://localhost:8080" + LISTINGS_UPLOADS_PATH + newImagePaths.get(i));
-                    listingImage.setSortOrder(nextSortOrder + i);
-                    listingImageRepository.save(listingImage);
-                    log.debug("Salvata immagine {}/{} con sortOrder={}", i + 1, newImagePaths.size(), nextSortOrder + i);
-                }
-
-                log.debug("Salvate {} nuove immagini", newImagePaths.size());
-            }
-
-            // 5. Riordina le immagini esistenti mantenute (se necessario)
-            if (existingImageUrls != null && !existingImageUrls.isEmpty()) {
-                // ✅ USA QUERY NATIVA per recuperare le immagini DOPO l'eliminazione
-                List<ListingImage> finalImages = listingImageRepository.findByListingIdNative(listingId);
-
-                log.debug("=== RIORDINAMENTO IMMAGINI ===");
-                log.debug("Immagini da riordinare: {}", finalImages.size());
-
-                // Riordina in base all'ordine in existingImageUrls
-                for (int i = 0; i < existingImageUrls.size(); i++) {
-                    String urlToFind = existingImageUrls.get(i);
-                    log.debug("Cerco URL per sortOrder {}: {}", i, urlToFind);
-
-                    boolean found = false;
-                    for (ListingImage img : finalImages) {
-                        if (img.getUrl().equals(urlToFind)) {
-                            found = true;
-                            if (img.getSortOrder() != i) {
-                                log.debug("Riordino immagine da sortOrder {} a {}", img.getSortOrder(), i);
-                                img.setSortOrder(i);
-                                listingImageRepository.save(img);
-                            } else {
-                                log.debug("Immagine già nel sortOrder corretto: {}", i);
-                            }
-                            break;
-                        }
-                    }
-
-                    if (!found) {
-                        log.warn("URL non trovato nelle immagini finali: {}", urlToFind);
-                    }
-                }
-
-                // Flush finale per salvare i riordinamenti
-                listingImageRepository.flush();
-                log.debug("=== FINE RIORDINAMENTO ===");
-            }
-
-            // ✅ IMPORTANTE: USA QUERY NATIVA per il conteggio finale
             List<ListingImage> finalImagesCount = listingImageRepository.findByListingIdNative(listingId);
             log.debug("Gestione immagini completata. Totale immagini finali: {}", finalImagesCount.size());
 
