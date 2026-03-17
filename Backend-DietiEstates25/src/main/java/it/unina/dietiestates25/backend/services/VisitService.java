@@ -169,23 +169,11 @@ public class VisitService {
 
         Visit updatedVisit = visitRepository.save(visit);
 
-        // Send notification to client
-        String statusMessage = getStatusMessage(newStatus);
-        String propertyAddress = listing.getProperty().getAddress();
-        
+        // ✅ CORRETTO: Invia SOLO una notifica al cliente (via NotificationService)
         notificationService.createVisitStatusNotification(
             visit.getClient().getId(),
             listing,
             newStatus.name()
-        );
-        
-        webSocketNotificationService.sendVisitNotification(
-            visit.getClient().getId(),
-            "VISIT_STATUS_CHANGED",
-            "Aggiornamento Visita",
-            String.format("La tua visita per %s è stata %s", propertyAddress, statusMessage),
-            listing.getId(),
-            updatedVisit.getId()
         );
 
         log.info("Visit status updated: ID={}, Status={}", visitId, newStatus);

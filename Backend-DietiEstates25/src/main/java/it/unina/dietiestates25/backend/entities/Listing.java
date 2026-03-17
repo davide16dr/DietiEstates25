@@ -36,7 +36,7 @@ public class Listing extends Auditable {
     @JoinColumn(name = "property_id", nullable = false)
     private Property property;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "agent_id")
     private User agent; // ON DELETE SET NULL
 

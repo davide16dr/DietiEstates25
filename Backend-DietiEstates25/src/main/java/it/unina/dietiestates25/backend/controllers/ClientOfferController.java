@@ -3,6 +3,8 @@ package it.unina.dietiestates25.backend.controllers;
 import java.util.List;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -24,6 +26,7 @@ import it.unina.dietiestates25.backend.services.OfferService;
 @RequestMapping("/api/client/offers")
 public class ClientOfferController {
 
+    private static final Logger log = LoggerFactory.getLogger(ClientOfferController.class);
     private final OfferService offerService;
 
     public ClientOfferController(OfferService offerService) {
@@ -38,9 +41,12 @@ public class ClientOfferController {
             @AuthenticationPrincipal UserPrincipal principal,
             @RequestBody OfferRequest request) {
         try {
+            log.info("📥 Ricevuta richiesta offerta da user: {}, propertyId: {}, amount: {}", 
+                principal.getId(), request.getPropertyId(), request.getAmount());
             OfferResponse offer = offerService.submitOffer(principal.getId(), request);
             return ResponseEntity.status(HttpStatus.CREATED).body(offer);
         } catch (RuntimeException e) {
+            log.error("❌ Errore invio offerta: {}", e.getMessage(), e);
             if (e.getMessage().contains("already have an active offer")) {
                 return ResponseEntity.status(HttpStatus.CONFLICT).build();
             }

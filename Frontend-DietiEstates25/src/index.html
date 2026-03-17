@@ -14,8 +14,14 @@
     window.global = window;
   </script>
 
-  <!-- ✅ Google Maps API - Caricato dinamicamente da app.config.ts -->
-  <!-- La chiave API viene presa da environment.ts e non è hardcoded qui -->
+  <!-- ✅ Google Maps API con Places e Geometry -->
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD0uk6UxgGRBC0aqQm96F1oG0R1ZMs1Usg&libraries=places,geometry&callback=initGoogleMaps" async defer></script>
+  <script>
+    // Callback globale per confermare che Google Maps è caricato
+    function initGoogleMaps() {
+      console.log('✅ Google Maps caricato con successo dall\'index.html');
+    }
+  </script>
 
   <!-- ── OAuth Social Login SDK ──────────────────────────────────────────── -->
   <!-- Google Identity Services -->

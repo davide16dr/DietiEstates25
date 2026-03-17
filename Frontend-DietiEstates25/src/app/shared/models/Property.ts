@@ -1,4 +1,4 @@
-export type PropertyType = 'Tutti' | 'Appartamento' | 'Attico' | 'Bilocale' | 'Villa' | 'Ufficio';
+export type PropertyType = 'Tutti' | 'Appartamento' | 'Attico' | 'Bilocale' | 'Villa' | 'Ufficio' | 'Loft' | 'Casa Indipendente' | 'Monolocale' | 'Negozio';
 export type EnergyClass = 'Qualsiasi' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G';
 
 export interface PropertyFiltersValue {

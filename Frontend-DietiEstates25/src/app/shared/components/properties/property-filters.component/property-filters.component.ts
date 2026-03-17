@@ -36,7 +36,7 @@ export class PropertyFiltersComponent implements AfterViewInit, OnDestroy {
   reset = output<PropertyFiltersValue>();
 
   modes: Array<ListingMode | 'Tutti'> = ['Tutti', 'Vendita', 'Affitto'];
-  types: PropertyType[] = ['Tutti', 'Appartamento', 'Attico', 'Bilocale', 'Villa', 'Ufficio'];
+  types: PropertyType[] = ['Tutti', 'Appartamento', 'Attico', 'Bilocale', 'Villa', 'Ufficio', 'Loft', 'Casa Indipendente', 'Monolocale', 'Negozio'];
   rooms: Array<number | 'Qualsiasi'> = ['Qualsiasi', 1, 2, 3, 4, 5, 6];
   energies: EnergyClass[] = ['Qualsiasi', 'A', 'B', 'C', 'D', 'E', 'F', 'G'];
 

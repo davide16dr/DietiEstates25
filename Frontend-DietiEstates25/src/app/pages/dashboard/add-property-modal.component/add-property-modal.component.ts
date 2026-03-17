@@ -71,7 +71,7 @@ export class AddPropertyModalComponent implements AfterViewInit, OnDestroy {
     // PROPERTY FIELDS
     city: this.fb.control('', [Validators.required]),
     address: this.fb.control('', [Validators.required]),
-    property_type: this.fb.control('APPARTAMENTO', [Validators.required]),
+    property_type: this.fb.control('Appartamento', [Validators.required]),
     rooms: this.fb.control(0, [Validators.required, Validators.min(0)]),
     bathrooms: this.fb.control(0, [Validators.min(0)]),
     area_m2: this.fb.control(0, [Validators.required, Validators.min(1)]),
@@ -439,7 +439,7 @@ export class AddPropertyModalComponent implements AfterViewInit, OnDestroy {
 
   private resetForm(): void {
     this.propertyForm.reset({
-      property_type: 'APPARTAMENTO',
+      property_type: 'Appartamento',
       elevator: false,
       energy_class: 'D',
       listing_type: 'SALE',

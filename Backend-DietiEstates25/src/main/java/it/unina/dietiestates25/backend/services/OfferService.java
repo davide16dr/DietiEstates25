@@ -54,6 +54,11 @@ public class OfferService {
         Listing listing = listingRepository.findById(request.getPropertyId())
                 .orElseThrow(() -> new RuntimeException("Listing not found"));
 
+        // Validate listing has an agent
+        if (listing.getAgent() == null) {
+            throw new RuntimeException("Listing has no agent assigned");
+        }
+
         // Get client
         User client = userRepository.findById(clientId)
                 .orElseThrow(() -> new RuntimeException("Client not found"));
