@@ -38,8 +38,8 @@ jobs:
         uses: SonarSource/sonarqube-scan-action@v5.0.0
         with:
           args: >
-            -Dsonar.projectKey=DietiEstates25-Backend
-            -Dsonar.organization=davideranavolo
+            -Dsonar.projectKey=davide16dr_DietiEstates25
+            -Dsonar.organization=davide16dr
             -Dsonar.sources=Backend-DietiEstates25/src/main/java
             -Dsonar.tests=Backend-DietiEstates25/src/test/java
             -Dsonar.java.binaries=Backend-DietiEstates25/target/classes
