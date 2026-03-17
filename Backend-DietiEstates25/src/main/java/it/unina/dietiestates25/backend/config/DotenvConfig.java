@@ -33,7 +33,7 @@ public class DotenvConfig implements ApplicationContextInitializer<ConfigurableA
             environment.getPropertySources()
                 .addFirst(new MapPropertySource("dotenvProperties", dotenvProperties));
 
-            System.out.println("🔐 File .env caricato con successo!");
+            System.out.println(" File .env caricato con successo!");
         } catch (Exception e) {
             System.err.println("⚠️ Impossibile caricare .env: " + e.getMessage());
         }
