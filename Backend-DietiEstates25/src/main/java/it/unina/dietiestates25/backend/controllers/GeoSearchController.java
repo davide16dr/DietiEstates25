@@ -17,6 +17,12 @@ import java.util.Map;
 @Slf4j
 public class GeoSearchController {
 
+    private static final String KEY_ERROR = "error";
+    private static final String KEY_MESSAGE = "message";
+    private static final String KEY_DISTANCE_KM = "distanceKm";
+    private static final String MSG_ADDRESS_NOT_FOUND = "Indirizzo non trovato";
+    private static final String MSG_ADDRESS_NOT_FOUND_DETAIL = "Impossibile trovare le coordinate per l'indirizzo fornito";
+
     private final GoogleGeocodingService geocodingService;
     private final ListingService listingService;
 
@@ -48,8 +54,8 @@ public class GeoSearchController {
         
         if (bounds == null) {
             Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("error", "Indirizzo non trovato");
-            errorResponse.put("message", "Impossibile trovare le coordinate per l'indirizzo fornito");
+            errorResponse.put(KEY_ERROR, MSG_ADDRESS_NOT_FOUND);
+            errorResponse.put(KEY_MESSAGE, MSG_ADDRESS_NOT_FOUND_DETAIL);
             return ResponseEntity.badRequest().body(errorResponse);
         }
 
@@ -76,11 +82,11 @@ public class GeoSearchController {
                 
                 Map<String, Object> result = new HashMap<>();
                 result.put("listing", listing);
-                result.put("distanceKm", Math.round(distance * 100.0) / 100.0); // Arrotonda a 2 decimali
+                result.put(KEY_DISTANCE_KM, Math.round(distance * 100.0) / 100.0); // Arrotonda a 2 decimali
                 return result;
             })
-            .filter(item -> (double) item.get("distanceKm") <= radiusKm) // Filtra per raggio esatto
-            .sorted((a, b) -> Double.compare((double) a.get("distanceKm"), (double) b.get("distanceKm"))) // Ordina per distanza
+            .filter(item -> (double) item.get(KEY_DISTANCE_KM) <= radiusKm) // Filtra per raggio esatto
+            .sorted((a, b) -> Double.compare((double) a.get(KEY_DISTANCE_KM), (double) b.get(KEY_DISTANCE_KM))) // Ordina per distanza
             .toList();
 
         log.info("✅ Trovati {} immobili nel raggio di {}km", listingsWithDistance.size(), radiusKm);

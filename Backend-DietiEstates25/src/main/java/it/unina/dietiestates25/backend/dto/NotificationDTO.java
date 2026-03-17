@@ -13,7 +13,9 @@ public class NotificationDTO {
     private String listingTitle;
     private UUID savedSearchId;
 
-    public NotificationDTO() {}
+    public NotificationDTO() {
+        // Required by Jackson for response serialization/deserialization.
+    }
 
     // Getters and Setters
     public UUID getId() { return id; }

@@ -7,6 +7,7 @@ public class UpdateListingRequest {
     private PropertyUpdate property;
     private ListingUpdate listing;
 
+    // Costruttore vuoto richiesto da Jackson.
     public UpdateListingRequest() {
     }
 
@@ -37,19 +38,19 @@ public class UpdateListingRequest {
         @JsonProperty("address")
         private String address;
         @JsonProperty("property_type")
-        private String property_type;
+        private String propertyType;
         @JsonProperty("rooms")
         private Integer rooms;
         @JsonProperty("bathrooms")
         private Integer bathrooms;
         @JsonProperty("area_m2")
-        private Integer area_m2;
+        private Integer areaM2;
         @JsonProperty("floor")
         private Integer floor;
         @JsonProperty("elevator")
         private Boolean elevator;
         @JsonProperty("energy_class")
-        private String energy_class;
+        private String energyClass;
         @JsonProperty("description")
         private String description;
         @JsonProperty("latitude")
@@ -57,6 +58,7 @@ public class UpdateListingRequest {
         @JsonProperty("longitude")
         private Double longitude;
 
+        // Costruttore vuoto richiesto da Jackson.
         public PropertyUpdate() {
         }
 
@@ -77,11 +79,11 @@ public class UpdateListingRequest {
         }
 
         public String getPropertyType() {
-            return property_type;
+            return propertyType;
         }
 
-        public void setPropertyType(String property_type) {
-            this.property_type = property_type;
+        public void setPropertyType(String propertyType) {
+            this.propertyType = propertyType;
         }
 
         public Integer getRooms() {
@@ -101,11 +103,11 @@ public class UpdateListingRequest {
         }
 
         public Integer getAreaM2() {
-            return area_m2;
+            return areaM2;
         }
 
-        public void setAreaM2(Integer area_m2) {
-            this.area_m2 = area_m2;
+        public void setAreaM2(Integer areaM2) {
+            this.areaM2 = areaM2;
         }
 
         public Integer getFloor() {
@@ -125,11 +127,11 @@ public class UpdateListingRequest {
         }
 
         public String getEnergyClass() {
-            return energy_class;
+            return energyClass;
         }
 
-        public void setEnergyClass(String energy_class) {
-            this.energy_class = energy_class;
+        public void setEnergyClass(String energyClass) {
+            this.energyClass = energyClass;
         }
 
         public String getDescription() {
@@ -163,14 +165,15 @@ public class UpdateListingRequest {
         @JsonProperty("type")
         private String type;
         @JsonProperty("listing_type")
-        private String listing_type;
+        private String listingType;
         @JsonProperty("price_amount")
-        private Integer price_amount;
+        private Integer priceAmount;
         @JsonProperty("currency")
         private String currency;
         @JsonProperty("status")
         private String status;
 
+        // Costruttore vuoto richiesto da Jackson.
         public ListingUpdate() {
         }
 
@@ -183,7 +186,7 @@ public class UpdateListingRequest {
         }
 
         public String getType() {
-            return type != null ? type : listing_type;
+            return type != null ? type : listingType;
         }
 
         public void setType(String type) {
@@ -191,19 +194,19 @@ public class UpdateListingRequest {
         }
 
         public String getListingType() {
-            return listing_type;
+            return listingType;
         }
 
-        public void setListingType(String listing_type) {
-            this.listing_type = listing_type;
+        public void setListingType(String listingType) {
+            this.listingType = listingType;
         }
 
         public Integer getPriceAmount() {
-            return price_amount;
+            return priceAmount;
         }
 
-        public void setPriceAmount(Integer price_amount) {
-            this.price_amount = price_amount;
+        public void setPriceAmount(Integer priceAmount) {
+            this.priceAmount = priceAmount;
         }
 
         public String getCurrency() {

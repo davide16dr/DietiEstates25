@@ -24,6 +24,10 @@ import it.unina.dietiestates25.backend.repositories.UserRepository;
 @Service
 public class OfferService {
 
+    private static final String MSG_LISTING_NOT_FOUND = "Listing not found";
+    private static final String MSG_OFFER_NOT_FOUND = "Offer not found";
+    private static final String MSG_UNAUTHORIZED = "Unauthorized";
+
     private final OfferRepository offerRepository;
     private final OfferStatusHistoryRepository offerStatusHistoryRepository;
     private final ListingRepository listingRepository;
@@ -52,7 +56,7 @@ public class OfferService {
     public OfferResponse submitOffer(UUID clientId, OfferRequest request) {
         // Validate listing exists
         Listing listing = listingRepository.findById(request.getPropertyId())
-                .orElseThrow(() -> new RuntimeException("Listing not found"));
+                .orElseThrow(() -> new RuntimeException(MSG_LISTING_NOT_FOUND));
 
         // Validate listing has an agent
         if (listing.getAgent() == null) {
@@ -127,11 +131,11 @@ public class OfferService {
     @Transactional
     public void acceptCounterOffer(UUID clientId, UUID offerId) {
         Offer offer = offerRepository.findById(offerId)
-                .orElseThrow(() -> new RuntimeException("Offer not found"));
+                .orElseThrow(() -> new RuntimeException(MSG_OFFER_NOT_FOUND));
 
         // Verify client owns this offer
         if (!offer.getClient().getId().equals(clientId)) {
-            throw new RuntimeException("Unauthorized");
+            throw new RuntimeException(MSG_UNAUTHORIZED);
         }
 
         // Verify status is COUNTEROFFER
@@ -173,11 +177,11 @@ public class OfferService {
     @Transactional
     public void submitCounterToCounter(UUID clientId, UUID offerId, CounterOfferRequest request) {
         Offer offer = offerRepository.findById(offerId)
-                .orElseThrow(() -> new RuntimeException("Offer not found"));
+                .orElseThrow(() -> new RuntimeException(MSG_OFFER_NOT_FOUND));
 
         // Verify client owns this offer
         if (!offer.getClient().getId().equals(clientId)) {
-            throw new RuntimeException("Unauthorized");
+            throw new RuntimeException(MSG_UNAUTHORIZED);
         }
 
         // Update offer with new amount
@@ -217,11 +221,11 @@ public class OfferService {
     @Transactional
     public void withdrawOffer(UUID clientId, UUID offerId) {
         Offer offer = offerRepository.findById(offerId)
-                .orElseThrow(() -> new RuntimeException("Offer not found"));
+                .orElseThrow(() -> new RuntimeException(MSG_OFFER_NOT_FOUND));
 
         // Verify client owns this offer
         if (!offer.getClient().getId().equals(clientId)) {
-            throw new RuntimeException("Unauthorized");
+            throw new RuntimeException(MSG_UNAUTHORIZED);
         }
 
         offer.setStatus(OfferStatus.WITHDRAWN);
@@ -269,10 +273,10 @@ public class OfferService {
     public List<OfferResponse> getPropertyOffers(UUID agentId, UUID propertyId) {
         // Verify agent owns this listing
         Listing listing = listingRepository.findById(propertyId)
-                .orElseThrow(() -> new RuntimeException("Listing not found"));
+                .orElseThrow(() -> new RuntimeException(MSG_LISTING_NOT_FOUND));
 
         if (!listing.getAgent().getId().equals(agentId)) {
-            throw new RuntimeException("Unauthorized");
+            throw new RuntimeException(MSG_UNAUTHORIZED);
         }
 
         List<Offer> offers = offerRepository.findAllByListing_Id(propertyId);
@@ -284,11 +288,11 @@ public class OfferService {
     @Transactional
     public void acceptOffer(UUID agentId, UUID offerId) {
         Offer offer = offerRepository.findById(offerId)
-                .orElseThrow(() -> new RuntimeException("Offer not found"));
+                .orElseThrow(() -> new RuntimeException(MSG_OFFER_NOT_FOUND));
 
         // Verify agent owns the listing
         if (!offer.getListing().getAgent().getId().equals(agentId)) {
-            throw new RuntimeException("Unauthorized");
+            throw new RuntimeException(MSG_UNAUTHORIZED);
         }
 
         offer.setStatus(OfferStatus.ACCEPTED);
@@ -320,11 +324,11 @@ public class OfferService {
     @Transactional
     public void rejectOffer(UUID agentId, UUID offerId, String reason) {
         Offer offer = offerRepository.findById(offerId)
-                .orElseThrow(() -> new RuntimeException("Offer not found"));
+                .orElseThrow(() -> new RuntimeException(MSG_OFFER_NOT_FOUND));
 
         // Verify agent owns the listing
         if (!offer.getListing().getAgent().getId().equals(agentId)) {
-            throw new RuntimeException("Unauthorized");
+            throw new RuntimeException(MSG_UNAUTHORIZED);
         }
 
         offer.setStatus(OfferStatus.REJECTED);
@@ -357,11 +361,11 @@ public class OfferService {
     @Transactional
     public void makeCounterOffer(UUID agentId, UUID offerId, CounterOfferRequest request) {
         Offer offer = offerRepository.findById(offerId)
-                .orElseThrow(() -> new RuntimeException("Offer not found"));
+                .orElseThrow(() -> new RuntimeException(MSG_OFFER_NOT_FOUND));
 
         // Verify agent owns the listing
         if (!offer.getListing().getAgent().getId().equals(agentId)) {
-            throw new RuntimeException("Unauthorized");
+            throw new RuntimeException(MSG_UNAUTHORIZED);
         }
 
         // ✅ CORRETTO: Aggiorna l'amount con la controproposta dell'agente

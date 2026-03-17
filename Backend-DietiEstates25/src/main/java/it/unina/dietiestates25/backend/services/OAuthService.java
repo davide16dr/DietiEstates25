@@ -32,6 +32,18 @@ import it.unina.dietiestates25.backend.security.JwtService;
 public class OAuthService {
 
     private static final Logger log = LoggerFactory.getLogger(OAuthService.class);
+    private static final String PROVIDER_GOOGLE = "google";
+    private static final String PROVIDER_GITHUB = "github";
+    private static final String PROVIDER_FACEBOOK = "facebook";
+    private static final String MSG_PROVIDER_NOT_SUPPORTED = "Provider OAuth non supportato: ";
+    private static final String MSG_GOOGLE_TOKEN_INVALID = "Google id_token non valido o scaduto";
+    private static final String MSG_GOOGLE_TOKEN_ERROR = "Impossibile verificare il token Google: ";
+    private static final String MSG_GITHUB_ACCESS_TOKEN_INVALID = "GitHub non ha restituito un access_token valido";
+    private static final String MSG_GITHUB_EMAIL_UNAVAILABLE = "GitHub non ha esposto nessun indirizzo email verificato";
+    private static final String MSG_GITHUB_TOKEN_ERROR = "Impossibile autenticarsi con GitHub: ";
+    private static final String MSG_FACEBOOK_TOKEN_INVALID = "Facebook access_token non valido";
+    private static final String MSG_FACEBOOK_TOKEN_ERROR = "Impossibile autenticarsi con Facebook: ";
+    private static final String MSG_ACCOUNT_DISABLED = "Account disattivato. Contatta il supporto.";
 
     private final UserRepository userRepository;
     private final JwtService jwtService;
@@ -65,10 +77,10 @@ public class OAuthService {
     @Transactional
     public AuthResponse loginWithOAuth(String provider, String token) {
         return switch (provider.toLowerCase()) {
-            case "google"   -> loginWithGoogle(token);
-            case "github"   -> loginWithGithub(token);
-            case "facebook" -> loginWithFacebook(token);
-            default -> throw new IllegalArgumentException("Provider OAuth non supportato: " + provider);
+            case PROVIDER_GOOGLE -> loginWithGoogle(token);
+            case PROVIDER_GITHUB -> loginWithGithub(token);
+            case PROVIDER_FACEBOOK -> loginWithFacebook(token);
+            default -> throw new IllegalArgumentException(MSG_PROVIDER_NOT_SUPPORTED + provider);
         };
     }
 
@@ -85,20 +97,20 @@ public class OAuthService {
 
             GoogleIdToken googleIdToken = verifier.verify(idToken);
             if (googleIdToken == null) {
-                throw new SecurityException("Google id_token non valido o scaduto");
+                throw new SecurityException(MSG_GOOGLE_TOKEN_INVALID);
             }
 
             GoogleIdToken.Payload payload = googleIdToken.getPayload();
             String email = payload.getEmail();
             String firstName = (String) payload.get("given_name");
-            String lastName  = (String) payload.get("family_name");
+            String lastName = (String) payload.get("family_name");
             if (firstName == null) firstName = extractNameFromEmail(email);
-            if (lastName  == null) lastName  = "";
+            if (lastName == null) lastName = "";
 
             return findOrCreateUser(email, firstName, lastName);
         } catch (Exception e) {
             log.error("Errore verifica Google token: {}", e.getMessage());
-            throw new SecurityException("Impossibile verificare il token Google: " + e.getMessage());
+            throw new SecurityException(MSG_GOOGLE_TOKEN_ERROR + e.getMessage());
         }
     }
 
@@ -131,7 +143,7 @@ public class OAuthService {
             String accessToken = tokenJson.path("access_token").asText();
 
             if (accessToken == null || accessToken.isBlank()) {
-                throw new SecurityException("GitHub non ha restituito un access_token valido");
+                throw new SecurityException(MSG_GITHUB_ACCESS_TOKEN_INVALID);
             }
 
             // 2) Ottieni i dati utente
@@ -160,14 +172,14 @@ public class OAuthService {
             String name = userJson.path("name").asText(userJson.path("login").asText());
             String[] nameParts = name.split(" ", 2);
             String firstName = nameParts[0];
-            String lastName  = nameParts.length > 1 ? nameParts[1] : "";
+            String lastName = nameParts.length > 1 ? nameParts[1] : "";
 
             return findOrCreateUser(email, firstName, lastName);
         } catch (SecurityException se) {
             throw se;
         } catch (Exception e) {
             log.error("Errore GitHub OAuth: {}", e.getMessage());
-            throw new SecurityException("Impossibile autenticarsi con GitHub: " + e.getMessage());
+            throw new SecurityException(MSG_GITHUB_TOKEN_ERROR + e.getMessage());
         }
     }
 
@@ -194,7 +206,7 @@ public class OAuthService {
             }
         }
         if (emails.size() > 0) return emails.get(0).path("email").asText();
-        throw new SecurityException("GitHub non ha esposto nessun indirizzo email verificato");
+        throw new SecurityException(MSG_GITHUB_EMAIL_UNAVAILABLE);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -223,7 +235,7 @@ public class OAuthService {
             boolean isValid = debugJson.path("data").path("is_valid").asBoolean(false);
 
             if (!isValid) {
-                throw new SecurityException("Facebook access_token non valido");
+                throw new SecurityException(MSG_FACEBOOK_TOKEN_INVALID);
             }
 
             // 2) Ottieni i dati utente
@@ -249,14 +261,14 @@ public class OAuthService {
             }
 
             String firstName = meJson.path("first_name").asText(extractNameFromEmail(email));
-            String lastName  = meJson.path("last_name").asText("");
+            String lastName = meJson.path("last_name").asText("");
 
             return findOrCreateUser(email, firstName, lastName);
         } catch (SecurityException se) {
             throw se;
         } catch (Exception e) {
             log.error("Errore Facebook OAuth: {}", e.getMessage());
-            throw new SecurityException("Impossibile autenticarsi con Facebook: " + e.getMessage());
+            throw new SecurityException(MSG_FACEBOOK_TOKEN_ERROR + e.getMessage());
         }
     }
 
@@ -282,7 +294,7 @@ public class OAuthService {
         });
 
         if (!user.isActive()) {
-            throw new SecurityException("Account disattivato. Contatta il supporto.");
+            throw new SecurityException(MSG_ACCOUNT_DISABLED);
         }
 
         String jwtToken = jwtService.generateToken(user.getEmail(), Map.of(

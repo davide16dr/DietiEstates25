@@ -2,7 +2,9 @@ package it.unina.dietiestates25.backend.services;
 
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,10 +23,11 @@ import it.unina.dietiestates25.backend.repositories.PropertyRepository;
 import it.unina.dietiestates25.backend.repositories.UserRepository;
 import it.unina.dietiestates25.backend.repositories.VisitRepository;
 import it.unina.dietiestates25.backend.repositories.ListingImageRepository;
-import it.unina.dietiestates25.backend.services.ImageStorageService;
 
 @Service
 public class ListingService {
+
+    private static final Logger log = LoggerFactory.getLogger(ListingService.class);
 
     private final ListingRepository listingRepository;
     private final PropertyRepository propertyRepository;
@@ -64,19 +67,19 @@ public class ListingService {
 
     @Transactional(readOnly = true)
     public List<ListingResponse> getFilteredListings(ListingFilterRequest filters) {
-        System.out.println("🔍 === DEBUG RICERCA BACKEND ===");
-        System.out.println("📋 Filtri ricevuti dal frontend:");
-        System.out.println("   city: " + filters.getCity());
-        System.out.println("   type: " + (filters.getType() != null ? filters.getType().name() : "null"));
-        System.out.println("   status: " + (filters.getStatus() != null ? filters.getStatus().name() : "null"));
-        System.out.println("   propertyType: " + filters.getPropertyType());
-        System.out.println("   priceMin: " + filters.getPriceMin());
-        System.out.println("   priceMax: " + filters.getPriceMax());
-        System.out.println("   roomsMin: " + filters.getRoomsMin());
-        System.out.println("   areaMin: " + filters.getAreaMin());
-        System.out.println("   areaMax: " + filters.getAreaMax());
-        System.out.println("   energyClass: " + filters.getEnergyClass());
-        System.out.println("   elevator: " + filters.getElevator());
+        log.debug("=== DEBUG RICERCA BACKEND ===");
+        log.debug("Filtri ricevuti dal frontend: city={}, type={}, status={}, propertyType={}, priceMin={}, priceMax={}, roomsMin={}, areaMin={}, areaMax={}, energyClass={}, elevator={}",
+            filters.getCity(),
+            filters.getType() != null ? filters.getType().name() : null,
+            filters.getStatus() != null ? filters.getStatus().name() : null,
+            filters.getPropertyType(),
+            filters.getPriceMin(),
+            filters.getPriceMax(),
+            filters.getRoomsMin(),
+            filters.getAreaMin(),
+            filters.getAreaMax(),
+            filters.getEnergyClass(),
+            filters.getElevator());
         // Se status non è specificato, cerco solo annunci ACTIVE
         String status = filters.getStatus() != null ? filters.getStatus().name() : ListingStatus.ACTIVE.name();
 
@@ -92,11 +95,7 @@ public class ListingService {
                 : null;
         String type = filters.getType() != null ? filters.getType().name() : null;
 
-        System.out.println("📋 Parametri query SQL:");
-        System.out.println("   type: " + type);
-        System.out.println("   status: " + status);
-        System.out.println("   city: " + city);
-        System.out.println("   propertyType: " + propertyType);
+        log.debug("Parametri query SQL: type={}, status={}, city={}, propertyType={}", type, status, city, propertyType);
 
         List<Listing> listings = listingRepository.findByFilters(
                 type,
@@ -111,29 +110,19 @@ public class ListingService {
                 energyClass,
                 filters.getElevator());
 
-        System.out.println("✅ Risultati query SQL: " + listings.size() + " listings trovati");
+        log.debug("Risultati query SQL: {} listings trovati", listings.size());
 
         // Log dettagliato dei risultati
         for (int i = 0; i < listings.size(); i++) {
             Listing l = listings.get(i);
-            System.out.println("  [" + i + "] " + l.getTitle() + " - " + l.getProperty().getCity());
+            log.debug("  [{}] {} - {}", i, l.getTitle(), l.getProperty().getCity());
         }
 
-        System.out.println("🔍 === FINE DEBUG ===");
-
-        System.out.println("✅ Risultati query SQL: " + listings.size() + " listings trovati");
-        
-        // Log dettagliato dei risultati
-        for (int i = 0; i < listings.size(); i++) {
-            Listing l = listings.get(i);
-            System.out.println("  [" + i + "] " + l.getTitle() + " - " + l.getProperty().getCity());
-        }
-        
-        System.out.println("🔍 === FINE DEBUG ===");
+        log.debug("=== FINE DEBUG ===");
 
         return listings.stream()
                 .map(this::mapToResponse)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -144,11 +133,11 @@ public class ListingService {
     @Transactional(readOnly = true)
     public List<ListingResponse> getListingsByAgentId(java.util.UUID agentId) {
         List<Listing> listings = listingRepository.findAllByAgent_Id(agentId);
-        System.out.println("Recupero proprietà per agentId: " + agentId);
-        System.out.println("Proprietà trovate: " + listings.size());
+        log.debug("Recupero proprietà per agentId: {}", agentId);
+        log.debug("Proprietà trovate: {}", listings.size());
         return listings.stream()
                 .map(this::mapToResponse)
-                .collect(Collectors.toList());
+            .toList();
     }
 
     /**
@@ -166,26 +155,26 @@ public class ListingService {
         }
 
         java.util.UUID agencyId = user.getAgencyId();
-        System.out.println("📋 Recupero immobili per agenzia: " + agencyId);
+        log.debug("Recupero immobili per agenzia: {}", agencyId);
 
         // Recupera tutti gli agenti dell'agenzia
         List<it.unina.dietiestates25.backend.entities.User> agents = userRepository.findByAgencyIdAndRole(
                 agencyId,
                 it.unina.dietiestates25.backend.entities.enums.UserRole.AGENT);
 
-        System.out.println("👥 Agenti trovati: " + agents.size());
+        log.debug("Agenti trovati: {}", agents.size());
 
         // Recupera tutti gli immobili degli agenti
         List<java.util.UUID> agentIds = agents.stream()
                 .map(it.unina.dietiestates25.backend.entities.User::getId)
-                .collect(Collectors.toList());
+            .toList();
 
         List<Listing> listings = listingRepository.findByAgentIdIn(agentIds);
-        System.out.println("🏠 Immobili trovati: " + listings.size());
+        log.debug("Immobili trovati: {}", listings.size());
 
         return listings.stream()
                 .map(this::mapToResponse)
-                .collect(Collectors.toList());
+            .toList();
     }
 
     @Transactional
@@ -199,8 +188,8 @@ public class ListingService {
             throw new IllegalArgumentException("Listing type cannot be null");
         }
 
-        System.out.println("📝 Listing type ricevuto: " + request.getListing().getType());
-        System.out.println("📸 Numero immagini ricevute: " + (images != null ? images.size() : 0));
+        log.debug("Listing type ricevuto: {}", request.getListing().getType());
+        log.debug("Numero immagini ricevute: {}", images != null ? images.size() : 0);
 
         // Recupera l'agente dal database
         it.unina.dietiestates25.backend.entities.User agent = userRepository.findById(agentId)
@@ -233,7 +222,7 @@ public class ListingService {
 
         // ✅ GEOCODIFICA L'INDIRIZZO per ottenere coordinate GPS precise
         String fullAddress = request.getProperty().getAddress() + ", " + request.getProperty().getCity();
-        System.out.println("🌍 Geocoding indirizzo: " + fullAddress);
+        log.debug("Geocoding indirizzo: {}", fullAddress);
 
         GoogleGeocodingService.GeocodingResult geocodingResult = googleGeocodingService.geocodeAddress(fullAddress);
 
@@ -241,11 +230,10 @@ public class ListingService {
             // Usa le coordinate geocodificate
             property.setLatitude(java.math.BigDecimal.valueOf(geocodingResult.latitude()));
             property.setLongitude(java.math.BigDecimal.valueOf(geocodingResult.longitude()));
-            System.out.println("✅ Coordinate GPS ottenute: lat=" + geocodingResult.latitude() + ", lng="
-                    + geocodingResult.longitude());
+            log.debug("Coordinate GPS ottenute: lat={}, lng={}", geocodingResult.latitude(), geocodingResult.longitude());
         } else {
             // Fallback: coordinate di default (centro Italia)
-            System.err.println("⚠️ Geocoding fallito per: " + fullAddress + " - uso coordinate di default");
+            log.warn("Geocoding fallito per: {} - uso coordinate di default", fullAddress);
             property.setLatitude(java.math.BigDecimal.valueOf(41.9028)); // Roma
             property.setLongitude(java.math.BigDecimal.valueOf(12.4964));
         }
@@ -275,7 +263,7 @@ public class ListingService {
 
         // ✅ GESTIONE IMMAGINI
         if (images != null && !images.isEmpty()) {
-            System.out.println("📸 Salvataggio " + images.size() + " immagini...");
+            log.debug("Salvataggio {} immagini...", images.size());
             try {
                 List<String> imagePaths = imageStorageService.storeImages(images, listing.getId());
 
@@ -290,9 +278,9 @@ public class ListingService {
                     listingImageRepository.save(listingImage);
                 }
 
-                System.out.println("✅ Salvate " + imagePaths.size() + " immagini per listing " + listing.getId());
+                log.debug("Salvate {} immagini per listing {}", imagePaths.size(), listing.getId());
             } catch (Exception e) {
-                System.err.println("❌ Errore nel salvataggio delle immagini: " + e.getMessage());
+                log.error("Errore nel salvataggio delle immagini: {}", e.getMessage(), e);
                 // Non bloccare la creazione dell'annuncio se fallisce l'upload delle immagini
             }
         }
@@ -318,7 +306,7 @@ public class ListingService {
             java.util.UUID userId,
             it.unina.dietiestates25.backend.dto.listing.UpdateListingRequest request) {
 
-        System.out.println("🔄 Aggiornamento listing ID: " + listingId);
+        log.debug("Aggiornamento listing ID: {}", listingId);
 
         // Recupera il listing esistente
         Listing listing = listingRepository.findById(listingId)
@@ -330,22 +318,22 @@ public class ListingService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         // 🔍 LOG DI DEBUG PER IL CHECK DI SICUREZZA
-        System.out.println("🔐 === DEBUG CHECK SICUREZZA ===");
-        System.out.println("👤 User ID: " + userId);
-        System.out.println("👤 User Role: " + user.getRole());
-        System.out.println("🏢 User AgencyId: " + user.getAgencyId());
-        System.out.println("📋 Listing ID: " + listingId);
-        System.out.println("👨‍💼 Agent ID: " + listing.getAgent().getId());
-        System.out.println("🏢 Agent AgencyId: " + listing.getAgent().getAgencyId());
+        log.debug("=== DEBUG CHECK SICUREZZA ===");
+        log.debug("User ID: {}", userId);
+        log.debug("User Role: {}", user.getRole());
+        log.debug("User AgencyId: {}", user.getAgencyId());
+        log.debug("Listing ID: {}", listingId);
+        log.debug("Agent ID: {}", listing.getAgent().getId());
+        log.debug("Agent AgencyId: {}", listing.getAgent().getAgencyId());
 
         boolean isAgent = listing.getAgent().getId().equals(userId);
         boolean isManager = user.getRole() == it.unina.dietiestates25.backend.entities.enums.UserRole.AGENCY_MANAGER
                 && user.getAgencyId() != null
                 && user.getAgencyId().equals(listing.getAgent().getAgencyId());
 
-        System.out.println("✅ isAgent: " + isAgent);
-        System.out.println("✅ isManager: " + isManager);
-        System.out.println("🔐 === FINE DEBUG ===");
+        log.debug("isAgent: {}", isAgent);
+        log.debug("isManager: {}", isManager);
+        log.debug("=== FINE DEBUG ===");
 
         if (!isAgent && !isManager) {
             throw new SecurityException("User does not have permission to update this listing");
@@ -377,28 +365,28 @@ public class ListingService {
             if (listingUpdate.getStatus() != null) {
                 // Mappa lo status dal frontend al backend
                 String status = listingUpdate.getStatus();
-                System.out.println("📋 === DEBUG CAMBIO STATUS ===");
-                System.out.println("📋 Status ricevuto dal frontend: " + status);
-                System.out.println("📋 Status attuale nel DB: " + listing.getStatus());
+                log.debug("=== DEBUG CAMBIO STATUS ===");
+                log.debug("Status ricevuto dal frontend: {}", status);
+                log.debug("Status attuale nel DB: {}", listing.getStatus());
 
                 if ("disponibile".equals(status)) {
                     listing.setStatus(ListingStatus.ACTIVE);
-                    System.out.println("✅ Nuovo status impostato: ACTIVE");
+                    log.debug("Nuovo status impostato: ACTIVE");
                 } else if ("venduto".equals(status)) {
                     listing.setStatus(ListingStatus.SOLD);
-                    System.out.println("✅ Nuovo status impostato: SOLD");
+                    log.debug("Nuovo status impostato: SOLD");
                 } else if ("affittato".equals(status)) {
                     listing.setStatus(ListingStatus.RENTED);
-                    System.out.println("✅ Nuovo status impostato: RENTED");
+                    log.debug("Nuovo status impostato: RENTED");
                 } else if ("in_trattativa".equals(status)) {
                     listing.setStatus(ListingStatus.SUSPENDED);
-                    System.out.println("✅ Nuovo status impostato: SUSPENDED");
+                    log.debug("Nuovo status impostato: SUSPENDED");
                 } else {
-                    System.out.println("⚠️ Status non riconosciuto: " + status);
+                    log.warn("Status non riconosciuto: {}", status);
                 }
 
-                System.out.println("📋 Status dopo setStatus(): " + listing.getStatus());
-                System.out.println("📋 === FINE DEBUG ===");
+                log.debug("Status dopo setStatus(): {}", listing.getStatus());
+                log.debug("=== FINE DEBUG ===");
             }
         }
 
@@ -457,13 +445,12 @@ public class ListingService {
                 if (propertyUpdate.getLatitude() != null && propertyUpdate.getLongitude() != null) {
                     property.setLatitude(java.math.BigDecimal.valueOf(propertyUpdate.getLatitude()));
                     property.setLongitude(java.math.BigDecimal.valueOf(propertyUpdate.getLongitude()));
-                    System.out.println("✅ Coordinate GPS ricevute dal frontend: lat=" + propertyUpdate.getLatitude()
-                            + ", lng=" + propertyUpdate.getLongitude());
+                        log.debug("Coordinate GPS ricevute dal frontend: lat={}, lng={}", propertyUpdate.getLatitude(), propertyUpdate.getLongitude());
                 } else {
                     // ✅ PRIORITÀ 2: Fallback alla geocodifica lato server (solo se non ricevute dal
                     // frontend)
                     String fullAddress = property.getAddress() + ", " + property.getCity();
-                    System.out.println("🌍 Indirizzo modificato! Ri-geocoding: " + fullAddress);
+                    log.debug("Indirizzo modificato! Ri-geocoding: {}", fullAddress);
 
                     GoogleGeocodingService.GeocodingResult geocodingResult = googleGeocodingService
                             .geocodeAddress(fullAddress);
@@ -471,11 +458,9 @@ public class ListingService {
                     if (geocodingResult != null) {
                         property.setLatitude(java.math.BigDecimal.valueOf(geocodingResult.latitude()));
                         property.setLongitude(java.math.BigDecimal.valueOf(geocodingResult.longitude()));
-                        System.out.println("✅ Coordinate GPS aggiornate: lat=" + geocodingResult.latitude() + ", lng="
-                                + geocodingResult.longitude());
+                        log.debug("Coordinate GPS aggiornate: lat={}, lng={}", geocodingResult.latitude(), geocodingResult.longitude());
                     } else {
-                        System.err.println(
-                                "⚠️ Geocoding fallito per: " + fullAddress + " - mantengo coordinate esistenti");
+                        log.warn("Geocoding fallito per: {} - mantengo coordinate esistenti", fullAddress);
                     }
                 }
             }
@@ -491,8 +476,17 @@ public class ListingService {
             notifyInterestedClients(listing, oldPrice, listing.getPriceAmount());
         }
 
-        System.out.println("✅ Listing aggiornato con successo");
+        log.debug("Listing aggiornato con successo");
         return mapToResponse(listing);
+    }
+
+    private void deleteListingImageSafely(String relativePath) {
+        try {
+            imageStorageService.deleteImage(relativePath);
+            log.debug("File fisico eliminato: {}", relativePath);
+        } catch (Exception e) {
+            log.warn("Errore eliminazione file fisico: {}", e.getMessage());
+        }
     }
 
     /**
@@ -506,11 +500,10 @@ public class ListingService {
             List<String> existingImageUrls,
             List<MultipartFile> newImages) {
 
-        System.out.println("🔄 === AGGIORNAMENTO LISTING CON IMMAGINI ===");
-        System.out.println("📋 Listing ID: " + listingId);
-        System.out.println(
-                "📸 Immagini esistenti da mantenere: " + (existingImageUrls != null ? existingImageUrls.size() : 0));
-        System.out.println("📸 Nuove immagini da caricare: " + (newImages != null ? newImages.size() : 0));
+        log.debug("=== AGGIORNAMENTO LISTING CON IMMAGINI ===");
+        log.debug("Listing ID: {}", listingId);
+        log.debug("Immagini esistenti da mantenere: {}", existingImageUrls != null ? existingImageUrls.size() : 0);
+        log.debug("Nuove immagini da caricare: {}", newImages != null ? newImages.size() : 0);
 
         // Prima aggiorna i dati del listing (usa il metodo esistente)
         updateListing(listingId, userId, request);
@@ -523,22 +516,20 @@ public class ListingService {
         try {
             // 1. Ottieni tutte le immagini attuali del listing
             List<ListingImage> currentImages = listingImageRepository.findByListingId(listingId);
-            System.out.println("📸 Immagini attualmente nel DB: " + currentImages.size());
-
-            // 🔍 DEBUG: Stampa tutte le immagini correnti
-            System.out.println("🔍 === DEBUG IMMAGINI CORRENTI ===");
+            log.debug("Immagini attualmente nel DB: {}", currentImages.size());
+            log.debug("=== DEBUG IMMAGINI CORRENTI ===");
             for (int i = 0; i < currentImages.size(); i++) {
-                System.out.println("  [" + i + "] URL: " + currentImages.get(i).getUrl());
+                log.debug("  [{}] URL: {}", i, currentImages.get(i).getUrl());
             }
-            System.out.println("🔍 === DEBUG IMMAGINI DA MANTENERE ===");
+            log.debug("=== DEBUG IMMAGINI DA MANTENERE ===");
             if (existingImageUrls != null) {
                 for (int i = 0; i < existingImageUrls.size(); i++) {
-                    System.out.println("  [" + i + "] URL: " + existingImageUrls.get(i));
+                    log.debug("  [{}] URL: {}", i, existingImageUrls.get(i));
                 }
             } else {
-                System.out.println("  NESSUNA (existingImageUrls è null)");
+                log.debug("  NESSUNA (existingImageUrls è null)");
             }
-            System.out.println("🔍 === FINE DEBUG ===");
+            log.debug("=== FINE DEBUG ===");
 
             // 2. Identifica le immagini da eliminare
             List<ListingImage> imagesToDelete = new java.util.ArrayList<>();
@@ -546,50 +537,45 @@ public class ListingService {
                 // Rimuovi solo le immagini che NON sono nella lista existingImageUrls
                 for (ListingImage img : currentImages) {
                     boolean shouldKeep = existingImageUrls.contains(img.getUrl());
-                    System.out.println("🔍 Confronto: " + img.getUrl() + " -> shouldKeep: " + shouldKeep);
+                    log.debug("Confronto: {} -> shouldKeep: {}", img.getUrl(), shouldKeep);
                     if (!shouldKeep) {
                         imagesToDelete.add(img);
                     }
                 }
             } else {
                 // Se existingImageUrls è vuoto, elimina tutte le immagini esistenti
-                System.out.println("⚠️ existingImageUrls è vuoto o null - eliminazione di tutte le immagini");
+                log.warn("existingImageUrls è vuoto o null - eliminazione di tutte le immagini");
                 imagesToDelete.addAll(currentImages);
             }
 
-            System.out.println("📊 Immagini da eliminare: " + imagesToDelete.size());
-            System.out.println("📊 Immagini da mantenere: " + (currentImages.size() - imagesToDelete.size()));
+            log.debug("Immagini da eliminare: {}", imagesToDelete.size());
+            log.debug("Immagini da mantenere: {}", currentImages.size() - imagesToDelete.size());
 
             // 3. Elimina le immagini non volute
             // ✅ PRIMA: Elimina i file fisici
             for (ListingImage img : imagesToDelete) {
-                System.out.println("🗑️ Eliminazione file fisico: " + img.getUrl());
+                log.debug("Eliminazione file fisico: {}", img.getUrl());
 
                 // Estrai il path relativo dall'URL completo
                 String url = img.getUrl();
                 if (url.contains("/uploads/listings/")) {
                     String relativePath = url
                             .substring(url.indexOf("/uploads/listings/") + "/uploads/listings/".length());
-                    try {
-                        imageStorageService.deleteImage(relativePath);
-                        System.out.println("✅ File fisico eliminato: " + relativePath);
-                    } catch (Exception e) {
-                        System.err.println("⚠️ Errore eliminazione file fisico: " + e.getMessage());
-                    }
+                    deleteListingImageSafely(relativePath);
                 }
             }
 
             // ✅ POI: Elimina dal database con query SQL diretta
             if (existingImageUrls != null && !existingImageUrls.isEmpty()) {
                 // Elimina solo le immagini che NON sono nella lista existingImageUrls
-                System.out.println("🗑️ Esecuzione DELETE SQL per immagini non in existingImageUrls");
+                log.debug("Esecuzione DELETE SQL per immagini non in existingImageUrls");
                 listingImageRepository.deleteByListingIdAndUrlNotIn(listingId, existingImageUrls);
-                System.out.println("✅ DELETE SQL eseguito con successo");
+                log.debug("DELETE SQL eseguito con successo");
             } else {
                 // Elimina tutte le immagini
-                System.out.println("🗑️ Esecuzione DELETE SQL per tutte le immagini");
+                log.debug("Esecuzione DELETE SQL per tutte le immagini");
                 listingImageRepository.deleteAllByListingId(listingId);
-                System.out.println("✅ DELETE SQL eseguito con successo");
+                log.debug("DELETE SQL eseguito con successo");
             }
 
             // ✅ FLUSH delle modifiche per assicurare che siano persistite
@@ -598,21 +584,21 @@ public class ListingService {
             // ✅ CRITICO: Clear della cache di Hibernate per forzare il reload dal DB
             // Questo risolve il problema delle entità eliminate che riappaiono dalla cache
             entityManager.clear();
-            System.out.println("🔄 Cache Hibernate svuotata - le prossime query caricheranno dati freschi dal DB");
+            log.debug("Cache Hibernate svuotata - le prossime query caricheranno dati freschi dal DB");
 
             // 4. Carica le nuove immagini
             if (newImages != null && !newImages.isEmpty()) {
-                System.out.println("📤 Caricamento " + newImages.size() + " nuove immagini...");
+                log.debug("Caricamento {} nuove immagini...", newImages.size());
 
                 List<String> newImagePaths = imageStorageService.storeImages(newImages, listingId);
-                System.out.println("✅ File salvati: " + newImagePaths.size());
+                log.debug("File salvati: {}", newImagePaths.size());
 
                 // ✅ USA QUERY NATIVA per bypassare completamente la cache
                 List<ListingImage> remainingImages = listingImageRepository.findByListingIdNative(listingId);
                 int nextSortOrder = remainingImages.size(); // Il prossimo sortOrder dopo le esistenti
 
-                System.out.println("📊 Immagini rimaste dopo eliminazione: " + remainingImages.size());
-                System.out.println("📊 Prossimo sortOrder: " + nextSortOrder);
+                log.debug("Immagini rimaste dopo eliminazione: {}", remainingImages.size());
+                log.debug("Prossimo sortOrder: {}", nextSortOrder);
 
                 // Salva le nuove immagini nel database
                 for (int i = 0; i < newImagePaths.size(); i++) {
@@ -621,11 +607,10 @@ public class ListingService {
                     listingImage.setUrl("http://localhost:8080/uploads/listings/" + newImagePaths.get(i));
                     listingImage.setSortOrder(nextSortOrder + i);
                     listingImageRepository.save(listingImage);
-                    System.out.println("✅ Salvata immagine " + (i + 1) + "/" + newImagePaths.size() + " con sortOrder="
-                            + (nextSortOrder + i));
+                    log.debug("Salvata immagine {}/{} con sortOrder={}", i + 1, newImagePaths.size(), nextSortOrder + i);
                 }
 
-                System.out.println("✅ Salvate " + newImagePaths.size() + " nuove immagini");
+                log.debug("Salvate {} nuove immagini", newImagePaths.size());
             }
 
             // 5. Riordina le immagini esistenti mantenute (se necessario)
@@ -633,47 +618,45 @@ public class ListingService {
                 // ✅ USA QUERY NATIVA per recuperare le immagini DOPO l'eliminazione
                 List<ListingImage> finalImages = listingImageRepository.findByListingIdNative(listingId);
 
-                System.out.println("🔄 === RIORDINAMENTO IMMAGINI ===");
-                System.out.println("📊 Immagini da riordinare: " + finalImages.size());
+                log.debug("=== RIORDINAMENTO IMMAGINI ===");
+                log.debug("Immagini da riordinare: {}", finalImages.size());
 
                 // Riordina in base all'ordine in existingImageUrls
                 for (int i = 0; i < existingImageUrls.size(); i++) {
                     String urlToFind = existingImageUrls.get(i);
-                    System.out.println("🔍 Cerco URL per sortOrder " + i + ": " + urlToFind);
+                    log.debug("Cerco URL per sortOrder {}: {}", i, urlToFind);
 
                     boolean found = false;
                     for (ListingImage img : finalImages) {
                         if (img.getUrl().equals(urlToFind)) {
                             found = true;
                             if (img.getSortOrder() != i) {
-                                System.out
-                                        .println("🔄 Riordino immagine da sortOrder " + img.getSortOrder() + " a " + i);
+                                log.debug("Riordino immagine da sortOrder {} a {}", img.getSortOrder(), i);
                                 img.setSortOrder(i);
                                 listingImageRepository.save(img);
                             } else {
-                                System.out.println("✅ Immagine già nel sortOrder corretto: " + i);
+                                log.debug("Immagine già nel sortOrder corretto: {}", i);
                             }
                             break;
                         }
                     }
 
                     if (!found) {
-                        System.err.println("⚠️ URL non trovato nelle immagini finali: " + urlToFind);
+                        log.warn("URL non trovato nelle immagini finali: {}", urlToFind);
                     }
                 }
 
                 // Flush finale per salvare i riordinamenti
                 listingImageRepository.flush();
-                System.out.println("🔄 === FINE RIORDINAMENTO ===");
+                log.debug("=== FINE RIORDINAMENTO ===");
             }
 
             // ✅ IMPORTANTE: USA QUERY NATIVA per il conteggio finale
             List<ListingImage> finalImagesCount = listingImageRepository.findByListingIdNative(listingId);
-            System.out.println("✅ Gestione immagini completata. Totale immagini finali: " + finalImagesCount.size());
+            log.debug("Gestione immagini completata. Totale immagini finali: {}", finalImagesCount.size());
 
         } catch (Exception e) {
-            System.err.println("❌ Errore nella gestione delle immagini: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Errore nella gestione delle immagini: {}", e.getMessage(), e);
             // Non bloccare l'aggiornamento se fallisce la gestione delle immagini
         }
 
@@ -690,7 +673,7 @@ public class ListingService {
      * Invia notifiche ai clienti interessati quando cambia il prezzo di un immobile
      */
     private void notifyInterestedClients(Listing listing, int oldPrice, int newPrice) {
-        System.out.println("📧 Variazione prezzo rilevata: da €" + oldPrice + " a €" + newPrice);
+        log.debug("Variazione prezzo rilevata: da €{} a €{}", oldPrice, newPrice);
 
         // Recupera clienti con offerte attive per questo immobile
         List<it.unina.dietiestates25.backend.entities.Offer> offers = offerRepository
@@ -727,7 +710,7 @@ public class ListingService {
                     }
                 });
 
-        System.out.println("✅ Inviate " + notifiedClients.size() + " notifiche per variazione prezzo");
+            log.debug("Inviate {} notifiche per variazione prezzo", notifiedClients.size());
     }
 
     /**
@@ -739,18 +722,16 @@ public class ListingService {
             double minLat, double maxLat, double minLng, double maxLng,
             String type, Integer priceMin, Integer priceMax) {
 
-        System.out.println("🗺️ Ricerca immobili in bounds geografici:");
-        System.out.println("   Lat: [" + minLat + ", " + maxLat + "]");
-        System.out.println("   Lng: [" + minLng + ", " + maxLng + "]");
+        log.debug("Ricerca immobili in bounds geografici: lat=[{}, {}], lng=[{}, {}]", minLat, maxLat, minLng, maxLng);
 
         List<Listing> listings = listingRepository.findInGeoBounds(
                 minLat, maxLat, minLng, maxLng, type, priceMin, priceMax);
 
-        System.out.println("✅ Trovati " + listings.size() + " immobili");
+        log.debug("Trovati {} immobili", listings.size());
 
         return listings.stream()
                 .map(this::mapToResponseDto)
-                .collect(Collectors.toList());
+            .toList();
     }
 
     /**
@@ -787,7 +768,7 @@ public class ListingService {
         // Images
         List<String> imageUrls = listing.getImages().stream()
                 .map(ListingImage::getUrl)
-                .collect(Collectors.toList());
+            .toList();
         dto.setImageUrls(imageUrls);
 
         return dto;
@@ -814,9 +795,8 @@ public class ListingService {
 
             // Dati dell'agenzia
             if (listing.getAgent().getAgencyId() != null) {
-                agencyRepository.findById(listing.getAgent().getAgencyId()).ifPresent(agency -> {
-                    response.setAgencyName(agency.getName());
-                });
+                agencyRepository.findById(listing.getAgent().getAgencyId())
+                        .ifPresent(agency -> response.setAgencyName(agency.getName()));
             }
         }
 
@@ -840,7 +820,7 @@ public class ListingService {
         // Immagini
         List<String> imageUrls = listing.getImages().stream()
                 .map(ListingImage::getUrl)
-                .collect(Collectors.toList());
+            .toList();
         response.setImageUrls(imageUrls);
 
         return response;

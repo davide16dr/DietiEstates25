@@ -26,6 +26,10 @@ import it.unina.dietiestates25.backend.services.OfferService;
 @RequestMapping("/api/client/offers")
 public class ClientOfferController {
 
+    private static final String MSG_UNAUTHORIZED = "Unauthorized";
+    private static final String MSG_NOT_FOUND = "not found";
+    private static final String MSG_ACTIVE_OFFER = "already have an active offer";
+
     private static final Logger log = LoggerFactory.getLogger(ClientOfferController.class);
     private final OfferService offerService;
 
@@ -47,10 +51,10 @@ public class ClientOfferController {
             return ResponseEntity.status(HttpStatus.CREATED).body(offer);
         } catch (RuntimeException e) {
             log.error("❌ Errore invio offerta: {}", e.getMessage(), e);
-            if (e.getMessage().contains("already have an active offer")) {
+            if (e.getMessage().contains(MSG_ACTIVE_OFFER)) {
                 return ResponseEntity.status(HttpStatus.CONFLICT).build();
             }
-            if (e.getMessage().contains("not found")) {
+            if (e.getMessage().contains(MSG_NOT_FOUND)) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
@@ -78,10 +82,10 @@ public class ClientOfferController {
             offerService.acceptCounterOffer(principal.getId(), offerId);
             return ResponseEntity.ok().build();
         } catch (RuntimeException e) {
-            if (e.getMessage() != null && e.getMessage().contains("Unauthorized")) {
+            if (e.getMessage() != null && e.getMessage().contains(MSG_UNAUTHORIZED)) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
-            if (e.getMessage() != null && e.getMessage().contains("not found")) {
+            if (e.getMessage() != null && e.getMessage().contains(MSG_NOT_FOUND)) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
@@ -100,10 +104,10 @@ public class ClientOfferController {
             offerService.submitCounterToCounter(principal.getId(), offerId, request);
             return ResponseEntity.ok().build();
         } catch (RuntimeException e) {
-            if (e.getMessage() != null && e.getMessage().contains("Unauthorized")) {
+            if (e.getMessage() != null && e.getMessage().contains(MSG_UNAUTHORIZED)) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
-            if (e.getMessage() != null && e.getMessage().contains("not found")) {
+            if (e.getMessage() != null && e.getMessage().contains(MSG_NOT_FOUND)) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
@@ -121,10 +125,10 @@ public class ClientOfferController {
             offerService.withdrawOffer(principal.getId(), offerId);
             return ResponseEntity.ok().build();
         } catch (RuntimeException e) {
-            if (e.getMessage() != null && e.getMessage().contains("Unauthorized")) {
+            if (e.getMessage() != null && e.getMessage().contains(MSG_UNAUTHORIZED)) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
-            if (e.getMessage() != null && e.getMessage().contains("not found")) {
+            if (e.getMessage() != null && e.getMessage().contains(MSG_NOT_FOUND)) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();

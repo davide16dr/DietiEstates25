@@ -25,6 +25,18 @@ import jakarta.validation.Valid;
 @RequestMapping("/auth")
 public class AuthController {
 
+    private static final String KEY_ERROR = "error";
+    private static final String KEY_MESSAGE = "message";
+    private static final String KEY_EMAIL = "email";
+
+    private static final String MSG_INVALID_CREDENTIALS = "Email o password non corrette.";
+    private static final String MSG_LOGIN_ERROR_PREFIX = "Errore durante l'autenticazione: ";
+    private static final String MSG_EMAIL_ALREADY_REGISTERED = "Email già registrata nel sistema.";
+    private static final String MSG_REGISTRATION_ERROR_PREFIX = "Errore durante la registrazione: ";
+    private static final String MSG_BUSINESS_REGISTRATION_SUCCESS = "Registrazione aziendale completata con successo. Controlla la tua email per i dati di accesso.";
+    private static final String MSG_PASSWORD_RESET_INFO = "Se l'email è registrata, riceverai le istruzioni per il reset della password.";
+    private static final String MSG_PASSWORD_RESET_SUCCESS = "Password aggiornata con successo.";
+
     private final AuthService authService;
     private final BusinessRegistrationService businessRegistrationService;
 
@@ -40,11 +52,11 @@ public class AuthController {
             return ResponseEntity.ok(response);
         } catch (AuthenticationException e) {
             Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "Email o password non corrette.");
+            errorResponse.put(KEY_ERROR, MSG_INVALID_CREDENTIALS);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
         } catch (Exception e) {
             Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "Errore durante l'autenticazione: " + e.getMessage());
+            errorResponse.put(KEY_ERROR, MSG_LOGIN_ERROR_PREFIX + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
@@ -56,11 +68,11 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (IllegalArgumentException e) {
             Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "Email già registrata nel sistema.");
+            errorResponse.put(KEY_ERROR, MSG_EMAIL_ALREADY_REGISTERED);
             return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
         } catch (Exception e) {
             Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "Errore durante la registrazione: " + e.getMessage());
+            errorResponse.put(KEY_ERROR, MSG_REGISTRATION_ERROR_PREFIX + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
@@ -71,17 +83,17 @@ public class AuthController {
             businessRegistrationService.registerBusiness(request);
             
             Map<String, String> response = new HashMap<>();
-            response.put("message", "Registrazione aziendale completata con successo. Controlla la tua email per i dati di accesso.");
-            response.put("email", request.getEmail());
+            response.put(KEY_MESSAGE, MSG_BUSINESS_REGISTRATION_SUCCESS);
+            response.put(KEY_EMAIL, request.getEmail());
             
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (IllegalArgumentException e) {
             Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", e.getMessage());
+            errorResponse.put(KEY_ERROR, e.getMessage());
             return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
         } catch (Exception e) {
             Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "Errore durante la registrazione: " + e.getMessage());
+            errorResponse.put(KEY_ERROR, MSG_REGISTRATION_ERROR_PREFIX + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
@@ -91,7 +103,7 @@ public class AuthController {
         // Risponde sempre 200 per evitare user enumeration
         authService.requestPasswordReset(request.getEmail());
         Map<String, String> response = new HashMap<>();
-        response.put("message", "Se l'email è registrata, riceverai le istruzioni per il reset della password.");
+        response.put(KEY_MESSAGE, MSG_PASSWORD_RESET_INFO);
         return ResponseEntity.ok(response);
     }
 
@@ -100,11 +112,11 @@ public class AuthController {
         try {
             authService.resetPassword(request.getToken(), request.getNewPassword());
             Map<String, String> response = new HashMap<>();
-            response.put("message", "Password aggiornata con successo.");
+            response.put(KEY_MESSAGE, MSG_PASSWORD_RESET_SUCCESS);
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
             Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", e.getMessage());
+            errorResponse.put(KEY_ERROR, e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
         }
     }

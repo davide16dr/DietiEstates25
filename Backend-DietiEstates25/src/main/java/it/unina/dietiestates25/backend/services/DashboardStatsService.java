@@ -15,7 +15,6 @@ import it.unina.dietiestates25.backend.entities.enums.OfferStatus;
 import it.unina.dietiestates25.backend.entities.enums.VisitStatus;
 import it.unina.dietiestates25.backend.repositories.ListingRepository;
 import it.unina.dietiestates25.backend.repositories.OfferRepository;
-import it.unina.dietiestates25.backend.repositories.UserRepository;
 import it.unina.dietiestates25.backend.repositories.VisitRepository;
 
 @Service
@@ -23,17 +22,14 @@ public class DashboardStatsService {
     
     private final VisitRepository visitRepository;
     private final ListingRepository listingRepository;
-    private final UserRepository userRepository;
     private final OfferRepository offerRepository;
 
     public DashboardStatsService(
             VisitRepository visitRepository,
             ListingRepository listingRepository,
-            UserRepository userRepository,
             OfferRepository offerRepository) {
         this.visitRepository = visitRepository;
         this.listingRepository = listingRepository;
-        this.userRepository = userRepository;
         this.offerRepository = offerRepository;
     }
 

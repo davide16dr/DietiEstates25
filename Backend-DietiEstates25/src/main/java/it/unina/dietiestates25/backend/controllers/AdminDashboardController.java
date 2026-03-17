@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -27,6 +26,21 @@ import it.unina.dietiestates25.backend.security.UserPrincipal;
 @RequestMapping("/api/admin")
 public class AdminDashboardController {
 
+    private static final String MSG_ADMIN_NOT_FOUND = "Admin not found";
+    private static final String MSG_AGENCY_NOT_FOUND = "Agency not found";
+    private static final String STATUS_ACTIVE = "Attiva";
+    private static final String STATUS_ACTIVE_USER = "attivo";
+    private static final String STATUS_INACTIVE_USER = "inattivo";
+    private static final String KEY_TOTALI = "totali";
+    private static final String KEY_ATTIVI = "attivi";
+    private static final String KEY_ID = "id";
+    private static final String KEY_NAME = "name";
+    private static final String KEY_VAT_NUMBER = "vatNumber";
+    private static final String KEY_EMAIL = "email";
+    private static final String KEY_PHONE_E164 = "phoneE164";
+    private static final String KEY_ADDRESS = "address";
+    private static final String KEY_CITY = "city";
+
     private final UserRepository userRepository;
     private final AgencyRepository agencyRepository;
 
@@ -39,7 +53,7 @@ public class AdminDashboardController {
     public ResponseEntity<AdminStatsResponse> getAdminStats(@AuthenticationPrincipal UserPrincipal principal) {
         UUID userId = principal.getId();
         User admin = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Admin not found"));
+            .orElseThrow(() -> new RuntimeException(MSG_ADMIN_NOT_FOUND));
 
         if (admin.getAgencyId() == null) {
             return ResponseEntity.status(403).build();
@@ -47,26 +61,26 @@ public class AdminDashboardController {
 
         UUID agencyId = admin.getAgencyId();
         Agency agency = agencyRepository.findById(agencyId)
-                .orElseThrow(() -> new RuntimeException("Agency not found"));
+            .orElseThrow(() -> new RuntimeException(MSG_AGENCY_NOT_FOUND));
 
         // Statistiche gestori
         List<User> managers = userRepository.findByAgencyIdAndRole(agencyId, UserRole.AGENCY_MANAGER);
         Map<String, Integer> gestoriStats = new HashMap<>();
-        gestoriStats.put("totali", managers.size());
-        gestoriStats.put("attivi", (int) managers.stream().filter(User::isActive).count());
+        gestoriStats.put(KEY_TOTALI, managers.size());
+        gestoriStats.put(KEY_ATTIVI, (int) managers.stream().filter(User::isActive).count());
 
         // Statistiche agenti
         List<User> agents = userRepository.findByAgencyIdAndRole(agencyId, UserRole.AGENT);
         Map<String, Integer> agentiStats = new HashMap<>();
-        agentiStats.put("totali", agents.size());
-        agentiStats.put("attivi", (int) agents.stream().filter(User::isActive).count());
+        agentiStats.put(KEY_TOTALI, agents.size());
+        agentiStats.put(KEY_ATTIVI, (int) agents.stream().filter(User::isActive).count());
 
         // Info agenzia
         AdminStatsResponse.AgencyInfo agencyInfo = new AdminStatsResponse.AgencyInfo(
             agency.getName(),
             agency.getCity(),
             agency.getAddress(),
-            "Attiva"
+            STATUS_ACTIVE
         );
 
         // Ultimi 3 gestori
@@ -77,9 +91,9 @@ public class AdminDashboardController {
                     u.getId().toString(),
                     u.getFirstName() + " " + u.getLastName(),
                     u.getEmail(),
-                    u.isActive() ? "attivo" : "inattivo"
+                    u.isActive() ? STATUS_ACTIVE_USER : STATUS_INACTIVE_USER
                 ))
-                .collect(Collectors.toList());
+                .toList();
 
         // Ultimi 3 agenti
         List<AdminStatsResponse.RecentUser> recentAgents = agents.stream()
@@ -89,9 +103,9 @@ public class AdminDashboardController {
                     u.getId().toString(),
                     u.getFirstName() + " " + u.getLastName(),
                     u.getEmail(),
-                    u.isActive() ? "attivo" : "inattivo"
+                    u.isActive() ? STATUS_ACTIVE_USER : STATUS_INACTIVE_USER
                 ))
-                .collect(Collectors.toList());
+                .toList();
 
         // Costruisci la risposta
         AdminStatsResponse response = new AdminStatsResponse();
@@ -108,23 +122,23 @@ public class AdminDashboardController {
     public ResponseEntity<Map<String, Object>> getAgencyDetails(@AuthenticationPrincipal UserPrincipal principal) {
         UUID userId = principal.getId();
         User admin = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Admin not found"));
+                .orElseThrow(() -> new RuntimeException(MSG_ADMIN_NOT_FOUND));
 
         if (admin.getAgencyId() == null) {
             return ResponseEntity.status(403).build();
         }
 
         Agency agency = agencyRepository.findById(admin.getAgencyId())
-                .orElseThrow(() -> new RuntimeException("Agency not found"));
+            .orElseThrow(() -> new RuntimeException(MSG_AGENCY_NOT_FOUND));
 
         Map<String, Object> agencyDetails = new HashMap<>();
-        agencyDetails.put("id", agency.getId().toString());
-        agencyDetails.put("name", agency.getName());
-        agencyDetails.put("vatNumber", agency.getVatNumber());
-        agencyDetails.put("email", agency.getEmail());
-        agencyDetails.put("phoneE164", agency.getPhoneE164());
-        agencyDetails.put("address", agency.getAddress());
-        agencyDetails.put("city", agency.getCity());
+        agencyDetails.put(KEY_ID, agency.getId().toString());
+        agencyDetails.put(KEY_NAME, agency.getName());
+        agencyDetails.put(KEY_VAT_NUMBER, agency.getVatNumber());
+        agencyDetails.put(KEY_EMAIL, agency.getEmail());
+        agencyDetails.put(KEY_PHONE_E164, agency.getPhoneE164());
+        agencyDetails.put(KEY_ADDRESS, agency.getAddress());
+        agencyDetails.put(KEY_CITY, agency.getCity());
 
         return ResponseEntity.ok(agencyDetails);
     }
@@ -137,14 +151,14 @@ public class AdminDashboardController {
         
         UUID userId = principal.getId();
         User admin = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Admin not found"));
+            .orElseThrow(() -> new RuntimeException(MSG_ADMIN_NOT_FOUND));
 
         if (admin.getAgencyId() == null || !admin.getAgencyId().equals(agencyId)) {
             return ResponseEntity.status(403).build();
         }
 
         Agency agency = agencyRepository.findById(agencyId)
-                .orElseThrow(() -> new RuntimeException("Agency not found"));
+            .orElseThrow(() -> new RuntimeException(MSG_AGENCY_NOT_FOUND));
 
         // Aggiorna i campi forniti
         if (updates.containsKey("name")) {
@@ -169,13 +183,13 @@ public class AdminDashboardController {
         Agency updatedAgency = agencyRepository.save(agency);
 
         Map<String, Object> response = new HashMap<>();
-        response.put("id", updatedAgency.getId().toString());
-        response.put("name", updatedAgency.getName());
-        response.put("vatNumber", updatedAgency.getVatNumber());
-        response.put("email", updatedAgency.getEmail());
-        response.put("phoneE164", updatedAgency.getPhoneE164());
-        response.put("address", updatedAgency.getAddress());
-        response.put("city", updatedAgency.getCity());
+        response.put(KEY_ID, updatedAgency.getId().toString());
+        response.put(KEY_NAME, updatedAgency.getName());
+        response.put(KEY_VAT_NUMBER, updatedAgency.getVatNumber());
+        response.put(KEY_EMAIL, updatedAgency.getEmail());
+        response.put(KEY_PHONE_E164, updatedAgency.getPhoneE164());
+        response.put(KEY_ADDRESS, updatedAgency.getAddress());
+        response.put(KEY_CITY, updatedAgency.getCity());
 
         return ResponseEntity.ok(response);
     }

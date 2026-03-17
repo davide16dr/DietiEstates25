@@ -39,7 +39,7 @@ public class ImageStorageService {
             Files.createDirectories(rootLocation);
             log.info("Directory upload inizializzata: {}", rootLocation);
         } catch (IOException e) {
-            throw new RuntimeException("Impossibile creare la directory di upload", e);
+            throw new IllegalStateException("Impossibile creare la directory di upload", e);
         }
     }
 
@@ -72,12 +72,12 @@ public class ImageStorageService {
             }
             Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
 
-            String relativePath = listingId.toString() + "/" + filename;
+            String relativePath = Paths.get(listingId.toString(), filename).toString();
             log.debug("Immagine salvata: {}", relativePath);
             return relativePath;
 
         } catch (IOException e) {
-            throw new RuntimeException("Errore nel salvataggio dell'immagine: " + file.getOriginalFilename(), e);
+            throw new IllegalStateException("Errore nel salvataggio dell'immagine: " + file.getOriginalFilename(), e);
         }
     }
 

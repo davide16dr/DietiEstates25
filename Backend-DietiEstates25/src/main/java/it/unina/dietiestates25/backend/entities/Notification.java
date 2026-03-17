@@ -54,7 +54,9 @@ public class Notification {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
-    public Notification() {}
+    public Notification() {
+        // Required by JPA.
+    }
 
     @PrePersist
     public void ensureIdAndCreatedAt() {

@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import it.unina.dietiestates25.backend.dto.listing.ListingFilterRequest;
 import it.unina.dietiestates25.backend.dto.listing.ListingResponse;
 import it.unina.dietiestates25.backend.services.ListingService;
+import it.unina.dietiestates25.backend.security.UserPrincipal;
 
 @RestController
 @RequestMapping("/api/listings")
@@ -40,8 +41,8 @@ public class ListingController {
         var principal = authentication.getPrincipal();
         java.util.UUID agentId = null;
 
-        if (principal instanceof it.unina.dietiestates25.backend.security.UserPrincipal) {
-            agentId = ((it.unina.dietiestates25.backend.security.UserPrincipal) principal).getId();
+        if (principal instanceof UserPrincipal userPrincipal) {
+            agentId = userPrincipal.getId();
         } else {
             return ResponseEntity.status(400).build();
         }
@@ -66,8 +67,8 @@ public class ListingController {
         var principal = authentication.getPrincipal();
         java.util.UUID userId = null;
 
-        if (principal instanceof it.unina.dietiestates25.backend.security.UserPrincipal) {
-            userId = ((it.unina.dietiestates25.backend.security.UserPrincipal) principal).getId();
+        if (principal instanceof UserPrincipal userPrincipal) {
+            userId = userPrincipal.getId();
         } else {
             return ResponseEntity.status(400).build();
         }
@@ -157,8 +158,8 @@ public class ListingController {
         var principal = authentication.getPrincipal();
         java.util.UUID agentId = null;
         
-        if (principal instanceof it.unina.dietiestates25.backend.security.UserPrincipal) {
-            agentId = ((it.unina.dietiestates25.backend.security.UserPrincipal) principal).getId();
+        if (principal instanceof UserPrincipal userPrincipal) {
+            agentId = userPrincipal.getId();
         } else {
             return ResponseEntity.status(400).build();
         }
@@ -208,8 +209,8 @@ public class ListingController {
         var principal = authentication.getPrincipal();
         java.util.UUID userId = null;
         
-        if (principal instanceof it.unina.dietiestates25.backend.security.UserPrincipal) {
-            userId = ((it.unina.dietiestates25.backend.security.UserPrincipal) principal).getId();
+        if (principal instanceof UserPrincipal userPrincipal) {
+            userId = userPrincipal.getId();
         } else {
             return ResponseEntity.status(400).build();
         }

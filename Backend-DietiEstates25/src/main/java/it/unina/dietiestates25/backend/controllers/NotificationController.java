@@ -2,7 +2,6 @@ package it.unina.dietiestates25.backend.controllers;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -36,7 +35,7 @@ public class NotificationController {
         List<Notification> notifications = notificationService.getUserNotifications(principal.getId());
         List<NotificationDTO> dtos = notifications.stream()
                 .map(this::mapToDTO)
-                .collect(Collectors.toList());
+            .toList();
         return ResponseEntity.ok(dtos);
     }
 
@@ -45,7 +44,7 @@ public class NotificationController {
         List<Notification> notifications = notificationService.getUnreadNotifications(principal.getId());
         List<NotificationDTO> dtos = notifications.stream()
                 .map(this::mapToDTO)
-                .collect(Collectors.toList());
+            .toList();
         return ResponseEntity.ok(dtos);
     }
 

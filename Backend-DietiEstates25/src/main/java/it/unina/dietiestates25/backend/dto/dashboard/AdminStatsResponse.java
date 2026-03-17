@@ -4,8 +4,8 @@ import java.util.List;
 import java.util.Map;
 
 public class AdminStatsResponse {
-    private Map<String, Integer> gestori;  // { totali, attivi }
-    private Map<String, Integer> agenti;   // { totali, attivi }
+    private Map<String, Integer> gestori;
+    private Map<String, Integer> agenti;
     private AgencyInfo agencyInfo;
     private List<RecentUser> recentManagers;
     private List<RecentUser> recentAgents;

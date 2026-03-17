@@ -12,7 +12,9 @@ public class ResetPasswordRequest {
     @Size(min = 6)
     private String newPassword;
 
-    public ResetPasswordRequest() {}
+    public ResetPasswordRequest() {
+        // Required by Jackson for request deserialization.
+    }
 
     public String getToken() { return token; }
     public void setToken(String token) { this.token = token; }

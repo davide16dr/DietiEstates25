@@ -36,7 +36,7 @@ public class ListingResponse {
     // Immagini
     private List<String> imageUrls;
     
-    // Costruttore vuoto
+    // Costruttore vuoto richiesto da Jackson.
     public ListingResponse() {}
 
     // Getters e Setters

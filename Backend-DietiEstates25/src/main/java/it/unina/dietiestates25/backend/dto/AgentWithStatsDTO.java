@@ -17,23 +17,6 @@ public class AgentWithStatsDTO {
 
     public AgentWithStatsDTO() {}
 
-    public AgentWithStatsDTO(UUID id, String email, String firstName, String lastName, 
-                             String phoneE164, boolean active, UUID agencyId,
-                             int totalProperties, int activeProperties, 
-                             int soldProperties, int rentedProperties) {
-        this.id = id;
-        this.email = email;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.phoneE164 = phoneE164;
-        this.active = active;
-        this.agencyId = agencyId;
-        this.totalProperties = totalProperties;
-        this.activeProperties = activeProperties;
-        this.soldProperties = soldProperties;
-        this.rentedProperties = rentedProperties;
-    }
-
     // Getters and Setters
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }

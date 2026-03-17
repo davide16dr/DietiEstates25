@@ -9,7 +9,9 @@ public class NotificationPreferencesDTO {
     private boolean notifyVisitUpdates;
     private boolean notifyOfferUpdates;
 
-    public NotificationPreferencesDTO() {}
+    public NotificationPreferencesDTO() {
+        // Required by Jackson for response serialization/deserialization.
+    }
 
     // Getters and Setters
     public boolean isEmailEnabled() { return emailEnabled; }

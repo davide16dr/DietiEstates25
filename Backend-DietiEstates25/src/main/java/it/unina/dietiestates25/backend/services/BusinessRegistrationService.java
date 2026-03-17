@@ -2,6 +2,8 @@ package it.unina.dietiestates25.backend.services;
 
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +18,8 @@ import it.unina.dietiestates25.backend.utils.PasswordGenerator;
 
 @Service
 public class BusinessRegistrationService {
+
+    private static final Logger log = LoggerFactory.getLogger(BusinessRegistrationService.class);
 
     private final AgencyRepository agencyRepository;
     private final UserRepository userRepository;
@@ -65,7 +69,7 @@ public class BusinessRegistrationService {
         agency.setEmail(normalizedEmail);
 
         Agency savedAgency = agencyRepository.save(agency);
-        System.out.println("Agenzia creata con successo: " + savedAgency.getId());
+        log.info("Agenzia creata con successo: {}", savedAgency.getId());
 
         // Genera una password provvisoria sicura
         String temporaryPassword = PasswordGenerator.generateTemporaryPassword();
@@ -82,7 +86,7 @@ public class BusinessRegistrationService {
         manager.setAgencyId(savedAgency.getId());
 
         User savedManager = userRepository.save(manager);
-        System.out.println("Manager creato con successo: " + savedManager.getId());
+        log.info("Manager creato con successo: {}", savedManager.getId());
 
         // Aggiungi automaticamente alla tabella agency_memberships
         userService.addAgencyMembershipIfNeeded(savedManager);
@@ -96,9 +100,9 @@ public class BusinessRegistrationService {
                 request.getLastName(),
                 temporaryPassword
             );
-            System.out.println("Email di conferma inviata a: " + normalizedEmail);
+            log.info("Email di conferma inviata a: {}", normalizedEmail);
         } catch (Exception e) {
-            System.err.println("Errore durante l'invio dell'email: " + e.getMessage());
+            log.error("Errore durante l'invio dell'email: {}", e.getMessage());
             // Non lanciamo un'eccezione qui perché la registrazione è già completata
         }
     }

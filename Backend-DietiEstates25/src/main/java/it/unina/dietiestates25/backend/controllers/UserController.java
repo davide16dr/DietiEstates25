@@ -4,8 +4,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -35,6 +36,17 @@ import it.unina.dietiestates25.backend.utils.PasswordGenerator;
 @RequestMapping("/api/users")
 public class UserController {
 
+    private static final Logger log = LoggerFactory.getLogger(UserController.class);
+
+    private static final String MSG_USER_NOT_FOUND = "Utente non trovato";
+    private static final String LOG_ERROR_PREFIX = "❌ [UserController] Errore: ";
+    private static final String KEY_FIRST_NAME = "firstName";
+    private static final String KEY_LAST_NAME = "lastName";
+    private static final String KEY_PHONE_E164 = "phoneE164";
+    private static final String KEY_ACTIVE = "active";
+    private static final String KEY_AGENT_NAME = "agentName";
+    private static final String DEFAULT_AGENT_NAME = "N/A";
+
     @Autowired
     private UserService userService;
 
@@ -55,16 +67,16 @@ public class UserController {
             @PathVariable UUID userId,
             @RequestBody ChangePasswordRequest request) {
         try {
-            System.out.println("📨 [UserController] Ricevuta richiesta cambio password");
-            System.out.println("📋 [UserController] userId dal path: " + userId);
-            System.out.println("📋 [UserController] oldPassword presente: " + (request.getOldPassword() != null));
-            System.out.println("📋 [UserController] newPassword presente: " + (request.getNewPassword() != null));
+            log.info("📨 [UserController] Ricevuta richiesta cambio password");
+            log.info("📋 [UserController] userId dal path: {}", userId);
+            log.info("📋 [UserController] oldPassword presente: {}", request.getOldPassword() != null);
+            log.info("📋 [UserController] newPassword presente: {}", request.getNewPassword() != null);
             
             userService.changePassword(userId, request);
             
             return ResponseEntity.ok().body("{\"message\": \"Password cambiata con successo\"}");
         } catch (RuntimeException e) {
-            System.out.println("❌ [UserController] Errore: " + e.getMessage());
+            log.warn(LOG_ERROR_PREFIX + e.getMessage());
             return ResponseEntity.badRequest().body("{\"error\": \"" + e.getMessage() + "\"}");
         }
     }
@@ -80,14 +92,14 @@ public class UserController {
             // Recupera l'utente loggato dall'authentication
             String email = authentication.getName();
             User currentUser = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("Utente non trovato"));
+                    .orElseThrow(() -> new RuntimeException(MSG_USER_NOT_FOUND));
             
-            System.out.println("🔍 Recupero utenti con ruolo " + role + " per utente: " + email);
-            System.out.println("📋 AgencyId utente corrente: " + currentUser.getAgencyId());
+            log.info("🔍 Recupero utenti con ruolo {} per utente: {}", role, email);
+            log.info("📋 AgencyId utente corrente: {}", currentUser.getAgencyId());
             
             // Verifica che l'utente abbia un'agenzia associata
             if (currentUser.getAgencyId() == null) {
-                System.err.println("❌ Errore: l'utente " + email + " non ha un'agenzia associata!");
+                log.error("❌ Errore: l'utente {} non ha un'agenzia associata!", email);
                 return ResponseEntity.status(403)
                     .body(null); // Forbidden - l'utente deve avere un'agenzia
             }
@@ -98,15 +110,14 @@ public class UserController {
             // Filtra gli utenti per agenzia e ruolo
             List<User> users = userRepository.findByAgencyIdAndRole(currentUser.getAgencyId(), userRole);
             
-            System.out.println("✅ Recuperati " + users.size() + " utenti con ruolo " + role + " per agenzia " + currentUser.getAgencyId());
+            log.info("✅ Recuperati {} utenti con ruolo {} per agenzia {}", users.size(), role, currentUser.getAgencyId());
             
             return ResponseEntity.ok(users);
         } catch (IllegalArgumentException e) {
-            System.err.println("❌ Errore: ruolo non valido - " + role);
+            log.error("❌ Errore: ruolo non valido - {}", role);
             return ResponseEntity.badRequest().build();
         } catch (Exception e) {
-            System.err.println("❌ Errore nel recupero degli utenti: " + e.getMessage());
-            e.printStackTrace();
+            log.error("❌ Errore nel recupero degli utenti: {}", e.getMessage(), e);
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -132,17 +143,17 @@ public class UserController {
             @RequestBody Map<String, Object> userData,
             Authentication authentication) {
         try {
-            System.out.println("➕ [UserController] Creazione nuovo utente");
-            System.out.println("📋 [UserController] Dati ricevuti: " + userData);
+            log.info("➕ [UserController] Creazione nuovo utente");
+            log.info("📋 [UserController] Dati ricevuti: {}", userData);
             
             // Recupera l'utente loggato (gestore o admin)
             String email = authentication.getName();
             User currentUser = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("Utente non trovato"));
+                    .orElseThrow(() -> new RuntimeException(MSG_USER_NOT_FOUND));
             
             // Verifica che l'utente abbia un'agenzia
             if (currentUser.getAgencyId() == null) {
-                System.err.println("❌ L'utente non ha un'agenzia associata");
+                log.error("❌ L'utente non ha un'agenzia associata");
                 return ResponseEntity.status(403).build();
             }
             
@@ -165,13 +176,13 @@ public class UserController {
             
             // Genera una password casuale sicura
             String temporaryPassword = PasswordGenerator.generateTemporaryPassword();
-            System.out.println("🔐 [UserController] Password temporanea generata");
+            log.info("🔐 [UserController] Password temporanea generata");
             
             boolean active = "attivo".equals(userData.get("status"));
             
             // Verifica che l'email non esista già
             if (userRepository.findByEmail(userEmail).isPresent()) {
-                System.err.println("❌ Email già esistente: " + userEmail);
+                log.error("❌ Email già esistente: {}", userEmail);
                 return ResponseEntity.status(409).build(); // Conflict
             }
             
@@ -188,7 +199,7 @@ public class UserController {
             // Salva l'utente usando il servizio (che gestisce l'hash della password)
             User savedUser = userService.createUserWithPassword(newUser, temporaryPassword);
             
-            System.out.println("✅ [UserController] Utente creato con successo: " + savedUser.getId() + " con ruolo " + role);
+            log.info("✅ [UserController] Utente creato con successo: {} con ruolo {}", savedUser.getId(), role);
             
             // Invia l'email di benvenuto con le credenziali
             String createdByName = currentUser.getFirstName() + " " + currentUser.getLastName();
@@ -213,13 +224,12 @@ public class UserController {
                 );
             }
             
-            System.out.println("📧 [UserController] Email di benvenuto inviata");
+            log.info("📧 [UserController] Email di benvenuto inviata");
             
             return ResponseEntity.status(201).body(savedUser); // 201 Created
             
         } catch (Exception e) {
-            System.err.println("❌ [UserController] Errore nella creazione dell'utente: " + e.getMessage());
-            e.printStackTrace();
+            log.error("❌ [UserController] Errore nella creazione dell'utente: {}", e.getMessage(), e);
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -233,8 +243,8 @@ public class UserController {
             @RequestBody Map<String, Object> updateData,
             Authentication authentication) {
         try {
-            System.out.println("🔄 [UserController] Aggiornamento utente: " + userId);
-            System.out.println("📋 [UserController] Dati da aggiornare: " + updateData);
+            log.info("🔄 [UserController] Aggiornamento utente: {}", userId);
+            log.info("📋 [UserController] Dati da aggiornare: {}", updateData);
             
             User user = userService.getUserById(userId);
             
@@ -253,11 +263,11 @@ public class UserController {
             }
             
             User updatedUser = userRepository.save(user);
-            System.out.println("✅ [UserController] Utente aggiornato con successo");
+            log.info("✅ [UserController] Utente aggiornato con successo");
             
             return ResponseEntity.ok(updatedUser);
         } catch (RuntimeException e) {
-            System.err.println("❌ [UserController] Errore: " + e.getMessage());
+            log.warn(LOG_ERROR_PREFIX + e.getMessage());
             return ResponseEntity.badRequest().build();
         }
     }
@@ -270,17 +280,17 @@ public class UserController {
             @PathVariable UUID userId,
             Authentication authentication) {
         try {
-            System.out.println("🔄 [UserController] Toggle status per utente: " + userId);
+            log.info("🔄 [UserController] Toggle status per utente: {}", userId);
             
             User user = userService.getUserById(userId);
             user.setActive(!user.isActive());
             
             User updatedUser = userRepository.save(user);
-            System.out.println("✅ [UserController] Status utente aggiornato: " + updatedUser.isActive());
+            log.info("✅ [UserController] Status utente aggiornato: {}", updatedUser.isActive());
             
             return ResponseEntity.ok(updatedUser);
         } catch (RuntimeException e) {
-            System.err.println("❌ [UserController] Errore: " + e.getMessage());
+            log.warn(LOG_ERROR_PREFIX + e.getMessage());
             return ResponseEntity.badRequest().build();
         }
     }
@@ -294,7 +304,7 @@ public class UserController {
             // Recupera l'utente loggato
             String email = authentication.getName();
             User currentUser = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("Utente non trovato"));
+                    .orElseThrow(() -> new RuntimeException(MSG_USER_NOT_FOUND));
             
             if (currentUser.getAgencyId() == null) {
                 return ResponseEntity.status(403).build();
@@ -308,7 +318,7 @@ public class UserController {
             long totalAgents = allAgents.size();
             
             // Statistiche immobili dell'agenzia (tramite gli agenti)
-            List<UUID> agentIds = allAgents.stream().map(User::getId).collect(Collectors.toList());
+            List<UUID> agentIds = allAgents.stream().map(User::getId).toList();
             List<Listing> allListings = listingRepository.findByAgentIdIn(agentIds);
             
             long totalProperties = allListings.size();
@@ -335,16 +345,15 @@ public class UserController {
                         prop.put("currency", listing.getCurrency());
                         prop.put("type", listing.getType().toString());
                         
-                        // Trova l'agente
                         if (listing.getAgent() != null) {
-                            prop.put("agentName", listing.getAgent().getFirstName() + " " + listing.getAgent().getLastName());
+                            prop.put(KEY_AGENT_NAME, listing.getAgent().getFirstName() + " " + listing.getAgent().getLastName());
                         } else {
-                            prop.put("agentName", "N/A");
+                            prop.put(KEY_AGENT_NAME, DEFAULT_AGENT_NAME);
                         }
                         
                         return prop;
                     })
-                    .collect(Collectors.toList());
+                    .toList();
             
             // Costruisci la risposta
             Map<String, Object> stats = new HashMap<>();
@@ -366,8 +375,7 @@ public class UserController {
             return ResponseEntity.ok(stats);
             
         } catch (Exception e) {
-            System.err.println("❌ Errore nel recupero statistiche manager: " + e.getMessage());
-            e.printStackTrace();
+            log.error("❌ Errore nel recupero statistiche manager: {}", e.getMessage(), e);
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -381,7 +389,7 @@ public class UserController {
             // Recupera l'utente loggato
             String email = authentication.getName();
             User currentUser = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("Utente non trovato"));
+                    .orElseThrow(() -> new RuntimeException(MSG_USER_NOT_FOUND));
             
             if (currentUser.getAgencyId() == null) {
                 return ResponseEntity.status(403).build();
@@ -413,10 +421,10 @@ public class UserController {
                         Map<String, Object> agentData = new HashMap<>();
                         agentData.put("id", agent.getId().toString());
                         agentData.put("email", agent.getEmail());
-                        agentData.put("firstName", agent.getFirstName());
-                        agentData.put("lastName", agent.getLastName());
-                        agentData.put("phoneE164", agent.getPhoneE164());
-                        agentData.put("active", agent.isActive());
+                        agentData.put(KEY_FIRST_NAME, agent.getFirstName());
+                        agentData.put(KEY_LAST_NAME, agent.getLastName());
+                        agentData.put(KEY_PHONE_E164, agent.getPhoneE164());
+                        agentData.put(KEY_ACTIVE, agent.isActive());
                         agentData.put("agencyId", agent.getAgencyId().toString());
                         agentData.put("totalProperties", totalProperties);
                         agentData.put("activeProperties", activeProperties);
@@ -425,15 +433,14 @@ public class UserController {
                         
                         return agentData;
                     })
-                    .collect(Collectors.toList());
+                    .toList();
             
-            System.out.println("✅ Recuperati " + agentsWithStats.size() + " agenti con statistiche");
+            log.info("✅ Recuperati {} agenti con statistiche", agentsWithStats.size());
             
             return ResponseEntity.ok(agentsWithStats);
             
         } catch (Exception e) {
-            System.err.println("❌ Errore nel recupero agenti con statistiche: " + e.getMessage());
-            e.printStackTrace();
+            log.error("❌ Errore nel recupero agenti con statistiche: {}", e.getMessage(), e);
             return ResponseEntity.internalServerError().build();
         }
     }

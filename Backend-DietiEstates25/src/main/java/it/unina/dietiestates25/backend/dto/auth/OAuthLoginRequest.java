@@ -10,7 +10,9 @@ public class OAuthLoginRequest {
     @NotBlank
     private String token; // id_token (Google), access_token (Facebook), code (GitHub)
 
-    public OAuthLoginRequest() {}
+    public OAuthLoginRequest() {
+        // Required by Jackson for request deserialization.
+    }
 
     public String getProvider() { return provider; }
     public void setProvider(String provider) { this.provider = provider; }

@@ -19,6 +19,27 @@ import it.unina.dietiestates25.backend.repositories.UserRepository;
 @Service
 public class NotificationService {
 
+    private static final String TYPE_OFFER_STATUS_CHANGED = "OFFER_STATUS_CHANGED";
+    private static final String TYPE_OFFER_UPDATES = "OFFER_UPDATES";
+    private static final String TYPE_VISIT_STATUS_CHANGED = "VISIT_STATUS_CHANGED";
+    private static final String TYPE_VISIT_UPDATES = "VISIT_UPDATES";
+    private static final String TYPE_PRICE_CHANGED = "PRICE_CHANGED";
+    private static final String TYPE_NEW_MATCHING_LISTING = "NEW_MATCHING_LISTING";
+    private static final String TYPE_LISTING_UPDATED = "LISTING_UPDATED";
+    private static final String STATUS_ACCEPTED = "ACCEPTED";
+    private static final String STATUS_REJECTED = "REJECTED";
+    private static final String STATUS_COUNTEROFFER = "COUNTEROFFER";
+    private static final String STATUS_CANCELLED = "CANCELLED";
+    private static final String STATUS_COMPLETED = "COMPLETED";
+    private static final String STATUS_CANCELLED_BY_AGENT = "CANCELLED_BY_AGENT";
+    private static final String LOG_PREFIX_SKIP = "⏭️ Notifica ";
+    private static final String LOG_PREFIX_OK = "✅ Notifica ";
+    private static final String LOG_INAPP_DISABLED = " - in-app disabilitato";
+    private static final String LOG_PREFERENCE_DISABLED = " - preferenza disabilitata";
+    private static final String TYPE_FALLBACK_OFFER = "OFFER_UPDATES";
+    private static final String TYPE_FALLBACK_VISIT = "VISIT_UPDATES";
+    private static final String KEY_VISITA = "visita";
+
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
     private final SavedSearchRepository savedSearchRepository;
@@ -79,22 +100,22 @@ public class NotificationService {
         
         // Se le notifiche in-app sono disabilitate, non inviare NESSUNA notifica
         if (!prefs.isInappEnabled()) {
-            System.out.println("⏭️ Notifica " + notificationType + " NON inviata a " + userId + " - in-app disabilitato");
+            System.out.println(LOG_PREFIX_SKIP + notificationType + " NON inviata a " + userId + LOG_INAPP_DISABLED);
             return false;
         }
         
         // Verifica la preferenza specifica per tipo di notifica
         boolean shouldSend = switch (notificationType) {
-            case "OFFER_STATUS_CHANGED", "OFFER_UPDATES" -> prefs.isNotifyOfferUpdates();
-            case "VISIT_STATUS_CHANGED", "VISIT_UPDATES" -> prefs.isNotifyVisitUpdates();
-            case "PRICE_CHANGED" -> prefs.isNotifyPriceChange();
-            case "NEW_MATCHING_LISTING" -> prefs.isNotifyNewMatching();
-            case "LISTING_UPDATED" -> prefs.isNotifyListingUpdates();
+            case TYPE_OFFER_STATUS_CHANGED, TYPE_OFFER_UPDATES -> prefs.isNotifyOfferUpdates();
+            case TYPE_VISIT_STATUS_CHANGED, TYPE_VISIT_UPDATES -> prefs.isNotifyVisitUpdates();
+            case TYPE_PRICE_CHANGED -> prefs.isNotifyPriceChange();
+            case TYPE_NEW_MATCHING_LISTING -> prefs.isNotifyNewMatching();
+            case TYPE_LISTING_UPDATED -> prefs.isNotifyListingUpdates();
             default -> true;
         };
         
         if (!shouldSend) {
-            System.out.println("⏭️ Notifica " + notificationType + " NON inviata a " + userId + " - preferenza disabilitata");
+            System.out.println(LOG_PREFIX_SKIP + notificationType + " NON inviata a " + userId + LOG_PREFERENCE_DISABLED);
         }
         
         return shouldSend;
@@ -103,7 +124,7 @@ public class NotificationService {
     @Transactional
     public void createOfferStatusNotification(UUID clientId, Listing listing, String status, Integer counterOfferAmount) {
         // ✅ CONTROLLO PREFERENZE
-        if (!shouldSendNotification(clientId, "OFFER_UPDATES")) {
+        if (!shouldSendNotification(clientId, TYPE_OFFER_UPDATES)) {
             return;
         }
         
@@ -114,15 +135,15 @@ public class NotificationService {
         String body;
 
         switch (status) {
-            case "ACCEPTED":
+            case STATUS_ACCEPTED:
                 title = "✅ Offerta Accettata!";
                 body = String.format("La tua offerta per '%s' è stata accettata!", listing.getTitle());
                 break;
-            case "REJECTED":
+            case STATUS_REJECTED:
                 title = "❌ Offerta Rifiutata";
                 body = String.format("La tua offerta per '%s' è stata rifiutata.", listing.getTitle());
                 break;
-            case "COUNTEROFFER":
+            case STATUS_COUNTEROFFER:
                 title = "🔄 Controproposta Ricevuta";
                 body = String.format("Hai ricevuto una controproposta di €%,d per '%s'", counterOfferAmount, listing.getTitle());
                 break;
@@ -138,13 +159,13 @@ public class NotificationService {
         notification.setBody(body);
 
         notificationRepository.save(notification);
-        System.out.println("✅ Notifica OFFER inviata a " + clientId);
+        System.out.println(LOG_PREFIX_OK + "OFFER inviata a " + clientId);
     }
 
     @Transactional
     public void createVisitStatusNotification(UUID clientId, Listing listing, String status) {
         // ✅ CONTROLLO PREFERENZE
-        if (!shouldSendNotification(clientId, "VISIT_UPDATES")) {
+        if (!shouldSendNotification(clientId, TYPE_VISIT_UPDATES)) {
             return;
         }
         
@@ -159,19 +180,19 @@ public class NotificationService {
                 title = "✅ Visita Confermata";
                 body = String.format("La tua visita per '%s' è stata confermata!", listing.getTitle());
                 break;
-            case "REJECTED":
+            case STATUS_REJECTED:
                 title = "❌ Visita Rifiutata";
                 body = String.format("La tua richiesta di visita per '%s' è stata rifiutata.", listing.getTitle());
                 break;
-            case "CANCELLED":
+            case STATUS_CANCELLED:
                 title = "🚫 Visita Cancellata";
                 body = String.format("La visita per '%s' è stata cancellata.", listing.getTitle());
                 break;
-            case "COMPLETED":
+            case STATUS_COMPLETED:
                 title = "✅ Visita Completata";
                 body = String.format("La visita per '%s' è stata completata.", listing.getTitle());
                 break;
-            case "CANCELLED_BY_AGENT":
+            case STATUS_CANCELLED_BY_AGENT:
                 title = "🚫 Visita Annullata";
                 body = String.format("L'agente ha annullato la visita per '%s'.", listing.getTitle());
                 break;
@@ -187,13 +208,13 @@ public class NotificationService {
         notification.setBody(body);
 
         notificationRepository.save(notification);
-        System.out.println("✅ Notifica VISIT inviata a " + clientId);
+        System.out.println(LOG_PREFIX_OK + "VISIT inviata a " + clientId);
     }
 
     @Transactional
     public void createPriceChangeNotification(UUID clientId, Listing listing, int oldPrice, int newPrice) {
         // ✅ CONTROLLO PREFERENZE
-        if (!shouldSendNotification(clientId, "PRICE_CHANGED")) {
+        if (!shouldSendNotification(clientId, TYPE_PRICE_CHANGED)) {
             return;
         }
         
@@ -212,13 +233,13 @@ public class NotificationService {
         notification.setBody(body);
 
         notificationRepository.save(notification);
-        System.out.println("✅ Notifica PRICE_CHANGE inviata a " + clientId);
+        System.out.println(LOG_PREFIX_OK + "PRICE_CHANGE inviata a " + clientId);
     }
 
     @Transactional
     public void createNewMatchingListingNotification(UUID clientId, SavedSearch savedSearch, Listing listing) {
         // ✅ CONTROLLO PREFERENZE
-        if (!shouldSendNotification(clientId, "NEW_MATCHING_LISTING")) {
+        if (!shouldSendNotification(clientId, TYPE_NEW_MATCHING_LISTING)) {
             return;
         }
         
@@ -238,13 +259,13 @@ public class NotificationService {
         notification.setBody(body);
 
         notificationRepository.save(notification);
-        System.out.println("✅ Notifica NEW_MATCHING inviata a " + clientId);
+        System.out.println(LOG_PREFIX_OK + "NEW_MATCHING inviata a " + clientId);
     }
 
     @Transactional
     public void createListingUpdatedNotification(UUID clientId, Listing listing) {
         // ✅ CONTROLLO PREFERENZE
-        if (!shouldSendNotification(clientId, "LISTING_UPDATED")) {
+        if (!shouldSendNotification(clientId, TYPE_LISTING_UPDATED)) {
             return;
         }
         
@@ -262,7 +283,7 @@ public class NotificationService {
         notification.setBody(body);
 
         notificationRepository.save(notification);
-        System.out.println("✅ Notifica LISTING_UPDATED inviata a " + clientId);
+        System.out.println(LOG_PREFIX_OK + "LISTING_UPDATED inviata a " + clientId);
     }
     
     /**
@@ -272,9 +293,9 @@ public class NotificationService {
     public void createAgentNotification(UUID agentId, Listing listing, String title, String body) {
         // ✅ CONTROLLO PREFERENZE - Gli agenti ricevono notifiche su offerte/visite
         // Determina il tipo basandosi sul titolo
-        String notificationType = "OFFER_UPDATES";
-        if (title.toLowerCase().contains("visita")) {
-            notificationType = "VISIT_UPDATES";
+        String notificationType = TYPE_FALLBACK_OFFER;
+        if (title.toLowerCase().contains(KEY_VISITA)) {
+            notificationType = TYPE_FALLBACK_VISIT;
         }
         
         if (!shouldSendNotification(agentId, notificationType)) {
@@ -292,7 +313,7 @@ public class NotificationService {
         notification.setBody(body);
 
         notificationRepository.save(notification);
-        System.out.println("✅ Notifica AGENT inviata a " + agentId + " - tipo: " + notificationType);
+        System.out.println(LOG_PREFIX_OK + "AGENT inviata a " + agentId + " - tipo: " + notificationType);
     }
     
     /**
@@ -321,7 +342,7 @@ public class NotificationService {
             }
         }
         
-        System.out.println("✅ Inviate " + notificationsSent + " notifiche per nuovo immobile corrispondente");
+        System.out.println(LOG_PREFIX_OK + "Inviate " + notificationsSent + " notifiche per nuovo immobile corrispondente");
     }
     
     /**
@@ -423,11 +444,11 @@ public class NotificationService {
      */
     private Integer getIntegerFromFilter(Object value) {
         if (value == null) return null;
-        if (value instanceof Integer) return (Integer) value;
-        if (value instanceof Number) return ((Number) value).intValue();
-        if (value instanceof String) {
+        if (value instanceof Integer integer) return integer;
+        if (value instanceof Number number) return number.intValue();
+        if (value instanceof String string) {
             try {
-                return Integer.parseInt((String) value);
+                return Integer.parseInt(string);
             } catch (NumberFormatException e) {
                 return null;
             }

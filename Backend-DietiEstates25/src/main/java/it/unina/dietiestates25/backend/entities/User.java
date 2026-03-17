@@ -54,7 +54,9 @@ public class User extends Auditable {
     @Column(name = "reset_token_expiry")
     private Instant resetTokenExpiry;
 
-    public User() {}
+    public User() {
+        // Required by JPA.
+    }
 
     @PrePersist
     public void ensureId() {

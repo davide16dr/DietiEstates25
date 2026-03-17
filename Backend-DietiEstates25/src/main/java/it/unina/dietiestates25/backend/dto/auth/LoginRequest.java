@@ -10,7 +10,9 @@ public class LoginRequest {
     @NotBlank
     private String password;
 
-    public LoginRequest() {}
+    public LoginRequest() {
+        // Required by Jackson for request deserialization.
+    }
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
