@@ -1,4 +1,4 @@
-/* You can add global styles to this file, and also import other style files */
+
 
 * {
   margin: 0;
@@ -21,7 +21,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Prevent iOS from zooming on input focus */
+
 @media (max-width: 768px) {
   input[type="text"],
   input[type="email"],
@@ -35,7 +35,7 @@ body {
   }
 }
 
-/* Minimum touch target size for interactive elements */
+
 @media (max-width: 768px) {
   button,
   a,

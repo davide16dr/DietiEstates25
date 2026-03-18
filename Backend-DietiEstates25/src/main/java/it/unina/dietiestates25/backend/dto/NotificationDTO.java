@@ -14,10 +14,10 @@ public class NotificationDTO {
     private UUID savedSearchId;
 
     public NotificationDTO() {
-        // Required by Jackson for response serialization/deserialization.
+        
     }
 
-    // Getters and Setters
+    
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
 

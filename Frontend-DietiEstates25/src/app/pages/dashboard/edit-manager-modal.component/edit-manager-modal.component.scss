@@ -1,4 +1,4 @@
-// Modal Overlay
+
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -31,7 +31,7 @@
   }
 }
 
-// Container del Modal
+
 .modal-container {
   background: #fff;
   border-radius: 20px;
@@ -45,7 +45,7 @@
   overflow: hidden;
 }
 
-// Header del Modal
+
 .modal-header {
   display: flex;
   align-items: center;
@@ -83,14 +83,14 @@
   }
 }
 
-// Body del Modal
+
 .modal-body {
   padding: 24px 28px;
   overflow-y: auto;
   flex: 1;
 }
 
-// Form
+
 .edit-form {
   display: flex;
   flex-direction: column;
@@ -136,7 +136,7 @@
   }
 }
 
-// Footer del Modal
+
 .modal-footer {
   display: flex;
   gap: 12px;

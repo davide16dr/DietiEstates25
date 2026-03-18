@@ -63,19 +63,19 @@ public class AdminDashboardController {
         Agency agency = agencyRepository.findById(agencyId)
             .orElseThrow(() -> new RuntimeException(MSG_AGENCY_NOT_FOUND));
 
-        // Statistiche gestori
+        
         List<User> managers = userRepository.findByAgencyIdAndRole(agencyId, UserRole.AGENCY_MANAGER);
         Map<String, Integer> gestoriStats = new HashMap<>();
         gestoriStats.put(KEY_TOTALI, managers.size());
         gestoriStats.put(KEY_ATTIVI, (int) managers.stream().filter(User::isActive).count());
 
-        // Statistiche agenti
+        
         List<User> agents = userRepository.findByAgencyIdAndRole(agencyId, UserRole.AGENT);
         Map<String, Integer> agentiStats = new HashMap<>();
         agentiStats.put(KEY_TOTALI, agents.size());
         agentiStats.put(KEY_ATTIVI, (int) agents.stream().filter(User::isActive).count());
 
-        // Info agenzia
+        
         AdminStatsResponse.AgencyInfo agencyInfo = new AdminStatsResponse.AgencyInfo(
             agency.getName(),
             agency.getCity(),
@@ -83,7 +83,7 @@ public class AdminDashboardController {
             STATUS_ACTIVE
         );
 
-        // Ultimi 3 gestori
+        
         List<AdminStatsResponse.RecentUser> recentManagers = managers.stream()
                 .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
                 .limit(3)
@@ -95,7 +95,7 @@ public class AdminDashboardController {
                 ))
                 .toList();
 
-        // Ultimi 3 agenti
+        
         List<AdminStatsResponse.RecentUser> recentAgents = agents.stream()
                 .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
                 .limit(3)
@@ -107,7 +107,7 @@ public class AdminDashboardController {
                 ))
                 .toList();
 
-        // Costruisci la risposta
+        
         AdminStatsResponse response = new AdminStatsResponse();
         response.setGestori(gestoriStats);
         response.setAgenti(agentiStats);
@@ -160,7 +160,7 @@ public class AdminDashboardController {
         Agency agency = agencyRepository.findById(agencyId)
             .orElseThrow(() -> new RuntimeException(MSG_AGENCY_NOT_FOUND));
 
-        // Aggiorna i campi forniti
+        
         if (updates.containsKey(KEY_NAME)) {
             agency.setName(updates.get(KEY_NAME));
         }

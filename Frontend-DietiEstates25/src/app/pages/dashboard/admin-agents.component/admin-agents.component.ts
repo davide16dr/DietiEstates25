@@ -7,11 +7,11 @@ import { UserService, User } from '../../../shared/services/user.service';
 import { ToastService } from '../../../shared/services/toast.service';
 
 interface Agent {
-  id: string; // ✅ Cambiato da number a string per UUID
+  id: string; 
   name: string;
   email: string;
   phone: string;
-  status: 'attivo' | 'inattivo'; // ✅ Standardizzato su 'inattivo'
+  status: 'attivo' | 'inattivo'; 
   avatar: string;
   totalProperties?: number;
   activeProperties?: number;
@@ -32,12 +32,12 @@ export class AdminAgentsComponent implements OnInit {
 
   searchQuery = signal('');
   
-  // Stato reattivo
+  
   agents = signal<Agent[]>([]);
   isLoading = signal(true);
   error = signal<string | null>(null);
   
-  // Modal state
+  
   showEditModal = signal(false);
   showAddModal = signal(false);
   selectedAgent = signal<Agent | null>(null);
@@ -50,12 +50,12 @@ export class AdminAgentsComponent implements OnInit {
     this.isLoading.set(true);
     this.error.set(null);
 
-    // ✅ Usa il nuovo endpoint che include le statistiche
+    
     this.userService.getAgentsWithStats().subscribe({
       next: (users: User[]) => {
         console.log('📋 Agenti con statistiche ricevuti (Admin):', users);
 
-        // Mappa gli utenti del backend in Agent per il frontend
+        
         const mappedAgents: Agent[] = users.map(user => ({
           id: user.id,
           name: `${user.firstName} ${user.lastName}`,
@@ -84,8 +84,8 @@ export class AdminAgentsComponent implements OnInit {
     const all = this.agents();
     const totali = all.length;
     const attivi = all.filter(a => a.status === 'attivo').length;
-    const inattivi = all.filter(a => a.status === 'inattivo').length; // ✅ Cambiato da 'disattivati'
-    return { totali, attivi, inattivi }; // ✅ Cambiato da 'disattivati'
+    const inattivi = all.filter(a => a.status === 'inattivo').length; 
+    return { totali, attivi, inattivi }; 
   }
 
   get filteredAgents(): Agent[] {
@@ -124,13 +124,13 @@ export class AdminAgentsComponent implements OnInit {
   }
 
   addNewAgent(newAgent: NewAgent): void {
-    // Prepara i dati per il backend includendo il ruolo AGENT
+    
     const agentData = {
       name: newAgent.name,
       email: newAgent.email,
       phone: newAgent.phone,
       status: newAgent.status,
-      role: 'AGENT'  // ✅ Specifica esplicitamente che si tratta di un agente
+      role: 'AGENT'  
     };
 
     console.log('➕ Creazione nuovo agente:', agentData);
@@ -139,7 +139,7 @@ export class AdminAgentsComponent implements OnInit {
       next: (createdAgent) => {
         console.log('✅ Agente creato con successo:', createdAgent);
         this.closeAddModal();
-        // Ricarica la lista per mostrare il nuovo agente
+        
         this.loadAgents();
       },
       error: (err: any) => {
@@ -154,10 +154,10 @@ export class AdminAgentsComponent implements OnInit {
   }
 
   saveAgent(updatedAgent: AgentEdit): void {
-    // Prepara i dati da inviare al backend
+    
     const updateData = {
-      firstName: updatedAgent.name.split(' ')[0], // Prende il primo nome
-      lastName: updatedAgent.name.split(' ').slice(1).join(' '), // Prende il cognome
+      firstName: updatedAgent.name.split(' ')[0], 
+      lastName: updatedAgent.name.split(' ').slice(1).join(' '), 
       phoneE164: updatedAgent.phone,
       active: updatedAgent.status === 'attivo'
     };
@@ -168,7 +168,7 @@ export class AdminAgentsComponent implements OnInit {
       next: (updatedUser) => {
         console.log('✅ Agente aggiornato con successo:', updatedUser);
         this.closeEditModal();
-        // Ricarica la lista per mostrare i dati aggiornati
+        
         this.loadAgents();
       },
       error: (err: any) => {
@@ -184,7 +184,7 @@ export class AdminAgentsComponent implements OnInit {
     this.userService.toggleUserStatus(agent.id).subscribe({
       next: (updatedUser) => {
         console.log('✅ Status agente aggiornato:', updatedUser);
-        // Ricarica la lista per mostrare i dati aggiornati
+        
         this.loadAgents();
       },
       error: (err: any) => {
@@ -206,6 +206,6 @@ export class AdminAgentsComponent implements OnInit {
   }
 
   getStatusLabel(status: string): string {
-    return status === 'attivo' ? 'Attivo' : 'Inattivo'; // ✅ Cambiato da 'Disattivato'
+    return status === 'attivo' ? 'Attivo' : 'Inattivo'; 
   }
 }

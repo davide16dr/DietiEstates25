@@ -49,24 +49,24 @@ public class OfferService {
         this.webSocketNotificationService = webSocketNotificationService;
     }
 
-    // ============ CLIENT OPERATIONS ============
+    
 
     @Transactional
     public OfferResponse submitOffer(UUID clientId, OfferRequest request) {
-        // Validate listing exists
+        
         Listing listing = listingRepository.findById(request.getPropertyId())
                 .orElseThrow(() -> new IllegalArgumentException(MSG_LISTING_NOT_FOUND));
 
-        // Validate listing has an agent
+        
         if (listing.getAgent() == null) {
             throw new IllegalStateException("Listing has no agent assigned");
         }
 
-        // Get client
+        
         User client = userRepository.findById(clientId)
             .orElseThrow(() -> new IllegalArgumentException("Client not found"));
 
-        // Check if client already has an active offer for this listing
+        
         List<Offer> existingOffers = offerRepository.findAllByListing_IdAndClient_Id(
             listing.getId(), clientId);
         
@@ -78,7 +78,7 @@ public class OfferService {
             throw new IllegalStateException("You already have an active offer for this property");
         }
 
-        // Create offer
+        
         Offer offer = new Offer();
         offer.setListing(listing);
         offer.setClient(client);
@@ -89,10 +89,10 @@ public class OfferService {
 
         offer = offerRepository.save(offer);
 
-        // Create status history
+        
         createStatusHistory(offer, OfferStatus.SUBMITTED, "Offer submitted by client");
 
-        // 📧 Send notification to agent
+        
         notificationService.createAgentNotification(
             listing.getAgent().getId(),
             listing,
@@ -104,7 +104,7 @@ public class OfferService {
                 listing.getTitle())
         );
         
-        // 🔴 Send REAL-TIME WebSocket notification to agent
+        
         webSocketNotificationService.sendOfferNotification(
             listing.getAgent().getId(),
             "NEW_OFFER",
@@ -132,12 +132,12 @@ public class OfferService {
         Offer offer = offerRepository.findById(offerId)
             .orElseThrow(() -> new IllegalArgumentException(MSG_OFFER_NOT_FOUND));
 
-        // Verify client owns this offer
+        
         if (!offer.getClient().getId().equals(clientId)) {
             throw new SecurityException(MSG_UNAUTHORIZED);
         }
 
-        // Verify status is COUNTEROFFER
+        
         if (offer.getStatus() != OfferStatus.COUNTEROFFER) {
             throw new IllegalStateException("Offer is not in counter-offer state");
         }
@@ -147,7 +147,7 @@ public class OfferService {
 
         createStatusHistory(offer, OfferStatus.ACCEPTED, "Counter-offer accepted by client");
         
-        // 📧 Send notification to agent
+        
         notificationService.createAgentNotification(
             offer.getListing().getAgent().getId(),
             offer.getListing(),
@@ -159,7 +159,7 @@ public class OfferService {
                 offer.getListing().getTitle())
         );
         
-        // 🔴 Send REAL-TIME WebSocket notification to agent
+        
         webSocketNotificationService.sendOfferNotification(
             offer.getListing().getAgent().getId(),
             "OFFER_ACCEPTED",
@@ -178,12 +178,12 @@ public class OfferService {
         Offer offer = offerRepository.findById(offerId)
             .orElseThrow(() -> new IllegalArgumentException(MSG_OFFER_NOT_FOUND));
 
-        // Verify client owns this offer
+        
         if (!offer.getClient().getId().equals(clientId)) {
             throw new SecurityException(MSG_UNAUTHORIZED);
         }
 
-        // Update offer with new amount
+        
         offer.setAmount(request.getAmount());
         offer.setMessage(request.getMessage());
         offer.setStatus(OfferStatus.SUBMITTED);
@@ -191,7 +191,7 @@ public class OfferService {
 
         createStatusHistory(offer, OfferStatus.SUBMITTED, "Client submitted new counter-offer");
         
-        // 📧 Send notification to agent
+        
         notificationService.createAgentNotification(
             offer.getListing().getAgent().getId(),
             offer.getListing(),
@@ -203,7 +203,7 @@ public class OfferService {
                 offer.getListing().getTitle())
         );
         
-        // 🔴 Send REAL-TIME WebSocket notification to agent
+        
         webSocketNotificationService.sendOfferNotification(
             offer.getListing().getAgent().getId(),
             "COUNTER_TO_COUNTER",
@@ -222,7 +222,7 @@ public class OfferService {
         Offer offer = offerRepository.findById(offerId)
                 .orElseThrow(() -> new RuntimeException(MSG_OFFER_NOT_FOUND));
 
-        // Verify client owns this offer
+        
         if (!offer.getClient().getId().equals(clientId)) {
             throw new RuntimeException(MSG_UNAUTHORIZED);
         }
@@ -232,7 +232,7 @@ public class OfferService {
 
         createStatusHistory(offer, OfferStatus.WITHDRAWN, "Offer withdrawn by client");
         
-        // 📧 Send notification to agent
+        
         notificationService.createAgentNotification(
             offer.getListing().getAgent().getId(),
             offer.getListing(),
@@ -243,7 +243,7 @@ public class OfferService {
                 offer.getListing().getTitle())
         );
         
-        // 🔴 Send REAL-TIME WebSocket notification to agent
+        
         webSocketNotificationService.sendOfferNotification(
             offer.getListing().getAgent().getId(),
             "OFFER_WITHDRAWN",
@@ -256,13 +256,13 @@ public class OfferService {
         );
     }
 
-    // ============ AGENT OPERATIONS ============
+    
 
     public List<OfferResponse> getAgentOffers(UUID agentId) {
-        // Get all listings for this agent
+        
         List<Listing> agentListings = listingRepository.findAllByAgent_Id(agentId);
         
-        // Get all offers for these listings
+        
         return agentListings.stream()
                 .flatMap(listing -> offerRepository.findAllByListing_Id(listing.getId()).stream())
                 .map(this::mapToResponse)
@@ -270,7 +270,7 @@ public class OfferService {
     }
 
     public List<OfferResponse> getPropertyOffers(UUID agentId, UUID propertyId) {
-        // Verify agent owns this listing
+        
         Listing listing = listingRepository.findById(propertyId)
                 .orElseThrow(() -> new IllegalArgumentException(MSG_LISTING_NOT_FOUND));
 
@@ -289,7 +289,7 @@ public class OfferService {
         Offer offer = offerRepository.findById(offerId)
                 .orElseThrow(() -> new IllegalArgumentException(MSG_OFFER_NOT_FOUND));
 
-        // Verify agent owns the listing
+        
         if (!offer.getListing().getAgent().getId().equals(agentId)) {
             throw new SecurityException(MSG_UNAUTHORIZED);
         }
@@ -299,7 +299,7 @@ public class OfferService {
 
         createStatusHistory(offer, OfferStatus.ACCEPTED, "Offer accepted by agent");
         
-        // 📧 Send notification to client
+        
         notificationService.createOfferStatusNotification(
             offer.getClient().getId(), 
             offer.getListing(), 
@@ -307,7 +307,7 @@ public class OfferService {
             null
         );
         
-        // 🔴 Send REAL-TIME WebSocket notification to client
+        
         webSocketNotificationService.sendOfferNotification(
             offer.getClient().getId(),
             "OFFER_ACCEPTED",
@@ -325,7 +325,7 @@ public class OfferService {
         Offer offer = offerRepository.findById(offerId)
                 .orElseThrow(() -> new IllegalArgumentException(MSG_OFFER_NOT_FOUND));
 
-        // Verify agent owns the listing
+        
         if (!offer.getListing().getAgent().getId().equals(agentId)) {
             throw new SecurityException(MSG_UNAUTHORIZED);
         }
@@ -336,7 +336,7 @@ public class OfferService {
         String note = reason != null ? "Offer rejected: " + reason : "Offer rejected by agent";
         createStatusHistory(offer, OfferStatus.REJECTED, note);
         
-        // 📧 Send notification to client
+        
         notificationService.createOfferStatusNotification(
             offer.getClient().getId(), 
             offer.getListing(), 
@@ -344,7 +344,7 @@ public class OfferService {
             null
         );
         
-        // 🔴 Send REAL-TIME WebSocket notification to client
+        
         webSocketNotificationService.sendOfferNotification(
             offer.getClient().getId(),
             "OFFER_REJECTED",
@@ -362,12 +362,12 @@ public class OfferService {
         Offer offer = offerRepository.findById(offerId)
                 .orElseThrow(() -> new IllegalArgumentException(MSG_OFFER_NOT_FOUND));
 
-        // Verify agent owns the listing
+        
         if (!offer.getListing().getAgent().getId().equals(agentId)) {
             throw new SecurityException(MSG_UNAUTHORIZED);
         }
 
-        // ✅ CORRETTO: Aggiorna l'amount con la controproposta dell'agente
+        
         offer.setAmount(request.getAmount());
         offer.setMessage(request.getMessage());
         offer.setStatus(OfferStatus.COUNTEROFFER);
@@ -376,7 +376,7 @@ public class OfferService {
         createStatusHistory(offer, OfferStatus.COUNTEROFFER, 
             "Agent made counter-offer: €" + request.getAmount());
         
-        // 📧 Send notification to client
+        
         notificationService.createOfferStatusNotification(
             offer.getClient().getId(), 
             offer.getListing(), 
@@ -384,7 +384,7 @@ public class OfferService {
             request.getAmount()
         );
         
-        // 🔴 Send REAL-TIME WebSocket notification to client
+        
         webSocketNotificationService.sendOfferNotification(
             offer.getClient().getId(),
             "COUNTEROFFER",
@@ -412,7 +412,7 @@ public class OfferService {
         return new OfferStatsResponse(total, pending, accepted, rejected, counteroffers);
     }
 
-    // ============ HELPER METHODS ============
+    
 
     private void createStatusHistory(Offer offer, OfferStatus status, String note) {
         OfferStatusHistory history = new OfferStatusHistory();
@@ -436,17 +436,17 @@ public class OfferService {
         response.setUpdatedAt(offer.getUpdatedAt());
         response.setMessage(offer.getMessage());
 
-        // ✅ CORRETTO: Se lo stato è COUNTEROFFER, l'amount contiene già la controproposta
+        
         if (offer.getStatus() == OfferStatus.COUNTEROFFER) {
             response.setCounterOfferAmount(offer.getAmount());
             response.setCounterMessage(offer.getMessage());
         }
 
-        // Add client info for agent view
+        
         response.setClientName(offer.getClient().getFirstName() + " " + offer.getClient().getLastName());
         response.setClientEmail(offer.getClient().getEmail());
 
-        // Add property image if available
+        
         if (offer.getListing().getImages() != null && !offer.getListing().getImages().isEmpty()) {
             response.setPropertyImage(offer.getListing().getImages().get(0).getUrl());
         }

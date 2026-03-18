@@ -27,9 +27,9 @@ public class SavedSearchService {
     @Autowired
     private UserRepository userRepository;
 
-    /**
-     * Recupera tutte le ricerche salvate attive di un utente
-     */
+    
+
+
     public List<SavedSearchResponse> getAllSavedSearches(UUID userId) {
         List<SavedSearch> searches = savedSearchRepository.findAllByClient_IdAndActiveTrue(userId);
         return searches.stream()
@@ -37,9 +37,9 @@ public class SavedSearchService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Crea una nuova ricerca salvata
-     */
+    
+
+
     @Transactional
     public SavedSearchResponse createSavedSearch(UUID userId, SavedSearchRequest request) {
         if (request.getName() == null || request.getName().trim().isEmpty()) {
@@ -49,11 +49,11 @@ public class SavedSearchService {
             throw new RuntimeException("I filtri sono obbligatori");
         }
         
-        // Recupera l'utente
+        
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Utente non trovato"));
         
-        // Crea la nuova ricerca salvata
+        
         SavedSearch savedSearch = new SavedSearch();
         savedSearch.setClient(user);
         savedSearch.setName(request.getName());
@@ -65,20 +65,20 @@ public class SavedSearchService {
         return convertToResponse(saved);
     }
 
-    /**
-     * Aggiorna una ricerca salvata esistente
-     */
+    
+
+
     @Transactional
     public SavedSearchResponse updateSavedSearch(UUID userId, UUID searchId, SavedSearchRequest request) {
         SavedSearch savedSearch = savedSearchRepository.findById(searchId)
                 .orElseThrow(() -> new RuntimeException("Ricerca salvata non trovata"));
         
-        // Verifica che la ricerca appartenga all'utente
+        
         if (!savedSearch.getClient().getId().equals(userId)) {
             throw new RuntimeException("Non sei autorizzato a modificare questa ricerca");
         }
         
-        // Aggiorna i campi
+        
         if (request.getName() != null && !request.getName().trim().isEmpty()) {
             savedSearch.setName(request.getName());
         }
@@ -91,9 +91,9 @@ public class SavedSearchService {
         return convertToResponse(updated);
     }
 
-    /**
-     * Elimina (soft delete) una ricerca salvata
-     */
+    
+
+
     @Transactional
     public void deleteSavedSearch(UUID userId, UUID searchId) {
         SavedSearch savedSearch = savedSearchRepository.findById(searchId)
@@ -107,16 +107,16 @@ public class SavedSearchService {
         savedSearchRepository.save(savedSearch);
     }
 
-    /**
-     * Recupera una singola ricerca salvata
-     */
+    
+
+
     public SavedSearchResponse getSavedSearchById(UUID userId, UUID searchId) {
         System.out.println("🔍 [SavedSearchService] Recupero ricerca salvata ID: " + searchId);
         
         SavedSearch savedSearch = savedSearchRepository.findById(searchId)
                 .orElseThrow(() -> new RuntimeException("Ricerca salvata non trovata"));
         
-        // Verifica che la ricerca appartenga all'utente
+        
         if (!savedSearch.getClient().getId().equals(userId)) {
             throw new RuntimeException("Non sei autorizzato a visualizzare questa ricerca");
         }
@@ -124,9 +124,9 @@ public class SavedSearchService {
         return convertToResponse(savedSearch);
     }
 
-    /**
-     * Converte un'entità SavedSearch in un DTO SavedSearchResponse
-     */
+    
+
+
     private SavedSearchResponse convertToResponse(SavedSearch savedSearch) {
         SavedSearchResponse response = new SavedSearchResponse();
         response.setId(savedSearch.getId());

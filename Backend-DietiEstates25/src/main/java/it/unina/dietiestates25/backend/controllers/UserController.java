@@ -81,15 +81,15 @@ public class UserController {
         }
     }
 
-    /**
-     * Recupera tutti gli utenti di un'agenzia filtrati per ruolo
-     */
+    
+
+
     @GetMapping("/by-role/{role}")
     public ResponseEntity<List<User>> getUsersByRole(
             @PathVariable String role,
             Authentication authentication) {
         try {
-            // Recupera l'utente loggato dall'authentication
+            
             String email = authentication.getName();
             User currentUser = userRepository.findByEmail(email)
                     .orElseThrow(() -> new RuntimeException(MSG_USER_NOT_FOUND));
@@ -97,17 +97,17 @@ public class UserController {
             log.info("🔍 Recupero utenti con ruolo {} per utente: {}", role, email);
             log.info("📋 AgencyId utente corrente: {}", currentUser.getAgencyId());
             
-            // Verifica che l'utente abbia un'agenzia associata
+            
             if (currentUser.getAgencyId() == null) {
                 log.error("❌ Errore: l'utente {} non ha un'agenzia associata!", email);
                 return ResponseEntity.status(403)
-                    .body(null); // Forbidden - l'utente deve avere un'agenzia
+                    .body(null); 
             }
             
-            // Converte la stringa in enum UserRole
+            
             UserRole userRole = UserRole.valueOf(role);
             
-            // Filtra gli utenti per agenzia e ruolo
+            
             List<User> users = userRepository.findByAgencyIdAndRole(currentUser.getAgencyId(), userRole);
             
             log.info("✅ Recuperati {} utenti con ruolo {} per agenzia {}", users.size(), role, currentUser.getAgencyId());
@@ -122,9 +122,9 @@ public class UserController {
         }
     }
 
-    /**
-     * Recupera un utente per ID
-     */
+    
+
+
     @GetMapping("/{userId}")
     public ResponseEntity<User> getUserById(@PathVariable UUID userId) {
         try {
@@ -135,9 +135,9 @@ public class UserController {
         }
     }
 
-    /**
-     * Crea un nuovo utente (agente o gestore)
-     */
+    
+
+
     @PostMapping
     public ResponseEntity<User> createUser(
             @RequestBody Map<String, Object> userData,
@@ -146,22 +146,22 @@ public class UserController {
             log.info("➕ [UserController] Creazione nuovo utente");
             log.info("📋 [UserController] Dati ricevuti: {}", userData);
             
-            // Recupera l'utente loggato (gestore o admin)
+            
             String email = authentication.getName();
             User currentUser = userRepository.findByEmail(email)
                     .orElseThrow(() -> new RuntimeException(MSG_USER_NOT_FOUND));
             
-            // Verifica che l'utente abbia un'agenzia
+            
             if (currentUser.getAgencyId() == null) {
                 log.error("❌ L'utente non ha un'agenzia associata");
                 return ResponseEntity.status(403).build();
             }
             
-            // Recupera l'agenzia
+            
             Agency agency = agencyRepository.findById(currentUser.getAgencyId())
                     .orElseThrow(() -> new RuntimeException("Agenzia non trovata"));
             
-            // Estrai i dati dal body
+            
             String fullName = (String) userData.get("name");
             String[] nameParts = fullName.split(" ", 2);
             String firstName = nameParts[0];
@@ -170,23 +170,23 @@ public class UserController {
             String userEmail = (String) userData.get("email");
             String phone = (String) userData.get("phone");
             
-            // Determina il ruolo (default AGENT, ma può essere AGENCY_MANAGER)
+            
             String roleStr = (String) userData.getOrDefault("role", "AGENT");
             UserRole role = UserRole.valueOf(roleStr);
             
-            // Genera una password casuale sicura
+            
             String temporaryPassword = PasswordGenerator.generateTemporaryPassword();
             log.info("🔐 [UserController] Password temporanea generata");
             
             boolean active = "attivo".equals(userData.get("status"));
             
-            // Verifica che l'email non esista già
+            
             if (userRepository.findByEmail(userEmail).isPresent()) {
                 log.error("❌ Email già esistente: {}", userEmail);
-                return ResponseEntity.status(409).build(); // Conflict
+                return ResponseEntity.status(409).build(); 
             }
             
-            // Crea il nuovo utente
+            
             User newUser = new User();
             newUser.setEmail(userEmail);
             newUser.setFirstName(firstName);
@@ -196,12 +196,12 @@ public class UserController {
             newUser.setAgencyId(currentUser.getAgencyId());
             newUser.setActive(active);
             
-            // Salva l'utente usando il servizio (che gestisce l'hash della password)
+            
             User savedUser = userService.createUserWithPassword(newUser, temporaryPassword);
             
             log.info("✅ [UserController] Utente creato con successo: {} con ruolo {}", savedUser.getId(), role);
             
-            // Invia l'email di benvenuto con le credenziali
+            
             String createdByName = currentUser.getFirstName() + " " + currentUser.getLastName();
             
             if (role == UserRole.AGENT) {
@@ -226,7 +226,7 @@ public class UserController {
             
             log.info("📧 [UserController] Email di benvenuto inviata");
             
-            return ResponseEntity.status(201).body(savedUser); // 201 Created
+            return ResponseEntity.status(201).body(savedUser); 
             
         } catch (Exception e) {
             log.error("❌ [UserController] Errore nella creazione dell'utente: {}", e.getMessage(), e);
@@ -234,9 +234,9 @@ public class UserController {
         }
     }
 
-    /**
-     * Aggiorna un utente esistente
-     */
+    
+
+
     @PutMapping("/{userId}")
     public ResponseEntity<User> updateUser(
             @PathVariable UUID userId,
@@ -248,7 +248,7 @@ public class UserController {
             
             User user = userService.getUserById(userId);
             
-            // Aggiorna i campi forniti
+            
             if (updateData.containsKey(KEY_FIRST_NAME)) {
                 user.setFirstName((String) updateData.get(KEY_FIRST_NAME));
             }
@@ -272,9 +272,9 @@ public class UserController {
         }
     }
 
-    /**
-     * Attiva/Disattiva un utente (toggle status)
-     */
+    
+
+
     @PatchMapping("/{userId}/toggle-status")
     public ResponseEntity<User> toggleUserStatus(
             @PathVariable UUID userId,
@@ -295,13 +295,13 @@ public class UserController {
         }
     }
 
-    /**
-     * Recupera le statistiche per la dashboard del manager
-     */
+    
+
+
     @GetMapping("/manager/stats")
     public ResponseEntity<Map<String, Object>> getManagerStats(Authentication authentication) {
         try {
-            // Recupera l'utente loggato
+            
             String email = authentication.getName();
             User currentUser = userRepository.findByEmail(email)
                     .orElseThrow(() -> new RuntimeException(MSG_USER_NOT_FOUND));
@@ -312,12 +312,12 @@ public class UserController {
             
             UUID agencyId = currentUser.getAgencyId();
             
-            // Statistiche agenti
+            
             List<User> allAgents = userRepository.findByAgencyIdAndRole(agencyId, UserRole.AGENT);
             long activeAgents = allAgents.stream().filter(User::isActive).count();
             long totalAgents = allAgents.size();
             
-            // Statistiche immobili dell'agenzia (tramite gli agenti)
+            
             List<UUID> agentIds = allAgents.stream().map(User::getId).toList();
             List<Listing> allListings = listingRepository.findByAgentIdIn(agentIds);
             
@@ -332,7 +332,7 @@ public class UserController {
                     .filter(l -> l.getStatus() == ListingStatus.RENTED)
                     .count();
             
-            // Ultimi 3 immobili
+            
             List<Map<String, Object>> recentProperties = allListings.stream()
                     .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
                     .limit(3)
@@ -355,7 +355,7 @@ public class UserController {
                     })
                     .toList();
             
-            // Costruisci la risposta
+            
             Map<String, Object> stats = new HashMap<>();
             
             Map<String, Long> agentStats = new HashMap<>();
@@ -380,13 +380,13 @@ public class UserController {
         }
     }
 
-    /**
-     * Recupera tutti gli agenti con le loro statistiche di immobili
-     */
+    
+
+
     @GetMapping("/agents-with-stats")
     public ResponseEntity<List<Map<String, Object>>> getAgentsWithStats(Authentication authentication) {
         try {
-            // Recupera l'utente loggato
+            
             String email = authentication.getName();
             User currentUser = userRepository.findByEmail(email)
                     .orElseThrow(() -> new RuntimeException(MSG_USER_NOT_FOUND));
@@ -397,13 +397,13 @@ public class UserController {
             
             UUID agencyId = currentUser.getAgencyId();
             
-            // Recupera tutti gli agenti dell'agenzia
+            
             List<User> agents = userRepository.findByAgencyIdAndRole(agencyId, UserRole.AGENT);
             
-            // Mappa ogni agente con le sue statistiche
+            
             List<Map<String, Object>> agentsWithStats = agents.stream()
                     .map(agent -> {
-                        // Recupera gli immobili dell'agente usando il metodo corretto
+                        
                         List<Listing> agentListings = listingRepository.findAllByAgent_Id(agent.getId());
                         
                         int totalProperties = agentListings.size();
@@ -417,7 +417,7 @@ public class UserController {
                                 .filter(l -> l.getStatus() == ListingStatus.RENTED)
                                 .count();
                         
-                        // Costruisci l'oggetto con i dati dell'agente e le statistiche
+                        
                         Map<String, Object> agentData = new HashMap<>();
                         agentData.put("id", agent.getId().toString());
                         agentData.put("email", agent.getEmail());

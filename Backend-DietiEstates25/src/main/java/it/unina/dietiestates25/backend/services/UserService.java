@@ -59,13 +59,13 @@ public class UserService {
         log.debug("Password cambiata con successo per userId: {}", userId);
     }
 
-    /**
-     * Aggiunge automaticamente un utente alla tabella agency_memberships
-     * quando viene assegnato a un'agenzia (per AGENT, AGENCY_MANAGER, ADMIN con agenzia)
-     */
+    
+
+
+
     @Transactional
     public void addAgencyMembershipIfNeeded(User user) {
-        // Controlla se l'utente ha un'agenzia e se è un ruolo che richiede membership
+        
         if (user.getAgencyId() == null) {
             return;
         }
@@ -86,11 +86,11 @@ public class UserService {
             return;
         }
 
-        // Recupera l'agenzia
+        
         Agency agency = agencyRepository.findById(user.getAgencyId())
             .orElseThrow(() -> new IllegalArgumentException("Agenzia non trovata: " + user.getAgencyId()));
 
-        // Crea la membership
+        
         AgencyMembership membership = new AgencyMembership();
         membership.setAgency(agency);
         membership.setUser(user);
@@ -105,9 +105,9 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("Utente non trovato"));
     }
 
-    /**
-     * Crea un nuovo utente con password e lo salva nel database
-     */
+    
+
+
     @Transactional
     public User createUserWithPassword(User user, String password) {
         log.debug("Creazione nuovo utente");

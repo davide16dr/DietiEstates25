@@ -12,7 +12,7 @@ public class SavedSearchResponse {
     private Instant createdAt;
     private Instant updatedAt;
 
-    // Costruttore vuoto richiesto da Jackson per la deserializzazione.
+    
     public SavedSearchResponse() {
     }
 

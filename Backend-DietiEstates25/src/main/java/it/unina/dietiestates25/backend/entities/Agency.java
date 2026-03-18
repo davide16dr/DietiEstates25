@@ -30,7 +30,7 @@ public class Agency extends Auditable {
     @Column(length = 255)
     private String email;
 
-    // Costruttore vuoto richiesto da JPA.
+    
     public Agency() {
     }
 

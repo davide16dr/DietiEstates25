@@ -56,9 +56,9 @@ public class ListingController {
         return ResponseEntity.ok(listings);
     }
 
-    /**
-     * Recupera tutti gli immobili dell'agenzia (per i manager)
-     */
+    
+
+
     @GetMapping("/agency/all")
     public ResponseEntity<List<ListingResponse>> getAllAgencyListings(Authentication authentication) {
         if (authentication == null || authentication.getPrincipal() == null) {
@@ -106,12 +106,12 @@ public class ListingController {
     ) {
         ListingFilterRequest filters = new ListingFilterRequest();
         
-        // Converti i parametri stringa in enum se presenti
+        
         if (type != null) {
             try {
                 filters.setType(it.unina.dietiestates25.backend.entities.enums.ListingType.valueOf(type.toUpperCase()));
             } catch (IllegalArgumentException e) {
-                // Ignora se non valido
+                
             }
         }
         
@@ -119,12 +119,12 @@ public class ListingController {
             try {
                 filters.setStatus(it.unina.dietiestates25.backend.entities.enums.ListingStatus.valueOf(status.toUpperCase()));
             } catch (IllegalArgumentException e) {
-                // Ignora se non valido
+                
             }
         }
         
         filters.setCity(city);
-        filters.setPropertyType(propertyType); // AGGIUNTO: imposta il tipo di proprietà
+        filters.setPropertyType(propertyType); 
         filters.setPriceMin(priceMin);
         filters.setPriceMax(priceMax);
         filters.setRoomsMin(roomsMin);
@@ -167,18 +167,18 @@ public class ListingController {
         }
         
         try {
-            // Parse JSON strings to objects
+            
             com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
             it.unina.dietiestates25.backend.dto.listing.CreateListingRequest.PropertyRequest property = 
                 mapper.readValue(propertyJson, it.unina.dietiestates25.backend.dto.listing.CreateListingRequest.PropertyRequest.class);
             it.unina.dietiestates25.backend.dto.listing.CreateListingRequest.ListingRequest listing = 
                 mapper.readValue(listingJson, it.unina.dietiestates25.backend.dto.listing.CreateListingRequest.ListingRequest.class);
             
-            // Crea il request object
+            
             it.unina.dietiestates25.backend.dto.listing.CreateListingRequest request = 
                 new it.unina.dietiestates25.backend.dto.listing.CreateListingRequest(property, listing);
             
-            // Crea il listing con le immagini
+            
             ListingResponse response = listingService.createListingWithProperty(agentId, request, images);
             return ResponseEntity.status(201).body(response);
         } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
@@ -218,7 +218,7 @@ public class ListingController {
         }
         
         try {
-            // Parse JSON strings to objects
+            
             com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
             
             it.unina.dietiestates25.backend.dto.listing.UpdateListingRequest.PropertyUpdate property = null;
@@ -238,11 +238,11 @@ public class ListingController {
                     mapper.getTypeFactory().constructCollectionType(List.class, String.class));
             }
             
-            // Crea il request object
+            
             it.unina.dietiestates25.backend.dto.listing.UpdateListingRequest request = 
                 new it.unina.dietiestates25.backend.dto.listing.UpdateListingRequest(property, listing);
             
-            // ✅ IMPORTANTE: Aggiorna il listing con le immagini
+            
             ListingResponse response = listingService.updateListingWithImages(id, userId, request, existingImageUrls, images);
             return ResponseEntity.ok(response);
         } catch (com.fasterxml.jackson.core.JsonProcessingException e) {

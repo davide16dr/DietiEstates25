@@ -45,10 +45,10 @@ public class SavedSearchController {
     @Autowired
     private UserRepository userRepository;
 
-    /**
-     * GET /api/saved-searches
-     * Recupera tutte le ricerche salvate dell'utente autenticato
-     */
+    
+
+
+
     @GetMapping
     public ResponseEntity<List<SavedSearchResponse>> getAllSavedSearches(Authentication authentication) {
         log.info("📥 [SavedSearchController] GET /api/saved-searches");
@@ -70,10 +70,10 @@ public class SavedSearchController {
         }
     }
 
-    /**
-     * GET /api/saved-searches/{id}
-     * Recupera una singola ricerca salvata
-     */
+    
+
+
+
     @GetMapping("/{id}")
     public ResponseEntity<?> getSavedSearchById(
             @PathVariable UUID id,
@@ -104,10 +104,10 @@ public class SavedSearchController {
         }
     }
 
-    /**
-     * POST /api/saved-searches
-     * Crea una nuova ricerca salvata
-     */
+    
+
+
+
     @PostMapping
     public ResponseEntity<?> createSavedSearch(
             @RequestBody SavedSearchRequest request,
@@ -140,10 +140,10 @@ public class SavedSearchController {
         }
     }
 
-    /**
-     * PUT /api/saved-searches/{id}
-     * Aggiorna una ricerca salvata esistente
-     */
+    
+
+
+
     @PutMapping("/{id}")
     public ResponseEntity<?> updateSavedSearch(
             @PathVariable UUID id,
@@ -175,10 +175,10 @@ public class SavedSearchController {
         }
     }
 
-    /**
-     * DELETE /api/saved-searches/{id}
-     * Elimina una ricerca salvata (soft delete)
-     */
+    
+
+
+
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteSavedSearch(
             @PathVariable UUID id,

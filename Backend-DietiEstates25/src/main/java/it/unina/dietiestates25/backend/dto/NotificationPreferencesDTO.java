@@ -10,10 +10,10 @@ public class NotificationPreferencesDTO {
     private boolean notifyOfferUpdates;
 
     public NotificationPreferencesDTO() {
-        // Required by Jackson for response serialization/deserialization.
+        
     }
 
-    // Getters and Setters
+    
     public boolean isEmailEnabled() { return emailEnabled; }
     public void setEmailEnabled(boolean emailEnabled) { this.emailEnabled = emailEnabled; }
 

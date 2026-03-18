@@ -25,7 +25,7 @@ export class MyOffersComponent implements OnInit, OnDestroy {
   loading = signal(true);
   activeTab = signal<'active' | 'closed'>('active');
   
-  // Counter offer modal
+  
   showCounterModal = signal(false);
   selectedOffer = signal<OfferResponse | null>(null);
   counterAmount = signal<number | null>(null);
@@ -35,14 +35,14 @@ export class MyOffersComponent implements OnInit, OnDestroy {
     console.log('🎯 MyOffersComponent inizializzato - setup WebSocket listener');
     this.loadOffers();
     
-    // 🔴 REAL-TIME: Ascolta le notifiche WebSocket per aggiornamenti in tempo reale
+    
     this.notificationCallback = (notification: WebSocketNotification) => {
       console.log('🔔 Notifica WebSocket ricevuta (cliente):', notification);
       console.log('   - Type:', notification.type);
       console.log('   - Title:', notification.title);
       console.log('   - OfferId:', notification.offerId);
       
-      // Ricarica SEMPRE quando arriva una notifica con offerId O tipo relativo alle offerte
+      
       if (notification.offerId || this.isOfferNotification(notification.type)) {
         console.log('💰 ✅ RICARICA offerte in tempo reale (cliente)...');
         this.ngZone.run(() => this.loadOffers());
@@ -57,7 +57,7 @@ export class MyOffersComponent implements OnInit, OnDestroy {
   
   ngOnDestroy(): void {
     console.log('🧹 MyOffersComponent distrutto - rimozione WebSocket listener');
-    // 🧹 Rimuove il listener WebSocket quando il componente viene distrutto
+    
     if (this.notificationCallback) {
       this.webSocketService.removeNotificationCallback(this.notificationCallback);
     }
@@ -75,7 +75,7 @@ export class MyOffersComponent implements OnInit, OnDestroy {
       error: (error) => {
         console.error('❌ Errore caricamento offerte:', error);
         this.loading.set(false);
-        // Use mock data for development
+        
         this.offers.set(this.getMockOffers());
       }
     });
@@ -256,16 +256,16 @@ export class MyOffersComponent implements OnInit, OnDestroy {
     this.router.navigate(['/pages/properties-page']);
   }
 
-  /**
-   * Verifica se la notifica è relativa alle offerte
-   * Ora più flessibile: accetta qualsiasi tipo che contiene "OFFER" o "COUNTER"
-   */
+  
+
+
+
   private isOfferNotification(type: string): boolean {
     if (!type) return false;
     
     const typeUpper = type.toUpperCase();
     
-    // Accetta qualsiasi notifica che contiene OFFER o COUNTER
+    
     return typeUpper.includes('OFFER') || typeUpper.includes('COUNTER');
   }
 }

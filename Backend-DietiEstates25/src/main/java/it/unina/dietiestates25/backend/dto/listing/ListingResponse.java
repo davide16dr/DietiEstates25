@@ -7,40 +7,40 @@ public class ListingResponse {
     private UUID id;
     private String title;
     private String description;
-    private String type; // "SALE" o "RENT"
-    private String status; // "ACTIVE", "SOLD", etc.
+    private String type; 
+    private String status; 
     private Integer price;
     private String currency;
     
-    // Dati dell'agente
+    
     private String agentName;
     private String agentEmail;
     private String agentPhone;
     private String agencyName;
     
-    // Dati della proprietà
+    
     private String address;
     private String city;
-    private String propertyType; // "Appartamento", "Villa", "Attico", etc.
+    private String propertyType; 
     private Integer rooms;
-    private Integer bathrooms;  // ✅ AGGIUNTO campo bagni
+    private Integer bathrooms;  
     private Integer area;
     private Integer floor;
     private String energyClass;
     private Boolean hasElevator;
     
-    // Coordinate per la mappa
+    
     private Double latitude;
     private Double longitude;
     
-    // Immagini
+    
     private List<String> imageUrls;
     
-    // Costruttore vuoto richiesto da Jackson per la deserializzazione.
+    
     public ListingResponse() {
     }
 
-    // Getters e Setters
+    
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
 

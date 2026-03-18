@@ -72,9 +72,9 @@ public class OAuthService {
         this.jwtService = jwtService;
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // PUBLIC ENTRY POINT
-    // ─────────────────────────────────────────────────────────────────────────
+    
+    
+    
 
     @Transactional
     public AuthResponse loginWithOAuth(String provider, String token) {
@@ -86,9 +86,9 @@ public class OAuthService {
         };
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // GOOGLE – verifica id_token via Google Identity Services
-    // ─────────────────────────────────────────────────────────────────────────
+    
+    
+    
 
     private AuthResponse loginWithGoogle(String idToken) {
         try {
@@ -116,13 +116,13 @@ public class OAuthService {
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // GITHUB – scambia il code con access_token, poi chiama /user
-    // ─────────────────────────────────────────────────────────────────────────
+    
+    
+    
 
     private AuthResponse loginWithGithub(String code) {
         try {
-            // 1) Scambia il code con l'access token
+            
             String tokenRequestBody = "client_id=" + githubClientId
                     + "&client_secret=" + githubClientSecret
                     + "&code=" + code;
@@ -148,7 +148,7 @@ public class OAuthService {
                 throw new SecurityException(MSG_GITHUB_ACCESS_TOKEN_INVALID);
             }
 
-            // 2) Ottieni i dati utente
+            
             HttpRequest userRequest = HttpRequest.newBuilder()
                     .uri(URI.create("https://api.github.com/user"))
                     .header("Authorization", "Bearer " + accessToken)
@@ -165,7 +165,7 @@ public class OAuthService {
             }
             JsonNode userJson = objectMapper.readTree(userResponse.body());
 
-            // GitHub potrebbe non esporre l'email pubblicamente – chiama /user/emails
+            
             String email = userJson.path(KEY_EMAIL).asText(null);
             if (email == null || email.isBlank()) {
                 email = getGithubPrimaryEmail(accessToken);
@@ -211,15 +211,15 @@ public class OAuthService {
         throw new SecurityException(MSG_GITHUB_EMAIL_UNAVAILABLE);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // FACEBOOK – verifica l'access_token tramite Graph API debug
-    // ─────────────────────────────────────────────────────────────────────────
+    
+    
+    
 
     private AuthResponse loginWithFacebook(String accessToken) {
         try {
             String appToken = facebookAppId + "|" + facebookAppSecret;
 
-            // 1) Verifica il token
+            
             HttpRequest debugRequest = HttpRequest.newBuilder()
                     .uri(URI.create("https://graph.facebook.com/debug_token?input_token="
                             + accessToken + "&access_token=" + appToken))
@@ -240,7 +240,7 @@ public class OAuthService {
                 throw new SecurityException(MSG_FACEBOOK_TOKEN_INVALID);
             }
 
-            // 2) Ottieni i dati utente
+            
             HttpRequest meRequest = HttpRequest.newBuilder()
                     .uri(URI.create("https://graph.facebook.com/me?fields=id,name,email,first_name,last_name&access_token=" + accessToken))
                     .GET()
@@ -257,7 +257,7 @@ public class OAuthService {
 
             String email = meJson.path(KEY_EMAIL).asText(null);
             if (email == null || email.isBlank()) {
-                // Facebook può non dare l'email se l'utente non ha concesso il permesso
+                
                 String fbId = meJson.path("id").asText("unknown");
                 email = "fb_" + fbId + "@facebook.oauth";
             }
@@ -274,19 +274,19 @@ public class OAuthService {
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // FIND OR CREATE USER
-    // ─────────────────────────────────────────────────────────────────────────
+    
+    
+    
 
     private AuthResponse findOrCreateUser(String email, String firstName, String lastName) {
         String normalizedEmail = email.toLowerCase().trim();
 
         User user = userRepository.findByEmail(normalizedEmail).orElseGet(() -> {
-            // Primo accesso: crea l'account come CLIENT
+            
             User newUser = new User();
             newUser.setId(UUID.randomUUID());
             newUser.setEmail(normalizedEmail);
-            // Password casuale non usabile (l'utente accede solo via social)
+            
             newUser.setPasswordHash(UUID.randomUUID().toString());
             newUser.setFirstName(firstName);
             newUser.setLastName(lastName.isBlank() ? "-" : lastName);
@@ -314,9 +314,9 @@ public class OAuthService {
         );
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // UTILS
-    // ─────────────────────────────────────────────────────────────────────────
+    
+    
+    
 
     private String extractNameFromEmail(String email) {
         String localPart = email.split("@")[0];

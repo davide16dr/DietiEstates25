@@ -27,7 +27,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             throw new DisabledException("User is inactive");
         }
 
-        // Return our custom UserPrincipal that includes the User entity
+        
         return new UserPrincipal(u);
     }
 }

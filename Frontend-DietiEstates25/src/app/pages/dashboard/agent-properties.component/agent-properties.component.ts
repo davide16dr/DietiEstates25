@@ -24,7 +24,7 @@ interface Property {
   address: string;
   city: string;
   image: string;
-  imageUrls?: string[]; // ✅ AGGIUNTO: array di tutte le immagini
+  imageUrls?: string[]; 
 }
 
 @Component({
@@ -37,7 +37,7 @@ interface Property {
 export class AgentPropertiesComponent implements OnInit {
   private listingService = inject(ListingService);
   
-  // Modern Angular 21: signal() per stato reattivo
+  
   showAddModal = signal(false);
   showDetailsModal = signal(false);
   showEditModal = signal(false);
@@ -77,7 +77,7 @@ export class AgentPropertiesComponent implements OnInit {
       type: listing.type === 'SALE' ? 'vendita' : 'affitto',
       status: this.mapStatus(listing.status),
       rooms: listing.rooms,
-      bathrooms: listing.bathrooms,  // ✅ AGGIUNTO mapping bagni
+      bathrooms: listing.bathrooms,  
       size: listing.area,
       floor: listing.floor,
       elevator: listing.hasElevator,
@@ -89,7 +89,7 @@ export class AgentPropertiesComponent implements OnInit {
       image: listing.imageUrls && listing.imageUrls.length > 0 
         ? listing.imageUrls[0] 
         : 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400',
-      imageUrls: listing.imageUrls // ✅ AGGIUNTO: array di tutte le immagini
+      imageUrls: listing.imageUrls 
     };
   }
 
@@ -112,7 +112,7 @@ export class AgentPropertiesComponent implements OnInit {
     return { totale, disponibili, venduti, affittati };
   }
 
-  // ===== ADD PROPERTY MODAL =====
+  
   
   openAddPropertyModal(): void {
     this.showAddModal.set(true);
@@ -137,7 +137,7 @@ export class AgentPropertiesComponent implements OnInit {
     });
   }
 
-  // ===== DETAILS MODAL =====
+  
   
   openDetailsModal(property: Property): void {
     this.selectedProperty.set(property);
@@ -154,7 +154,7 @@ export class AgentPropertiesComponent implements OnInit {
     this.openEditModal(property);
   }
 
-  // ===== EDIT MODAL =====
+  
   
   openEditModal(property: Property): void {
     this.selectedProperty.set(property);
@@ -188,7 +188,7 @@ export class AgentPropertiesComponent implements OnInit {
     });
   }
 
-  // ===== HELPERS =====
+  
 
   markAsSold(property: Property): void {
     const newStatus = property.type === 'vendita' ? 'venduto' : 'affittato';
@@ -202,10 +202,10 @@ export class AgentPropertiesComponent implements OnInit {
   private changePropertyStatus(propertyId: string, newStatus: 'disponibile' | 'venduto' | 'affittato'): void {
     console.log(`🔄 Cambio stato immobile ${propertyId} a: ${newStatus}`);
 
-    // Prepara i dati per l'aggiornamento nel formato che il backend si aspetta
-    // IMPORTANTE: invia oggetti vuoti {} per evitare errori di parsing nel backend
+    
+    
     const updateData = {
-      property: {}, // Oggetto vuoto, non modifichiamo i dati della proprietà
+      property: {}, 
       listing: {
         status: newStatus
       }
@@ -217,7 +217,7 @@ export class AgentPropertiesComponent implements OnInit {
       next: (response: any) => {
         console.log('✅ Stato immobile aggiornato con successo:', response);
         console.log('📊 Nuovo status nella response:', response.status);
-        // Ricarica la lista per mostrare i dati aggiornati
+        
         this.loadMyProperties();
       },
       error: (err: any) => {

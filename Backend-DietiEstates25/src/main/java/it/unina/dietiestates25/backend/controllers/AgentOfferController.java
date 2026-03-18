@@ -34,9 +34,9 @@ public class AgentOfferController {
         this.offerService = offerService;
     }
 
-    /**
-     * Get all offers for properties managed by this agent
-     */
+    
+
+
     @GetMapping("/offers")
     public ResponseEntity<List<OfferResponse>> getAgentOffers(
             @AuthenticationPrincipal UserPrincipal principal) {
@@ -44,9 +44,9 @@ public class AgentOfferController {
         return ResponseEntity.ok(offers);
     }
 
-    /**
-     * Get offers for a specific property
-     */
+    
+
+
     @GetMapping("/properties/{propertyId}/offers")
     public ResponseEntity<List<OfferResponse>> getPropertyOffers(
             @AuthenticationPrincipal UserPrincipal principal,
@@ -66,9 +66,9 @@ public class AgentOfferController {
         }
     }
 
-    /**
-     * Accept an offer
-     */
+    
+
+
     @PatchMapping("/offers/{offerId}/accept")
     public ResponseEntity<Void> acceptOffer(
             @AuthenticationPrincipal UserPrincipal principal,
@@ -88,9 +88,9 @@ public class AgentOfferController {
         }
     }
 
-    /**
-     * Reject an offer
-     */
+    
+
+
     @PatchMapping("/offers/{offerId}/reject")
     public ResponseEntity<Void> rejectOffer(
             @AuthenticationPrincipal UserPrincipal principal,
@@ -112,9 +112,9 @@ public class AgentOfferController {
         }
     }
 
-    /**
-     * Make a counter-offer
-     */
+    
+
+
     @PostMapping("/offers/{offerId}/counter")
     public ResponseEntity<Void> makeCounterOffer(
             @AuthenticationPrincipal UserPrincipal principal,
@@ -135,9 +135,9 @@ public class AgentOfferController {
         }
     }
 
-    /**
-     * Get offer statistics
-     */
+    
+
+
     @GetMapping("/offers/stats")
     public ResponseEntity<OfferStatsResponse> getOfferStats(
             @AuthenticationPrincipal UserPrincipal principal) {

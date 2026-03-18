@@ -24,7 +24,7 @@ export interface PropertyCard {
   priceLabel: string;
   title: string;
   address: string;
-  propertyType: string; // "Appartamento", "Villa", "Attico", etc.
+  propertyType: string; 
   rooms: number;
   area: number;
   floor: number;
@@ -34,5 +34,5 @@ export interface PropertyCard {
   mapY: number;
   lat: number;
   lng: number;
-  imageUrl?: string; // ✅ AGGIUNTO: URL della prima immagine dell'annuncio
+  imageUrl?: string; 
 }

@@ -26,12 +26,12 @@ export class AdminManagersComponent implements OnInit {
   private toast = inject(ToastService);
   
   searchQuery = signal('');
-  statusFilter = signal<'tutti' | 'attivi' | 'inattivi'>('tutti'); // ✅ Nuovo filtro
+  statusFilter = signal<'tutti' | 'attivi' | 'inattivi'>('tutti'); 
   managers = signal<Manager[]>([]);
   isLoading = signal(true);
   error = signal<string | null>(null);
   
-  // Modal state
+  
   showEditModal = signal(false);
   showAddModal = signal(false);
   selectedManager = signal<Manager | null>(null);
@@ -82,14 +82,14 @@ export class AdminManagersComponent implements OnInit {
     const statusFilter = this.statusFilter();
     let mgrs = this.managers();
 
-    // ✅ Applica filtro per stato
+    
     if (statusFilter === 'attivi') {
       mgrs = mgrs.filter(m => m.status === 'attivo');
     } else if (statusFilter === 'inattivi') {
       mgrs = mgrs.filter(m => m.status === 'inattivo');
     }
 
-    // Applica filtro di ricerca testuale
+    
     if (!query) return mgrs;
 
     return mgrs.filter(m => 
@@ -120,10 +120,10 @@ export class AdminManagersComponent implements OnInit {
   }
 
   saveManager(updatedManager: ManagerEdit): void {
-    // Prepara i dati da inviare al backend
+    
     const updateData = {
-      firstName: updatedManager.name.split(' ')[0], // Prende il primo nome
-      lastName: updatedManager.name.split(' ').slice(1).join(' '), // Prende il cognome
+      firstName: updatedManager.name.split(' ')[0], 
+      lastName: updatedManager.name.split(' ').slice(1).join(' '), 
       phoneE164: updatedManager.phone,
       active: updatedManager.status === 'attivo'
     };
@@ -134,7 +134,7 @@ export class AdminManagersComponent implements OnInit {
       next: (updatedUser) => {
         console.log('✅ Gestore aggiornato con successo:', updatedUser);
         this.closeEditModal();
-        // Ricarica la lista per mostrare i dati aggiornati
+        
         this.loadManagers();
       },
       error: (err: any) => {
@@ -149,7 +149,7 @@ export class AdminManagersComponent implements OnInit {
       next: () => {
         manager.status = manager.status === 'attivo' ? 'inattivo' : 'attivo';
         console.log('Manager status toggled:', manager);
-        this.loadManagers(); // Ricarica i dati
+        this.loadManagers(); 
       },
       error: (err: any) => {
         console.error('Errore nel cambio stato:', err);
@@ -167,13 +167,13 @@ export class AdminManagersComponent implements OnInit {
   }
 
   saveNewManager(newManager: NewManager): void {
-    // Prepara i dati per il backend includendo il ruolo AGENCY_MANAGER
+    
     const managerData = {
       name: newManager.name,
       email: newManager.email,
       phone: newManager.phone,
       status: newManager.status,
-      role: 'AGENCY_MANAGER'  // ✅ Specifica che si tratta di un gestore
+      role: 'AGENCY_MANAGER'  
     };
 
     console.log('➕ Creazione nuovo gestore:', managerData);
@@ -182,7 +182,7 @@ export class AdminManagersComponent implements OnInit {
       next: (createdManager) => {
         console.log('✅ Gestore creato con successo:', createdManager);
         this.closeAddModal();
-        // Ricarica la lista per mostrare il nuovo gestore
+        
         this.loadManagers();
       },
       error: (err: any) => {

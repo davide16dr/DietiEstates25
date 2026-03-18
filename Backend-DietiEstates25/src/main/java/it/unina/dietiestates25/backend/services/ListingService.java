@@ -40,9 +40,9 @@ public class ListingService {
     private final VisitRepository visitRepository;
     private final ListingImageRepository listingImageRepository;
     private final ImageStorageService imageStorageService;
-    // ✅ AGGIUNTO: EntityManager per gestire la cache di Hibernate
+    
     private final jakarta.persistence.EntityManager entityManager;
-    // ✅ AGGIUNTO: GoogleGeocodingService per geocodificare gli indirizzi
+    
     private final GoogleGeocodingService googleGeocodingService;
 
     public ListingService(ListingRepository listingRepository, PropertyRepository propertyRepository,
@@ -63,7 +63,7 @@ public class ListingService {
         this.imageStorageService = imageStorageService;
         this.entityManager = entityManager;
         this.googleGeocodingService = googleGeocodingService;
-        // Inizializza la directory di storage all'avvio
+        
         this.imageStorageService.init();
     }
 
@@ -82,10 +82,10 @@ public class ListingService {
             filters.getAreaMax(),
             filters.getEnergyClass(),
             filters.getElevator());
-        // Se status non è specificato, cerco solo annunci ACTIVE
+        
         String status = filters.getStatus() != null ? filters.getStatus().name() : ListingStatus.ACTIVE.name();
 
-        // Converto stringhe vuote in null per evitare problemi con la query
+        
         String city = (filters.getCity() != null && !filters.getCity().trim().isEmpty())
                 ? filters.getCity().trim()
                 : null;
@@ -103,7 +103,7 @@ public class ListingService {
                 type,
                 status,
                 city,
-                propertyType, // AGGIUNTO: filtro per tipo di proprietà
+                propertyType, 
                 filters.getPriceMin(),
                 filters.getPriceMax(),
                 filters.getRoomsMin(),
@@ -114,7 +114,7 @@ public class ListingService {
 
         log.debug("Risultati query SQL: {} listings trovati", listings.size());
 
-        // Log dettagliato dei risultati
+        
         for (int i = 0; i < listings.size(); i++) {
             Listing l = listings.get(i);
             log.debug("  [{}] {} - {}", i, l.getTitle(), l.getProperty().getCity());
@@ -142,16 +142,16 @@ public class ListingService {
             .toList();
     }
 
-    /**
-     * Recupera tutti gli immobili dell'agenzia per il manager loggato
-     */
+    
+
+
     @Transactional(readOnly = true)
     public List<ListingResponse> getAllAgencyListings(java.util.UUID userId) {
-        // Recupera l'utente (manager) dal database
+        
         it.unina.dietiestates25.backend.entities.User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        // Verifica che l'utente abbia un'agenzia associata
+        
         if (user.getAgencyId() == null) {
             throw new IllegalArgumentException("User does not have an associated agency");
         }
@@ -159,14 +159,14 @@ public class ListingService {
         java.util.UUID agencyId = user.getAgencyId();
         log.debug("Recupero immobili per agenzia: {}", agencyId);
 
-        // Recupera tutti gli agenti dell'agenzia
+        
         List<it.unina.dietiestates25.backend.entities.User> agents = userRepository.findByAgencyIdAndRole(
                 agencyId,
                 it.unina.dietiestates25.backend.entities.enums.UserRole.AGENT);
 
         log.debug("Agenti trovati: {}", agents.size());
 
-        // Recupera tutti gli immobili degli agenti
+        
         List<java.util.UUID> agentIds = agents.stream()
                 .map(it.unina.dietiestates25.backend.entities.User::getId)
             .toList();
@@ -185,7 +185,7 @@ public class ListingService {
             it.unina.dietiestates25.backend.dto.listing.CreateListingRequest request,
             List<MultipartFile> images) {
 
-        // Validazione dei dati ricevuti
+        
         if (request.getListing() == null || request.getListing().getType() == null) {
             throw new IllegalArgumentException("Listing type cannot be null");
         }
@@ -193,20 +193,20 @@ public class ListingService {
         log.debug("Listing type ricevuto: {}", request.getListing().getType());
         log.debug("Numero immagini ricevute: {}", images != null ? images.size() : 0);
 
-        // Recupera l'agente dal database
+        
         it.unina.dietiestates25.backend.entities.User agent = userRepository.findById(agentId)
                 .orElseThrow(() -> new IllegalArgumentException("Agent not found"));
 
-        // Verifica che l'agente abbia un'agenzia associata
+        
         if (agent.getAgencyId() == null) {
             throw new IllegalArgumentException("Agent does not have an associated agency");
         }
 
-        // Recupera l'agenzia dal database
+        
         it.unina.dietiestates25.backend.entities.Agency agency = agencyRepository.findById(agent.getAgencyId())
                 .orElseThrow(() -> new IllegalArgumentException("Agency not found"));
 
-        // Crea la proprietà
+        
         Property property = new Property();
         property.setCity(request.getProperty().getCity());
         property.setAddress(request.getProperty().getAddress());
@@ -219,35 +219,35 @@ public class ListingService {
         property.setEnergyClass(request.getProperty().getEnergyClass());
         property.setDescription(request.getProperty().getDescription());
 
-        // Imposta l'agenzia della proprietà da quella dell'agente
+        
         property.setAgency(agency);
 
-        // ✅ GEOCODIFICA L'INDIRIZZO per ottenere coordinate GPS precise
+        
         String fullAddress = request.getProperty().getAddress() + ", " + request.getProperty().getCity();
         log.debug("Geocoding indirizzo: {}", fullAddress);
 
         GoogleGeocodingService.GeocodingResult geocodingResult = googleGeocodingService.geocodeAddress(fullAddress);
 
         if (geocodingResult != null) {
-            // Usa le coordinate geocodificate
+            
             property.setLatitude(java.math.BigDecimal.valueOf(geocodingResult.latitude()));
             property.setLongitude(java.math.BigDecimal.valueOf(geocodingResult.longitude()));
             log.debug("Coordinate GPS ottenute: lat={}, lng={}", geocodingResult.latitude(), geocodingResult.longitude());
         } else {
-            // Fallback: coordinate di default (centro Italia)
+            
             log.warn("Geocoding fallito per: {} - uso coordinate di default", fullAddress);
-            property.setLatitude(java.math.BigDecimal.valueOf(41.9028)); // Roma
+            property.setLatitude(java.math.BigDecimal.valueOf(41.9028)); 
             property.setLongitude(java.math.BigDecimal.valueOf(12.4964));
         }
-        // Salva la proprietà
+        
         property = propertyRepository.save(property);
 
-        // Crea l'annuncio
+        
         Listing listing = new Listing();
         listing.setProperty(property);
         listing.setAgent(agent);
 
-        // Converti il tipo di annuncio (SALE -> SALE, RENT -> RENT)
+        
         String listingTypeStr = request.getListing().getType();
         try {
             listing.setType(it.unina.dietiestates25.backend.entities.enums.ListingType.valueOf(listingTypeStr));
@@ -260,21 +260,21 @@ public class ListingService {
         listing.setCurrency(request.getListing().getCurrency());
         listing.setPublicText(request.getProperty().getDescription());
 
-        // Salva l'annuncio
+        
         listing = listingRepository.save(listing);
 
-        // ✅ GESTIONE IMMAGINI
+        
         if (images != null && !images.isEmpty()) {
             log.debug("Salvataggio {} immagini...", images.size());
             try {
                 List<String> imagePaths = imageStorageService.storeImages(images, listing.getId());
 
-                // Crea le entity ListingImage
+                
                 int sortOrder = 0;
                 for (String imagePath : imagePaths) {
                     ListingImage listingImage = new ListingImage();
                     listingImage.setListing(listing);
-                    // ✅ Salva URL completo per il frontend
+                    
                     listingImage.setUrl("http://localhost:8080" + LISTINGS_UPLOADS_PATH + imagePath);
                     listingImage.setSortOrder(sortOrder++);
                     listingImageRepository.save(listingImage);
@@ -283,18 +283,18 @@ public class ListingService {
                 log.debug("Salvate {} immagini per listing {}", imagePaths.size(), listing.getId());
             } catch (Exception e) {
                 log.error("Errore nel salvataggio delle immagini: {}", e.getMessage(), e);
-                // Non bloccare la creazione dell'annuncio se fallisce l'upload delle immagini
+                
             }
         }
 
-        // 📧 Verifica se il nuovo immobile corrisponde a ricerche salvate e invia
-        // notifiche
+        
+        
         notificationService.checkMatchingSearchesAndNotify(listing);
 
         return mapToResponse(listing);
     }
 
-    // Mantieni anche il vecchio metodo per retrocompatibilità
+    
     @Transactional
     public ListingResponse createListingWithProperty(
             java.util.UUID agentId,
@@ -310,16 +310,16 @@ public class ListingService {
 
         log.debug("Aggiornamento listing ID: {}", listingId);
 
-        // Recupera il listing esistente
+        
         Listing listing = listingRepository.findById(listingId)
                 .orElseThrow(() -> new IllegalArgumentException("Listing not found"));
 
-        // Verifica che l'utente abbia i permessi (deve essere l'agente proprietario o
-        // un manager della stessa agenzia)
+        
+        
         it.unina.dietiestates25.backend.entities.User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        // 🔍 LOG DI DEBUG PER IL CHECK DI SICUREZZA
+        
         log.debug("=== DEBUG CHECK SICUREZZA ===");
         log.debug("User ID: {}", userId);
         log.debug("User Role: {}", user.getRole());
@@ -345,10 +345,10 @@ public class ListingService {
         boolean priceChanged = applyListingUpdate(listing, request.getListing(), oldPrice);
         applyPropertyUpdate(listing, request.getProperty());
 
-        // Salva il listing aggiornato
+        
         listing = listingRepository.save(listing);
 
-        // 📧 Se il prezzo è cambiato, invia notifiche ai clienti interessati
+        
         if (priceChanged) {
             notifyInterestedClients(listing, oldPrice, listing.getPriceAmount());
         }
@@ -628,9 +628,9 @@ public class ListingService {
         log.debug("=== FINE RIORDINAMENTO ===");
     }
 
-    /**
-     * Aggiorna un listing con gestione delle immagini (esistenti + nuove)
-     */
+    
+
+
     @Transactional
     public ListingResponse updateListingWithImages(
             java.util.UUID listingId,
@@ -644,14 +644,14 @@ public class ListingService {
         log.debug("Immagini esistenti da mantenere: {}", existingImageUrls != null ? existingImageUrls.size() : 0);
         log.debug("Nuove immagini da caricare: {}", newImages != null ? newImages.size() : 0);
 
-        // Prima aggiorna i dati del listing (usa il metodo esistente)
+        
         updateListing(listingId, userId, request);
 
-        // Recupera il listing aggiornato
+        
         Listing listing = listingRepository.findById(listingId)
                 .orElseThrow(() -> new IllegalArgumentException("Listing not found"));
 
-        // ✅ GESTIONE IMMAGINI
+        
         try {
             List<ListingImage> currentImages = listingImageRepository.findByListingId(listingId);
             logCurrentAndKeptImages(currentImages, existingImageUrls);
@@ -665,30 +665,30 @@ public class ListingService {
 
         } catch (Exception e) {
             log.error("Errore nella gestione delle immagini: {}", e.getMessage(), e);
-            // Non bloccare l'aggiornamento se fallisce la gestione delle immagini
+            
         }
 
-        // ✅ Ricarica il listing dal database per ottenere i dati freschi
-        // Questo forzerà Hibernate a recuperare i dati aggiornati
+        
+        
         listing = listingRepository.findById(listingId)
                 .orElseThrow(() -> new IllegalArgumentException("Listing not found after update"));
 
-        // Ritorna la response aggiornata con le nuove immagini
+        
         return mapToResponse(listing);
     }
 
-    /**
-     * Invia notifiche ai clienti interessati quando cambia il prezzo di un immobile
-     */
+    
+
+
     private void notifyInterestedClients(Listing listing, int oldPrice, int newPrice) {
         log.debug("Variazione prezzo rilevata: da €{} a €{}", oldPrice, newPrice);
 
-        // Recupera clienti con offerte attive per questo immobile
+        
         List<it.unina.dietiestates25.backend.entities.Offer> offers = offerRepository
                 .findAllByListing_Id(listing.getId());
         Set<java.util.UUID> notifiedClients = new java.util.HashSet<>();
 
-        // Invia notifica ai clienti con offerte attive
+        
         offers.stream()
                 .filter(offer -> offer
                         .getStatus() == it.unina.dietiestates25.backend.entities.enums.OfferStatus.SUBMITTED ||
@@ -701,11 +701,11 @@ public class ListingService {
                     }
                 });
 
-        // Recupera clienti con visite programmate per questo immobile
+        
         List<it.unina.dietiestates25.backend.entities.Visit> visits = visitRepository
                 .findAllByListing_Id(listing.getId());
 
-        // Invia notifica ai clienti con visite future
+        
         visits.stream()
                 .filter(visit -> visit
                         .getStatus() == it.unina.dietiestates25.backend.entities.enums.VisitStatus.REQUESTED ||
@@ -721,10 +721,10 @@ public class ListingService {
             log.debug("Inviate {} notifiche per variazione prezzo", notifiedClients.size());
     }
 
-    /**
-     * 🗺️ Trova immobili in un'area geografica definita da bounds (lat/lng)
-     * Utilizzato per ricerca per indirizzo con Google Maps API
-     */
+    
+
+
+
     @Transactional(readOnly = true)
     public List<it.unina.dietiestates25.backend.dto.listing.ListingResponseDto> findListingsInBounds(
             double minLat, double maxLat, double minLng, double maxLng,
@@ -742,9 +742,9 @@ public class ListingService {
             .toList();
     }
 
-    /**
-     * Mapper per ListingResponseDto (usato per ricerca geografica)
-     */
+    
+
+
     private it.unina.dietiestates25.backend.dto.listing.ListingResponseDto mapToResponseDto(Listing listing) {
         it.unina.dietiestates25.backend.dto.listing.ListingResponseDto dto = new it.unina.dietiestates25.backend.dto.listing.ListingResponseDto();
 
@@ -758,7 +758,7 @@ public class ListingService {
         dto.setCurrency(listing.getCurrency());
         dto.setPublicText(listing.getPublicText());
 
-        // Property info
+        
         it.unina.dietiestates25.backend.dto.listing.ListingResponseDto.PropertyInfo propInfo = new it.unina.dietiestates25.backend.dto.listing.ListingResponseDto.PropertyInfo();
         propInfo.setCity(property.getCity());
         propInfo.setAddress(property.getAddress());
@@ -773,7 +773,7 @@ public class ListingService {
         propInfo.setEnergyClass(property.getEnergyClass());
         dto.setProperty(propInfo);
 
-        // Images
+        
         List<String> imageUrls = listing.getImages().stream()
                 .map(ListingImage::getUrl)
             .toList();
@@ -794,38 +794,38 @@ public class ListingService {
         response.setPrice(listing.getPriceAmount());
         response.setCurrency(listing.getCurrency());
 
-        // Dati dell'agente
+        
         if (listing.getAgent() != null) {
             String agentName = listing.getAgent().getFirstName() + " " + listing.getAgent().getLastName();
             response.setAgentName(agentName);
             response.setAgentEmail(listing.getAgent().getEmail());
             response.setAgentPhone(listing.getAgent().getPhoneE164());
 
-            // Dati dell'agenzia
+            
             if (listing.getAgent().getAgencyId() != null) {
                 agencyRepository.findById(listing.getAgent().getAgencyId())
                         .ifPresent(agency -> response.setAgencyName(agency.getName()));
             }
         }
 
-        // Dati della proprietà
+        
         if (property != null) {
             response.setAddress(property.getAddress());
             response.setCity(property.getCity());
             response.setPropertyType(property.getPropertyType());
             response.setRooms(property.getRooms());
-            response.setBathrooms(property.getBathrooms()); // ✅ AGGIUNTO mapping bagni
+            response.setBathrooms(property.getBathrooms()); 
             response.setArea(property.getAreaM2());
             response.setFloor(property.getFloor());
             response.setEnergyClass(property.getEnergyClass());
             response.setHasElevator(property.isElevator());
 
-            // Converti BigDecimal a Double per les coordinate
+            
             response.setLatitude(property.getLatitude() != null ? property.getLatitude().doubleValue() : null);
             response.setLongitude(property.getLongitude() != null ? property.getLongitude().doubleValue() : null);
         }
 
-        // Immagini
+        
         List<String> imageUrls = listing.getImages().stream()
                 .map(ListingImage::getUrl)
             .toList();

@@ -34,8 +34,8 @@ export interface AuthResponse {
   userId: string;
   email: string;
   role: string;
-  firstName?: string;  // firstName opzionale
-  lastName?: string;   // lastName opzionale
+  firstName?: string;  
+  lastName?: string;   
 }
 
 @Injectable({ providedIn: 'root' })
@@ -43,39 +43,39 @@ export class AuthService {
   private http = inject(HttpClient);
   private readonly API = `${environment.apiUrl.replace('/api', '')}/auth`;
 
-  // Uso signals invece di BehaviorSubject
+  
   private currentUserSignal = signal<AuthResponse | null>(null);
   currentUser = this.currentUserSignal.asReadonly();
   
-  // Computed signal per verificare l'autenticazione
+  
   isAuthenticated = computed(() => {
     const user = this.currentUserSignal();
     const token = this.getToken();
     
-    // Controlla se esiste il token e l'utente
+    
     if (!token || !user) {
       return false;
     }
     
-    // Verifica se il token è scaduto (decodifica il JWT)
+    
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
       const isExpired = payload.exp * 1000 < Date.now();
       
-      // Se scaduto, ritorna false
+      
       if (isExpired) {
         return false;
       }
       
       return true;
     } catch {
-      // Token malformato
+      
       return false;
     }
   });
 
   constructor() {
-    // Ripristina utente dal localStorage se esiste
+    
     const stored = localStorage.getItem('currentUser');
     const token = localStorage.getItem('token');
     
@@ -83,21 +83,21 @@ export class AuthService {
       try {
         const user = JSON.parse(stored);
         
-        // Verifica se il token è valido PRIMA di settare il signal
+        
         try {
           const payload = JSON.parse(atob(token.split('.')[1]));
           const isExpired = payload.exp * 1000 < Date.now();
           
           if (!isExpired) {
-            // Token valido, imposta l'utente
+            
             this.currentUserSignal.set(user);
           } else {
-            // Token scaduto, pulisco localStorage
+            
             localStorage.removeItem('currentUser');
             localStorage.removeItem('token');
           }
         } catch {
-          // Token malformato, pulisco localStorage
+          
           localStorage.removeItem('currentUser');
           localStorage.removeItem('token');
         }
@@ -109,7 +109,7 @@ export class AuthService {
   }
 
   login(req: LoginRequest): Observable<AuthResponse> {
-    // Normalizza l'email a minuscolo
+    
     const normalizedReq = {
       ...req,
       email: req.email.toLowerCase().trim()
@@ -130,7 +130,7 @@ export class AuthService {
   }
 
   register(req: RegisterRequest): Observable<AuthResponse> {
-    // Normalizza l'email a minuscolo
+    
     const normalizedReq = {
       ...req,
       email: req.email.toLowerCase().trim()
@@ -146,7 +146,7 @@ export class AuthService {
   }
 
   registerBusiness(req: RegisterBusinessRequest): Observable<any> {
-    // Normalizza l'email a minuscolo
+    
     const normalizedReq = {
       ...req,
       email: req.email.toLowerCase().trim()
@@ -172,7 +172,7 @@ export class AuthService {
     return user?.userId ?? null;
   }
 
-  /** Usato da OAuthService per aggiornare il signal dopo autenticazione social */
+  
   setUserFromOAuth(res: AuthResponse): void {
     this.currentUserSignal.set(res);
   }

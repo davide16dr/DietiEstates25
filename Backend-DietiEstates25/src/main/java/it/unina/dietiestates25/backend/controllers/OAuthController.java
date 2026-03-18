@@ -26,13 +26,13 @@ public class OAuthController {
         this.oAuthService = oAuthService;
     }
 
-    /**
-     * Endpoint unico per tutti i provider social.
-     * Body: { "provider": "google|github|facebook", "token": "..." }
-     * - Google:   token = id_token   (da Google Identity Services)
-     * - GitHub:   token = code       (code dal redirect OAuth di GitHub)
-     * - Facebook: token = access_token (da Facebook JS SDK)
-     */
+    
+
+
+
+
+
+
     @PostMapping
     public ResponseEntity<?> oauthLogin(@Valid @RequestBody OAuthLoginRequest request) {
         try {

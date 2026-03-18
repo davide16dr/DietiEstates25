@@ -13,7 +13,7 @@ public class ResetPasswordRequest {
     private String newPassword;
 
     public ResetPasswordRequest() {
-        // Required by Jackson for request deserialization.
+        
     }
 
     public String getToken() { return token; }

@@ -4,24 +4,24 @@ import { Observable, of } from 'rxjs';
 import { catchError, timeout } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 
-// Types
+
 export type OfferStatus = 'SUBMITTED' | 'ACCEPTED' | 'REJECTED' | 'WITHDRAWN' | 'COUNTEROFFER';
 
 export interface OfferRequest {
-  propertyId: string; // Cambiato da number a string per UUID
+  propertyId: string; 
   amount: number;
   message?: string;
 }
 
 export interface CounterOfferRequest {
-  offerId: string; // Cambiato da number a string per UUID
+  offerId: string; 
   amount: number;
   message?: string;
 }
 
 export interface OfferResponse {
-  id: string; // Cambiato da number a string per UUID
-  propertyId: string; // Cambiato da number a string per UUID
+  id: string; 
+  propertyId: string; 
   propertyTitle: string;
   propertyAddress: string;
   propertyPrice: number;
@@ -51,13 +51,13 @@ export interface OfferStats {
 })
 export class OfferService {
   private http = inject(HttpClient);
-  private apiUrl = environment.apiUrl; // ✅ CORRETTO: rimosso il '/api' duplicato
+  private apiUrl = environment.apiUrl; 
 
-  // ============ CLIENT OPERATIONS ============
+  
 
-  /**
-   * Client: Get all offers made by the current user
-   */
+  
+
+
   getMyOffers(): Observable<OfferResponse[]> {
     return this.http.get<OfferResponse[]>(`${this.apiUrl}/client/offers`).pipe(
       timeout(5000),
@@ -65,26 +65,26 @@ export class OfferService {
     );
   }
 
-  /**
-   * Client: Submit a new offer for a property
-   */
+  
+
+
   submitOffer(request: OfferRequest): Observable<OfferResponse> {
     return this.http.post<OfferResponse>(`${this.apiUrl}/client/offers`, request).pipe(
       timeout(5000),
       catchError((error) => {
         console.error('Error submitting offer:', error);
         
-        // Se il backend non è disponibile, restituisci un mock
+        
         if (error.name === 'TimeoutError' || error.status === 0 || error.status === 404) {
           console.log('🔄 Backend non disponibile, uso mock data');
           
-          // Simula una risposta di successo con mock data
+          
           const mockResponse: OfferResponse = {
             id: crypto.randomUUID(),
             propertyId: request.propertyId,
             propertyTitle: 'Proprietà #' + request.propertyId,
             propertyAddress: 'Indirizzo simulato',
-            propertyPrice: request.amount * 1.1, // Simula prezzo richiesto
+            propertyPrice: request.amount * 1.1, 
             amount: request.amount,
             currency: 'EUR',
             status: 'SUBMITTED',
@@ -92,7 +92,7 @@ export class OfferService {
             createdAt: new Date().toISOString()
           };
           
-          // Restituisci il mock dopo un breve delay per simulare la rete
+          
           return new Observable<OfferResponse>(subscriber => {
             setTimeout(() => {
               subscriber.next(mockResponse);
@@ -101,15 +101,15 @@ export class OfferService {
           });
         }
         
-        // Per altri errori, rilancia l'errore
+        
         throw error;
       })
     );
   }
 
-  /**
-   * Client: Accept a counter offer from agent
-   */
+  
+
+
   acceptCounterOffer(offerId: string): Observable<void> {
     return this.http.patch<void>(`${this.apiUrl}/client/offers/${offerId}/accept-counter`, {}).pipe(
       timeout(5000),
@@ -120,9 +120,9 @@ export class OfferService {
     );
   }
 
-  /**
-   * Client: Submit a counter to agent's counter offer
-   */
+  
+
+
   submitCounterToCounter(offerId: string, amount: number, message?: string): Observable<void> {
     return this.http.post<void>(`${this.apiUrl}/client/offers/${offerId}/counter`, { 
       amount, 
@@ -136,9 +136,9 @@ export class OfferService {
     );
   }
 
-  /**
-   * Client: Withdraw an offer
-   */
+  
+
+
   withdrawOffer(offerId: string): Observable<void> {
     return this.http.patch<void>(`${this.apiUrl}/client/offers/${offerId}/withdraw`, {}).pipe(
       timeout(5000),
@@ -149,11 +149,11 @@ export class OfferService {
     );
   }
 
-  // ============ AGENT OPERATIONS ============
+  
 
-  /**
-   * Agent: Get all offers for properties managed by the agent
-   */
+  
+
+
   getAgentOffers(): Observable<OfferResponse[]> {
     return this.http.get<OfferResponse[]>(`${this.apiUrl}/agent/offers`).pipe(
       timeout(5000),
@@ -161,16 +161,16 @@ export class OfferService {
     );
   }
 
-  /**
-   * Agent: Get all offers received (alias for getAgentOffers)
-   */
+  
+
+
   getReceivedOffers(): Observable<OfferResponse[]> {
     return this.getAgentOffers();
   }
 
-  /**
-   * Agent: Get offers for a specific property
-   */
+  
+
+
   getPropertyOffers(propertyId: string): Observable<OfferResponse[]> {
     return this.http.get<OfferResponse[]>(`${this.apiUrl}/agent/properties/${propertyId}/offers`).pipe(
       timeout(5000),
@@ -178,9 +178,9 @@ export class OfferService {
     );
   }
 
-  /**
-   * Agent: Accept an offer
-   */
+  
+
+
   acceptOffer(offerId: string): Observable<void> {
     return this.http.patch<void>(`${this.apiUrl}/agent/offers/${offerId}/accept`, {}).pipe(
       timeout(5000),
@@ -191,9 +191,9 @@ export class OfferService {
     );
   }
 
-  /**
-   * Agent: Reject an offer
-   */
+  
+
+
   rejectOffer(offerId: string, reason?: string): Observable<void> {
     return this.http.patch<void>(`${this.apiUrl}/agent/offers/${offerId}/reject`, { 
       reason 
@@ -206,9 +206,9 @@ export class OfferService {
     );
   }
 
-  /**
-   * Agent: Make a counter offer
-   */
+  
+
+
   makeCounterOffer(offerId: string, amount: number, message?: string): Observable<void> {
     return this.http.post<void>(`${this.apiUrl}/agent/offers/${offerId}/counter`, { 
       amount, 
@@ -222,9 +222,9 @@ export class OfferService {
     );
   }
 
-  /**
-   * Agent: Get offer statistics
-   */
+  
+
+
   getOfferStats(): Observable<OfferStats> {
     return this.http.get<OfferStats>(`${this.apiUrl}/agent/offers/stats`).pipe(
       timeout(5000),
@@ -238,7 +238,7 @@ export class OfferService {
     );
   }
 
-  // ============ UTILITY METHODS ============
+  
 
   formatCurrency(amount: number): string {
     return new Intl.NumberFormat('it-IT', {
@@ -299,7 +299,7 @@ export class OfferService {
       return { valid: false, error: 'L\'importo non può superare il prezzo richiesto' };
     }
     
-    // Minimum 10% of property price
+    
     const minAmount = propertyPrice * 0.1;
     if (amount < minAmount) {
       return { 

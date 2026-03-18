@@ -69,7 +69,7 @@ public class Property extends Auditable {
     @Column(nullable = false, length = 50)
     private PropertyStatus status = PropertyStatus.AVAILABLE;
 
-    // Costruttore vuoto richiesto da JPA.
+    
     public Property() {
     }
 

@@ -96,13 +96,13 @@ public class SecurityConfig {
                     "/ws/**",
                     "/uploads/**"
                 ).permitAll()
-                // Endpoint pubblici solo GET per listings
+                
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/listings", "/api/listings/search", API_LISTINGS_WILDCARD).permitAll()
-                // Endpoint privati per agenti
+                
                 .requestMatchers("/api/listings/agent/**").hasRole(ROLE_AGENT)
-                // Endpoint privati per manager e admin
+                
                 .requestMatchers("/api/listings/agency/**").hasAnyRole(ROLE_AGENCY_MANAGER, "ADMIN")
-                // PUT/DELETE su listings richiedono AGENT o MANAGER
+                
                 .requestMatchers(org.springframework.http.HttpMethod.PUT, API_LISTINGS_WILDCARD).hasAnyRole(ROLE_AGENT, ROLE_AGENCY_MANAGER)
                 .requestMatchers(org.springframework.http.HttpMethod.DELETE, API_LISTINGS_WILDCARD).hasAnyRole(ROLE_AGENT, ROLE_AGENCY_MANAGER)
                 .anyRequest().authenticated()

@@ -30,7 +30,7 @@ export class LoginComponent {
   });
 
   constructor() {
-    // Rimuovi il messaggio di errore quando l'utente modifica i campi
+    
     this.form.valueChanges.subscribe(() => {
       if (this.errorMessage()) this.errorMessage.set(null);
     });
@@ -56,7 +56,7 @@ export class LoginComponent {
       .pipe(finalize(() => this.isSubmitting.set(false)))
       .subscribe({
         next: () => {
-          // ✅ Reindirizza alla dashboard corretta in base al ruolo
+          
           const user = this.auth.currentUser();
           const role = user?.role?.toLowerCase();
           

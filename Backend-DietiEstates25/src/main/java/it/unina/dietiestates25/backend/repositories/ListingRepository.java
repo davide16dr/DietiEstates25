@@ -15,9 +15,9 @@ public interface ListingRepository extends JpaRepository<Listing, UUID> {
     
     List<Listing> findAllByAgent_Id(UUID agentId);
     
-    /**
-     * Trova tutti i listing degli agenti specificati (per statistiche manager)
-     */
+    
+
+
     List<Listing> findByAgentIdIn(List<UUID> agentIds);
     
     @Query(value = "SELECT DISTINCT l.* FROM listings l " +
@@ -48,10 +48,10 @@ public interface ListingRepository extends JpaRepository<Listing, UUID> {
         @Param("elevator") Boolean elevator
     );
     
-    /**
-     * Cerca listing in un'area geografica definita da bounds (rettangolo)
-     * Utile per ricerca per indirizzo con Google Maps API
-     */
+    
+
+
+
     @Query(value = "SELECT DISTINCT l.* FROM listings l " +
            "JOIN properties p ON p.id = l.property_id " +
            "WHERE p.latitude BETWEEN :minLat AND :maxLat " +

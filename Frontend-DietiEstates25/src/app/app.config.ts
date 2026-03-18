@@ -5,7 +5,7 @@ import { provideAnimations } from '@angular/platform-browser/animations';
 import { routes } from './app.routes';
 import { jwtInterceptor } from './auth/jwt.interceptor';
 
-// ✅ Google Maps API viene caricata da index.html con librerie places e geometry
+
 
 export const appConfig: ApplicationConfig = {
   providers: [

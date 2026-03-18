@@ -42,58 +42,58 @@ export class UserService {
   private http = inject(HttpClient);
   private apiUrl = `${environment.apiUrl}/users`;
 
-  /**
-   * Recupera tutti gli utenti di un'agenzia filtrati per ruolo
-   */
+  
+
+
   getUsersByRole(role: 'AGENCY_MANAGER' | 'AGENT'): Observable<User[]> {
     return this.http.get<User[]>(`${this.apiUrl}/by-role/${role}`);
   }
 
-  /**
-   * Recupera un utente per ID
-   */
+  
+
+
   getUserById(userId: string): Observable<User> {
     return this.http.get<User>(`${this.apiUrl}/${userId}`);
   }
 
-  /**
-   * Crea un nuovo utente (manager o agente)
-   */
+  
+
+
   createUser(userData: CreateUserRequest): Observable<User> {
     return this.http.post<User>(`${this.apiUrl}`, userData);
   }
 
-  /**
-   * Aggiorna un utente esistente
-   */
+  
+
+
   updateUser(userId: string, userData: UpdateUserRequest): Observable<User> {
     return this.http.put<User>(`${this.apiUrl}/${userId}`, userData);
   }
 
-  /**
-   * Attiva o disattiva un utente
-   */
+  
+
+
   toggleUserStatus(userId: string): Observable<User> {
     return this.http.patch<User>(`${this.apiUrl}/${userId}/toggle-status`, {});
   }
 
-  /**
-   * Elimina un utente
-   */
+  
+
+
   deleteUser(userId: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${userId}`);
   }
 
-  /**
-   * Recupera le statistiche per la dashboard del manager
-   */
+  
+
+
   getManagerStats(): Observable<any> {
     return this.http.get(`${this.apiUrl}/manager/stats`);
   }
 
-  /**
-   * Recupera tutti gli agenti con le loro statistiche di immobili
-   */
+  
+
+
   getAgentsWithStats(): Observable<User[]> {
     return this.http.get<User[]>(`${this.apiUrl}/agents-with-stats`);
   }

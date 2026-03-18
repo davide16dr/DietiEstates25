@@ -20,9 +20,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
-/**
- * Configurazione sicurezza WebSocket con autenticazione JWT
- */
+
+
+
 @Configuration
 @EnableWebSocketMessageBroker
 @Order(Ordered.HIGHEST_PRECEDENCE + 99)
@@ -46,7 +46,7 @@ public class WebSocketSecurityConfig implements WebSocketMessageBrokerConfigurer
                 StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
                 
                 if (StompCommand.CONNECT.equals(accessor.getCommand())) {
-                    // Estrai il token JWT dall'header
+                    
                     String authToken = accessor.getFirstNativeHeader("Authorization");
                     
                     if (authToken != null && authToken.startsWith("Bearer ")) {
@@ -65,7 +65,7 @@ public class WebSocketSecurityConfig implements WebSocketMessageBrokerConfigurer
                                 accessor.setUser(authentication);
                             }
                         } catch (Exception e) {
-                            // Token non valido, connessione WebSocket non autenticata
+                            
                             log.debug("Token JWT non valido per WebSocket: {}", e.getMessage());
                         }
                     }

@@ -4,10 +4,10 @@ import it.unina.dietiestates25.backend.entities.enums.ListingStatus;
 import it.unina.dietiestates25.backend.entities.enums.ListingType;
 
 public class ListingFilterRequest {
-    private ListingType type; // SALE o RENT
-    private ListingStatus status; // ACTIVE, SOLD, etc.
+    private ListingType type; 
+    private ListingStatus status; 
     private String city;
-    private String propertyType; // Appartamento, Villa, Attico, etc.
+    private String propertyType; 
     private Integer priceMin;
     private Integer priceMax;
     private Integer roomsMin;

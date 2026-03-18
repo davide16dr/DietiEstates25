@@ -22,11 +22,11 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
   clientStatsData = signal<ClientStats | null>(null);
   agentStatsData = signal<AgentStats | null>(null);
 
-  // Callback per le notifiche WebSocket
+  
   private notificationCallback = (notification: any) => {
     console.log('📊 Dashboard ricevuto notifica:', notification);
     
-    // Ricarica le statistiche quando arriva una notifica relativa alle visite
+    
     if (notification.type?.includes('VISIT')) {
       console.log('🔄 Ricarico le statistiche...');
       if (this.isClient) {
@@ -39,20 +39,20 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.dashboardService.refreshUnreadCount();
-    // Load stats based on user role
+    
     if (this.isClient) {
       this.loadClientStats();
     } else if (this.isAgent) {
       this.loadAgentStats();
     }
     
-    // Registra il callback per le notifiche WebSocket
+    
     console.log('📡 Registrazione callback per notifiche dashboard');
     this.websocketService.onNotification(this.notificationCallback);
   }
 
   ngOnDestroy(): void {
-    // Rimuovi il callback quando il componente viene distrutto
+    
     console.log('🔌 Rimozione callback notifiche dashboard');
     this.websocketService.removeNotificationCallback(this.notificationCallback);
   }
@@ -116,7 +116,7 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
     return user?.role?.toLowerCase() === 'client';
   }
 
-  // Stats per clienti
+  
   get clientStats() {
     const stats = this.clientStatsData();
     return [
@@ -126,7 +126,7 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
     ];
   }
 
-  // Stats per agenti
+  
   get agentStats() {
     const stats = this.agentStatsData();
     return [
@@ -137,7 +137,7 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
     ];
   }
 
-  // Stats per manager
+  
   get managerStats() {
     return [
       { label: 'Agenti Attivi', value: 3, pillIcon: '👥', pillBg: '#e9f7ef', pillColor: '#0f7a55' },
@@ -147,7 +147,7 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
     ];
   }
 
-  // Stats per admin
+  
   get adminStats() {
     return [
       { label: 'Gestori', value: 2, pillIcon: '👔', pillBg: '#e9f7ef', pillColor: '#0f7a55' },

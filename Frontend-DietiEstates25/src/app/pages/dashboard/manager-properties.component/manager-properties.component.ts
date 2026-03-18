@@ -18,8 +18,8 @@ interface Property {
   bathrooms: number;
   surface: number;
   image: string;
-  imageUrls?: string[]; // ✅ AGGIUNTO: array di tutte le immagini
-  // Aggiunti campi per i modal
+  imageUrls?: string[]; 
+  
   location?: string;
   propertyType?: string;
   city?: string;
@@ -43,12 +43,12 @@ export class ManagerPropertiesComponent implements OnInit {
   filterStatus = signal<string>('tutti');
   filterType = signal<string>('tutti');
 
-  // Signal per gestire i modal
+  
   showDetailsModal = signal(false);
   showEditModal = signal(false);
   selectedProperty = signal<any>(null);
 
-  // State management
+  
   properties = signal<Property[]>([]);
   isLoading = signal(true);
   error = signal<string | null>(null);
@@ -61,7 +61,7 @@ export class ManagerPropertiesComponent implements OnInit {
     this.isLoading.set(true);
     this.error.set(null);
 
-    // Carica tutti gli immobili dell'agenzia
+    
     this.listingService.getAllAgencyListings().subscribe({
       next: (listings: ListingResponse[]) => {
         console.log('📊 Immobili agenzia caricati:', listings);
@@ -89,10 +89,10 @@ export class ManagerPropertiesComponent implements OnInit {
       status: this.mapStatus(listing.status),
       agent: listing.agentName || 'N/A',
       rooms: listing.rooms,
-      bathrooms: listing.bathrooms || 0, // ✅ CORRETTO: legge dal backend invece di hardcodare 2
+      bathrooms: listing.bathrooms || 0, 
       surface: listing.area,
       image: listing.imageUrls?.[0] || 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400',
-      imageUrls: listing.imageUrls || [], // ✅ AGGIUNTO: passa tutte le immagini
+      imageUrls: listing.imageUrls || [], 
       location: `${listing.address}, ${listing.city}`,
       propertyType: listing.propertyType,
       city: listing.city,
@@ -116,17 +116,17 @@ export class ManagerPropertiesComponent implements OnInit {
   get filteredProperties(): Property[] {
     let filtered = this.properties();
 
-    // Filtro per stato
+    
     if (this.filterStatus() !== 'tutti') {
       filtered = filtered.filter(p => p.status === this.filterStatus());
     }
 
-    // Filtro per tipo
+    
     if (this.filterType() !== 'tutti') {
       filtered = filtered.filter(p => p.type === this.filterType());
     }
 
-    // Filtro per ricerca
+    
     const query = this.searchQuery().toLowerCase();
     if (query) {
       filtered = filtered.filter(p => 
@@ -165,7 +165,7 @@ export class ManagerPropertiesComponent implements OnInit {
   }
 
   viewPropertyDetails(property: Property): void {
-    // Trasforma la property per il modal details
+    
     const propertyDetail: any = {
       id: property.id,
       title: property.title,
@@ -175,7 +175,7 @@ export class ManagerPropertiesComponent implements OnInit {
       status: property.status,
       rooms: property.rooms,
       bathrooms: property.bathrooms,
-      size: property.surface, // ✅ surface → size
+      size: property.surface, 
       floor: Math.floor(Math.random() * 10),
       elevator: Math.random() > 0.5,
       energyClass: ['A', 'B', 'C', 'D'][Math.floor(Math.random() * 4)],
@@ -191,7 +191,7 @@ export class ManagerPropertiesComponent implements OnInit {
   }
 
   editProperty(property: Property): void {
-    // Trasforma la property per il modal edit
+    
     const propertyToEdit: any = {
       id: property.id,
       title: property.title,
@@ -210,7 +210,7 @@ export class ManagerPropertiesComponent implements OnInit {
       address: property.address,
       city: property.city || property.address.split(',')[1]?.trim() || 'Napoli',
       image: property.image,
-      imageUrls: property.imageUrls || [property.image] // ✅ CORRETTO: passa tutte le immagini
+      imageUrls: property.imageUrls || [property.image] 
     };
     
     this.selectedProperty.set(propertyToEdit);
@@ -250,7 +250,7 @@ export class ManagerPropertiesComponent implements OnInit {
         this.selectedProperty.set(null);
         this.error.set(null);
         
-        // Ricarica gli immobili dopo il salvataggio
+        
         this.loadProperties();
       },
       error: (err: any) => {

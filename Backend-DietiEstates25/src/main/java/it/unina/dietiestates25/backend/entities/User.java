@@ -55,7 +55,7 @@ public class User extends Auditable {
     private Instant resetTokenExpiry;
 
     public User() {
-        // Required by JPA.
+        
     }
 
     @PrePersist

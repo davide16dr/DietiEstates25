@@ -41,11 +41,11 @@ export class AdminPropertiesComponent implements OnInit {
   filterStatus = signal<string>('tutti');
   filterType = signal<string>('tutti');
 
-  // Signal per gestire il modal
+  
   showDetailsModal = signal(false);
   selectedProperty = signal<any>(null);
 
-  // State management
+  
   properties = signal<Property[]>([]);
   isLoading = signal(true);
   error = signal<string | null>(null);
@@ -60,7 +60,7 @@ export class AdminPropertiesComponent implements OnInit {
 
     console.log('🔍 [Admin] Caricamento immobili agenzia...');
 
-    // Carica tutti gli immobili dell'agenzia
+    
     this.listingService.getAllAgencyListings().subscribe({
       next: (listings: ListingResponse[]) => {
         console.log('✅ [Admin] Immobili agenzia caricati:', listings);
@@ -130,17 +130,17 @@ export class AdminPropertiesComponent implements OnInit {
   get filteredProperties(): Property[] {
     let filtered = this.properties();
 
-    // Filtro per stato
+    
     if (this.filterStatus() !== 'tutti') {
       filtered = filtered.filter(p => p.status === this.filterStatus());
     }
 
-    // Filtro per tipo
+    
     if (this.filterType() !== 'tutti') {
       filtered = filtered.filter(p => p.type === this.filterType());
     }
 
-    // Filtro per ricerca
+    
     const query = this.searchQuery().toLowerCase();
     if (query) {
       filtered = filtered.filter(p => 

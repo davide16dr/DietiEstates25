@@ -21,7 +21,7 @@ type MenuItem = {
   styleUrl: './dashboard-sidebar.component.scss',
 })
 export class DashboardSidebarComponent implements OnInit {
-  // Modern Angular: input()/output() invece di @Input()/@Output()
+  
   collapsed = input.required<boolean>();
   mobileOpen = input<boolean>(false);
   toggle = output<void>();
@@ -30,22 +30,22 @@ export class DashboardSidebarComponent implements OnInit {
   private dashboardService = inject(DashboardService);
   private toast = inject(ToastService);
 
-  // ✅ USA DIRETTAMENTE il signal di AuthService invece di crearne uno locale
+  
   currentUser = this.authService.currentUser;
 
-  // Stats for badges
+  
   agentStats = signal<AgentStats | null>(null);
 
-  // Modal state
+  
   showChangePasswordModal = signal(false);
   isChangingPassword = signal(false);
   passwordError = signal<string | null>(null);
 
   ngOnInit(): void {
-    // Carica il contatore notifiche non lette
+    
     this.dashboardService.refreshUnreadCount();
 
-    // Load stats if user is agent
+    
     if (this.isAgent) {
       this.dashboardService.getAgentStats().subscribe({
         next: (stats) => this.agentStats.set(stats),

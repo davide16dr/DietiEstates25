@@ -56,7 +56,7 @@ public class AdminStatsResponse {
         public void setStatus(String status) { this.status = status; }
     }
 
-    // Costruttore vuoto richiesto da Jackson per la deserializzazione.
+    
     public AdminStatsResponse() {
     }
 

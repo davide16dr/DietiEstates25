@@ -31,21 +31,21 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         String method = request.getMethod();
         
-        // Salta il filtro JWT SOLO per gli endpoint pubblici specifici
+        
         if (path.startsWith("/auth/") || 
             path.startsWith("/v3/api-docs/") ||
             path.startsWith("/swagger-ui/")) {
             return true;
         }
         
-        // Per i listings, salta il filtro JWT SOLO se è una richiesta GET
+        
         if ("GET".equals(method)) {
             return path.equals("/api/listings") || 
                    path.startsWith("/api/listings/search") ||
                    path.matches("^/api/listings/[a-f0-9-]{36}$");
         }
         
-        // Per PUT, DELETE, POST sui listings, NON saltare il filtro JWT
+        
         return false;
     }
 
@@ -71,14 +71,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails details = userDetailsService.loadUserByUsername(username);
             if (jwtService.isTokenValid(token, details.getUsername())) {
-                // Estrai i ruoli dai claims del token
+                
                 var claims = jwtService.extractAllClaims(token);
                 var roles = (String) claims.get("role");
 
-                // Crea le authorities basate sui ruoli
+                
                 var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + roles));
 
-                // Imposta l'autenticazione con i ruoli
+                
                 var authToken = new UsernamePasswordAuthenticationToken(
                         details, null, authorities
                 );

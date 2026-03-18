@@ -25,16 +25,16 @@ export class AgentOffersComponent implements OnInit, OnDestroy {
   stats = signal<OfferStats>({ total: 0, pending: 0, accepted: 0, rejected: 0, counteroffers: 0 });
   loading = signal(true);
   
-  // ✅ NUOVO: Filtro attivo per tab
+  
   activeFilter = signal<'all' | 'pending' | 'counter' | 'accepted' | 'rejected' | 'withdrawn'>('all');
   
-  // Counter offer modal
+  
   showCounterModal = signal(false);
   selectedOffer = signal<OfferResponse | null>(null);
   counterAmount = signal<number | null>(null);
   counterMessage = signal<string>('');
 
-  // Reject modal
+  
   showRejectModal = signal(false);
   rejectReason = signal<string>('');
 
@@ -42,14 +42,14 @@ export class AgentOffersComponent implements OnInit, OnDestroy {
     console.log('🎯 AgentOffersComponent inizializzato - setup WebSocket listener');
     this.loadOffers();
     
-    // 🔴 REAL-TIME: Ascolta le notifiche WebSocket per aggiornamenti in tempo reale
+    
     this.notificationCallback = (notification: WebSocketNotification) => {
       console.log('🔔 Notifica WebSocket ricevuta (agente):', notification);
       console.log('   - Type:', notification.type);
       console.log('   - Title:', notification.title);
       console.log('   - OfferId:', notification.offerId);
       
-      // Ricarica SEMPRE quando arriva una notifica con offerId O tipo relativo alle offerte
+      
       if (notification.offerId || this.isOfferNotification(notification.type)) {
         console.log('💰 ✅ RICARICA offerte in tempo reale (agente)...');
         this.ngZone.run(() => this.loadOffers());
@@ -64,22 +64,22 @@ export class AgentOffersComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     console.log('🧹 AgentOffersComponent distrutto - rimozione WebSocket listener');
-    // 🧹 Rimuove il listener WebSocket quando il componente viene distrutto
+    
     if (this.notificationCallback) {
       this.webSocketService.removeNotificationCallback(this.notificationCallback);
     }
   }
   
-  /**
-   * Verifica se la notifica è relativa alle offerte
-   * Ora più flessibile: accetta qualsiasi tipo che contiene "OFFER" o "COUNTER"
-   */
+  
+
+
+
   private isOfferNotification(type: string): boolean {
     if (!type) return false;
     
     const typeUpper = type.toUpperCase();
     
-    // Accetta qualsiasi notifica che contiene OFFER o COUNTER
+    
     return typeUpper.includes('OFFER') || typeUpper.includes('COUNTER');
   }
 
@@ -90,7 +90,7 @@ export class AgentOffersComponent implements OnInit, OnDestroy {
       next: (offers) => {
         console.log('✅ Offerte ricevute caricate:', offers.length, 'offerte');
         this.offers.set(offers);
-        // ✅ AGGIORNAMENTO STATISTICHE dopo il caricamento
+        
         this.updateStatsFromOffers();
         this.loading.set(false);
       },
@@ -108,7 +108,7 @@ export class AgentOffersComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Error loading stats:', error);
-        // Calculate from loaded offers
+        
         this.updateStatsFromOffers();
       }
     });
@@ -189,7 +189,7 @@ export class AgentOffersComponent implements OnInit, OnDestroy {
     return this.offers().filter(o => ['ACCEPTED', 'REJECTED', 'WITHDRAWN'].includes(o.status));
   });
 
-  // ✅ NUOVO: Computed per offerte filtrate
+  
   filteredOffers = computed(() => {
     const allOffers = this.offers();
     const filter = this.activeFilter();
@@ -210,7 +210,7 @@ export class AgentOffersComponent implements OnInit, OnDestroy {
     }
   });
 
-  // ✅ NUOVO: Metodo per cambiare filtro
+  
   setFilter(filter: 'all' | 'pending' | 'counter' | 'accepted' | 'rejected' | 'withdrawn'): void {
     this.activeFilter.set(filter);
   }
@@ -246,7 +246,7 @@ export class AgentOffersComponent implements OnInit, OnDestroy {
   acceptOffer(offer: OfferResponse): void {
     this.offerService.acceptOffer(offer.id).subscribe({
         next: () => {
-          // ✅ Ricarica i dati dal server
+          
           this.loadOffers();
           this.loadStats();
           this.toast.success(
@@ -284,7 +284,7 @@ export class AgentOffersComponent implements OnInit, OnDestroy {
 
     this.offerService.rejectOffer(offer.id, reason || undefined).subscribe({
       next: () => {
-        // ✅ Ricarica i dati dal server
+        
         this.loadOffers();
         this.loadStats();
         this.closeRejectModal();
@@ -306,7 +306,7 @@ export class AgentOffersComponent implements OnInit, OnDestroy {
 
   openCounterModal(offer: OfferResponse): void {
     this.selectedOffer.set(offer);
-    // Suggest a counter offer between their offer and asking price
+    
     const suggestedAmount = Math.round((offer.amount + offer.propertyPrice) / 2);
     this.counterAmount.set(suggestedAmount);
     this.counterMessage.set('');
@@ -327,7 +327,7 @@ export class AgentOffersComponent implements OnInit, OnDestroy {
     
     if (!offer || !amount) return;
 
-    // Validate counter offer amount
+    
     if (amount <= offer.amount) {
       this.toast.warning(
         'Importo non valido',
@@ -346,7 +346,7 @@ export class AgentOffersComponent implements OnInit, OnDestroy {
 
     this.offerService.makeCounterOffer(offer.id, amount, message || undefined).subscribe({
       next: () => {
-        // ✅ Ricarica i dati dal server
+        
         this.loadOffers();
         this.loadStats();
         this.closeCounterModal();

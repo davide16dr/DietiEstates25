@@ -5,13 +5,13 @@ import jakarta.validation.constraints.NotBlank;
 public class OAuthLoginRequest {
 
     @NotBlank
-    private String provider; // "google" | "github" | "facebook"
+    private String provider; 
 
     @NotBlank
-    private String token; // id_token (Google), access_token (Facebook), code (GitHub)
+    private String token; 
 
     public OAuthLoginRequest() {
-        // Required by Jackson for request deserialization.
+        
     }
 
     public String getProvider() { return provider; }

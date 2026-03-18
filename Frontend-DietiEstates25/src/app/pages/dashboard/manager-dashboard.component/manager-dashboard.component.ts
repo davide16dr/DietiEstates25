@@ -33,7 +33,7 @@ interface RecentProperty {
 export class ManagerDashboardComponent implements OnInit {
   private userService = inject(UserService);
 
-  // Stato reattivo con signals
+  
   stats = signal<DashboardStats>({
     agenti: { attivi: 0, totali: 0 },
     immobili: { totali: 0, disponibili: 0, venduti: 0, affittati: 0 }
@@ -56,7 +56,7 @@ export class ManagerDashboardComponent implements OnInit {
       next: (data: any) => {
         console.log('📊 Statistiche manager ricevute:', data);
 
-        // Aggiorna le statistiche
+        
         this.stats.set({
           agenti: {
             attivi: data.agenti.attivi || 0,
@@ -70,7 +70,7 @@ export class ManagerDashboardComponent implements OnInit {
           }
         });
 
-        // Aggiorna stato immobili
+        
         this.propertyStatus.set([
           { 
             label: 'Disponibili', 
@@ -89,7 +89,7 @@ export class ManagerDashboardComponent implements OnInit {
           }
         ]);
 
-        // Mappa gli immobili recenti
+        
         const mapped = (data.immobiliRecenti || []).map((prop: any) => ({
           id: prop.id,
           title: prop.title,

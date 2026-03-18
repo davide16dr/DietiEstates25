@@ -1,4 +1,4 @@
-// Modal Overlay
+
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -31,7 +31,7 @@
   }
 }
 
-// Container del Modal
+
 .modal-container {
   background: #fff;
   border-radius: 20px;
@@ -45,7 +45,7 @@
   overflow: hidden;
 }
 
-// Header del Modal
+
 .modal-header {
   display: flex;
   align-items: center;
@@ -83,14 +83,14 @@
   }
 }
 
-// Body del Modal
+
 .modal-body {
   padding: 24px 28px;
   overflow-y: auto;
   flex: 1;
 }
 
-// Agent Profile
+
 .agent-profile {
   display: flex;
   flex-direction: column;
@@ -149,7 +149,7 @@
   }
 }
 
-// Info Sections
+
 .info-section {
   margin-bottom: 24px;
 
@@ -206,7 +206,7 @@
   color: #111827;
 }
 
-// Stats Grid
+
 .stats-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -244,7 +244,7 @@
   font-weight: 600;
 }
 
-// Footer del Modal
+
 .modal-footer {
   display: flex;
   gap: 12px;

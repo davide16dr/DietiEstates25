@@ -37,9 +37,9 @@ public class ClientOfferController {
         this.offerService = offerService;
     }
 
-    /**
-     * Submit a new offer for a property
-     */
+    
+
+
     @PostMapping
     public ResponseEntity<OfferResponse> submitOffer(
             @AuthenticationPrincipal UserPrincipal principal,
@@ -61,9 +61,9 @@ public class ClientOfferController {
         }
     }
 
-    /**
-     * Get all offers made by the current client
-     */
+    
+
+
     @GetMapping
     public ResponseEntity<List<OfferResponse>> getMyOffers(
             @AuthenticationPrincipal UserPrincipal principal) {
@@ -71,9 +71,9 @@ public class ClientOfferController {
         return ResponseEntity.ok(offers);
     }
 
-    /**
-     * Accept a counter-offer from agent
-     */
+    
+
+
     @PatchMapping("/{offerId}/accept-counter")
     public ResponseEntity<Void> acceptCounterOffer(
             @AuthenticationPrincipal UserPrincipal principal,
@@ -92,9 +92,9 @@ public class ClientOfferController {
         }
     }
 
-    /**
-     * Submit a counter to agent's counter-offer
-     */
+    
+
+
     @PostMapping("/{offerId}/counter")
     public ResponseEntity<Void> submitCounter(
             @AuthenticationPrincipal UserPrincipal principal,
@@ -114,9 +114,9 @@ public class ClientOfferController {
         }
     }
 
-    /**
-     * Withdraw an offer
-     */
+    
+
+
     @PatchMapping("/{offerId}/withdraw")
     public ResponseEntity<Void> withdrawOffer(
             @AuthenticationPrincipal UserPrincipal principal,

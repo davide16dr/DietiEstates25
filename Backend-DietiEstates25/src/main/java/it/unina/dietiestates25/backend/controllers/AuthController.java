@@ -100,7 +100,7 @@ public class AuthController {
 
     @PostMapping("/forgot-password")
     public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
-        // Risponde sempre 200 per evitare user enumeration
+        
         authService.requestPasswordReset(request.getEmail());
         Map<String, String> response = new HashMap<>();
         response.put(KEY_MESSAGE, MSG_PASSWORD_RESET_INFO);

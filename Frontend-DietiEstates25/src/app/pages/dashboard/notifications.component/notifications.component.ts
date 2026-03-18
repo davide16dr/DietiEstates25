@@ -26,7 +26,7 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   loading = signal(true);
   error = signal<string | null>(null);
 
-  // Settings modal state
+  
   showSettingsModal = signal(false);
   preferences = signal<NotificationPreferences>({
     emailEnabled: true,
@@ -45,11 +45,11 @@ export class NotificationsComponent implements OnInit, OnDestroy {
     this.loadNotifications();
     this.loadPreferences();
     
-    // 🔴 REAL-TIME: Ascolta le notifiche WebSocket per aggiornamenti in tempo reale
+    
     this.notificationCallback = (notification: WebSocketNotification) => {
       console.log('🔔 Nuova notifica WebSocket ricevuta:', notification);
       
-      // Ricarica immediatamente la lista delle notifiche quando arriva una nuova notifica
+      
       this.loadNotifications();
     };
     
@@ -57,7 +57,7 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   }
   
   ngOnDestroy(): void {
-    // 🧹 Rimuove il listener WebSocket quando il componente viene distrutto
+    
     if (this.notificationCallback) {
       this.webSocketService.removeNotificationCallback(this.notificationCallback);
     }
@@ -135,7 +135,7 @@ export class NotificationsComponent implements OnInit, OnDestroy {
         this.notifications.update(list =>
           list.map(n => n.id === notification.id ? { ...n, read: true } : n)
         );
-        // Aggiorna il badge nella sidebar
+        
         this.dashboardService.refreshUnreadCount();
       },
       error: (err) => console.error('Errore marcatura notifica come letta:', err)
@@ -146,7 +146,7 @@ export class NotificationsComponent implements OnInit, OnDestroy {
     this.dashboardService.markAllNotificationsAsRead().subscribe({
       next: () => {
         this.notifications.update(list => list.map(n => ({ ...n, read: true })));
-        // Aggiorna il badge nella sidebar
+        
         this.dashboardService.refreshUnreadCount();
       },
       error: (err) => {
@@ -160,7 +160,7 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   openNotification(notification: Notification): void {
     this.markAsRead(notification);
     
-    // Determina la rotta in base al tipo di notifica
+    
     const route = this.getNotificationRoute(notification);
     
     if (route) {
@@ -168,44 +168,44 @@ export class NotificationsComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Determina la rotta corretta in base al tipo di notifica
-   */
+  
+
+
   private getNotificationRoute(notification: Notification): string | null {
     const currentUser = this.authService.currentUser();
     const isAgent = currentUser?.role?.toLowerCase() === 'agent';
     
-    // 💰 PRIORITÀ 1: Se è relativa a offerte/controproposte (controllo sul type e title)
+    
     if (notification.type === 'OFFER_STATUS_CHANGED' ||
         notification.title?.toLowerCase().includes('offerta') ||
         notification.title?.toLowerCase().includes('controproposta')) {
       
-      // Agente → pagina offerte agente
+      
       if (isAgent) {
         return '/dashboard/agent-offers';
       }
-      // Cliente → pagina le mie offerte
+      
       return '/dashboard/offers';
     }
     
-    // 📅 PRIORITÀ 2: Se è relativa a visite
+    
     if (notification.type === 'VISIT_STATUS_CHANGED' ||
         notification.title?.toLowerCase().includes('visita')) {
       
-      // Agente → pagina visite agente
+      
       if (isAgent) {
         return '/dashboard/agent-visits';
       }
-      // Cliente → pagina le mie visite
+      
       return '/dashboard/visits';
     }
     
-    // 🏠 PRIORITÀ 3: Se c'è un listingId specifico → vai al dettaglio dell'immobile
+    
     if (notification.listingId) {
       return `/pages/property-detail/${notification.listingId}`;
     }
     
-    // 🏘️ PRIORITÀ 4: Notifiche generiche sugli immobili → vai alla ricerca
+    
     if (notification.type === 'NEW_MATCHING_LISTING' ||
         notification.type === 'PRICE_CHANGED' ||
         notification.type === 'LISTING_UPDATED' ||
@@ -214,7 +214,7 @@ export class NotificationsComponent implements OnInit, OnDestroy {
       return '/pages/properties-page';
     }
     
-    // Default: resta sulla pagina notifiche
+    
     return null;
   }
 

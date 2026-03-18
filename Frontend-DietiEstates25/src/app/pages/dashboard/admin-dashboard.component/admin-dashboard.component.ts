@@ -60,10 +60,10 @@ export class AdminDashboardComponent implements OnInit {
       next: (data: AdminStats) => {
         console.log('📊 Statistiche admin ricevute:', data);
 
-        // Aggiorna nome agenzia
+        
         this.agencyName.set(data.agencyInfo.name);
 
-        // Aggiorna statistiche
+        
         this.stats.set({
           gestori: data.gestori,
           agenti: data.agenti,
@@ -72,7 +72,7 @@ export class AdminDashboardComponent implements OnInit {
           stato: data.agencyInfo.status
         });
 
-        // Aggiorna liste recenti
+        
         this.recentManagers.set(data.recentManagers.map(m => ({
           id: m.id,
           name: m.name,

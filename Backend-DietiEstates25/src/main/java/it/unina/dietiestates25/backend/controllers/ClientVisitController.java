@@ -32,9 +32,9 @@ public class ClientVisitController {
         this.visitService = visitService;
     }
 
-    /**
-     * Get all visits for the current client
-     */
+    
+
+
     @GetMapping
     public ResponseEntity<List<VisitResponse>> getMyVisits(
             @AuthenticationPrincipal UserPrincipal principal) {
@@ -42,10 +42,10 @@ public class ClientVisitController {
         return ResponseEntity.ok(visits);
     }
 
-    /**
-     * Get available time slots for a listing on a specific date
-     * Returns the list of occupied time slots (in HH:mm format)
-     */
+    
+
+
+
     @GetMapping("/available-slots")
     public ResponseEntity<List<String>> getAvailableTimeSlots(
             @RequestParam String listingId,
@@ -60,10 +60,10 @@ public class ClientVisitController {
         }
     }
 
-    /**
-     * Get occupied time slots for a listing on a specific date
-     * Returns the list of occupied time slots (in HH:mm format)
-     */
+    
+
+
+
     @GetMapping("/listings/{listingId}/occupied-timeslots")
     public ResponseEntity<List<String>> getOccupiedTimeSlots(
             @PathVariable UUID listingId,
@@ -72,9 +72,9 @@ public class ClientVisitController {
         return ResponseEntity.ok(occupiedSlots);
     }
 
-    /**
-     * Create a new visit request
-     */
+    
+
+
     @PostMapping
     public ResponseEntity<VisitResponse> createVisit(
             @AuthenticationPrincipal UserPrincipal principal,
@@ -82,7 +82,7 @@ public class ClientVisitController {
         try {
             UUID listingId = UUID.fromString(request.getListingId());
             
-            // Convert scheduledFor or build from date/time
+            
             Instant scheduledFor = request.getScheduledFor();
             
             VisitResponse visit = visitService.createVisit(
@@ -104,9 +104,9 @@ public class ClientVisitController {
         }
     }
 
-    /**
-     * Cancel a visit
-     */
+    
+
+
     @PatchMapping("/{id}/cancel")
     public ResponseEntity<Void> cancelVisit(
             @AuthenticationPrincipal UserPrincipal principal,

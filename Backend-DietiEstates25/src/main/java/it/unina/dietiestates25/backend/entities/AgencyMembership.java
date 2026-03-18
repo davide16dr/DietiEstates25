@@ -40,9 +40,9 @@ public class AgencyMembership extends Auditable {
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "membership_role", nullable = false, columnDefinition = "user_role")
-    private UserRole membershipRole; // AGENCY_MANAGER / AGENT
+    private UserRole membershipRole; 
 
-    // Costruttore vuoto richiesto da JPA.
+    
     public AgencyMembership() {
     }
 

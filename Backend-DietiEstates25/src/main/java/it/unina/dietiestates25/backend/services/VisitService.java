@@ -70,7 +70,7 @@ public class VisitService {
             throw new BadRequestException("Cannot schedule visit in the past");
         }
 
-        // ✅ Verifica se esiste già una visita confermata per lo stesso orario (stesso listing)
+        
         boolean hasConflict = visitRepository.existsByListing_IdAndScheduledForAndStatusIn(
             visitRequestDto.getListingId(),
             scheduledFor,
@@ -81,9 +81,9 @@ public class VisitService {
             throw new BadRequestException("Questo orario è già occupato. Per favore scegli un altro orario.");
         }
 
-        // ✅ CORRETTO: Verifica se il cliente ha già una visita in un intervallo di ±30 minuti
-        Instant startRange = scheduledFor.minusSeconds(30L * 60); // 30 minuti prima
-        Instant endRange = scheduledFor.plusSeconds(30L * 60);    // 30 minuti dopo
+        
+        Instant startRange = scheduledFor.minusSeconds(30L * 60); 
+        Instant endRange = scheduledFor.plusSeconds(30L * 60);    
         
         boolean clientHasConflict = visitRepository.hasClientVisitInTimeRange(
             client.getId(),
@@ -96,7 +96,7 @@ public class VisitService {
             throw new BadRequestException("Hai già una visita prenotata in questo intervallo di tempo. Non puoi prenotare due visite contemporaneamente.");
         }
 
-        // ✅ NUOVO: Verifica se l'agente ha già una visita in un intervallo di ±30 minuti
+        
         if (listing.getAgent() != null) {
             boolean agentHasConflict = visitRepository.hasAgentVisitInTimeRange(
                 listing.getAgent().getId(),
@@ -113,7 +113,7 @@ public class VisitService {
         Visit visit = new Visit();
         visit.setListing(listing);
         visit.setClient(client);
-        // ✅ CORRETTO: Assegna l'agente del listing alla visita
+        
         visit.setAgent(listing.getAgent());
         visit.setScheduledFor(scheduledFor);
         visit.setStatus(VisitStatus.REQUESTED);
@@ -121,7 +121,7 @@ public class VisitService {
 
         Visit savedVisit = visitRepository.save(visit);
 
-        // Send notification to agent
+        
         if (listing.getAgent() != null) {
             String propertyAddress = listing.getProperty().getAddress();
             notificationService.createAgentNotification(
@@ -174,7 +174,7 @@ public class VisitService {
 
         Visit updatedVisit = visitRepository.save(visit);
 
-        // ✅ CORRETTO: Invia SOLO una notifica al cliente (via NotificationService)
+        
         notificationService.createVisitStatusNotification(
             visit.getClient().getId(),
             listing,
@@ -229,7 +229,7 @@ public class VisitService {
         visit.setStatus(VisitStatus.CANCELLED);
         visitRepository.save(visit);
 
-        // Notify agent
+        
         Listing listing = visit.getListing();
         if (listing.getAgent() != null) {
             String propertyAddress = listing.getProperty().getAddress();
@@ -305,7 +305,7 @@ public class VisitService {
         visit.setStatus(VisitStatus.DONE);
         visitRepository.save(visit);
 
-        // ✅ AGGIUNTO: Invia notifica al cliente
+        
         notificationService.createVisitStatusNotification(
             visit.getClient().getId(),
             listing,
@@ -334,7 +334,7 @@ public class VisitService {
             throw new ForbiddenException(MSG_UNAUTHORIZED);
         }
 
-        // ✅ CORRETTO: Rifiuta solo visite in stato REQUESTED
+        
         if (visit.getStatus() != VisitStatus.REQUESTED) {
             throw new BadRequestException("Can only reject requested visits");
         }
@@ -373,7 +373,7 @@ public class VisitService {
             throw new ForbiddenException(MSG_UNAUTHORIZED);
         }
 
-        // ✅ Annulla solo visite in stato CONFIRMED
+        
         if (visit.getStatus() != VisitStatus.CONFIRMED) {
             throw new BadRequestException("Can only cancel confirmed visits");
         }
@@ -421,7 +421,7 @@ public class VisitService {
         Visit visit = new Visit();
         visit.setListing(listing);
         visit.setClient(client);
-        // ✅ CORRETTO: Assegna l'agente del listing alla visita
+        
         visit.setAgent(listing.getAgent());
         visit.setScheduledFor(scheduledFor);
         visit.setStatus(VisitStatus.REQUESTED);
@@ -429,7 +429,7 @@ public class VisitService {
 
         Visit savedVisit = visitRepository.save(visit);
 
-        // Send notification to agent
+        
         if (listing.getAgent() != null) {
             String propertyAddress = listing.getProperty().getAddress();
             notificationService.createAgentNotification(
@@ -472,14 +472,14 @@ public class VisitService {
 
     @Transactional(readOnly = true)
     public List<String> getOccupiedTimeSlots(UUID agentId, String date) {
-        // Parse the date string (format: yyyy-MM-dd)
+        
         LocalDateTime startOfDay = LocalDateTime.parse(date + "T00:00:00");
         LocalDateTime endOfDay = LocalDateTime.parse(date + "T23:59:59");
         
         Instant startInstant = startOfDay.atZone(ZoneId.of(TIME_ZONE_ROME)).toInstant();
         Instant endInstant = endOfDay.atZone(ZoneId.of(TIME_ZONE_ROME)).toInstant();
         
-        // Get all confirmed visits for the agent on that date
+        
         List<Visit> confirmedVisits = visitRepository.findAllByAgent_IdAndStatusAndScheduledForBetween(
             agentId, 
             VisitStatus.CONFIRMED,
@@ -487,7 +487,7 @@ public class VisitService {
             endInstant
         );
         
-        // Extract and format the time slots (HH:mm)
+        
         return confirmedVisits.stream()
             .map(visit -> {
                 LocalDateTime ldt = visit.getScheduledFor().atZone(ZoneId.of(TIME_ZONE_ROME)).toLocalDateTime();
@@ -547,7 +547,7 @@ public class VisitService {
         }
         response.setRequestedAt(visit.getRequestedAt());
         response.setScheduledFor(visit.getScheduledFor());
-        // Formatted date and time for frontend (Europe/Rome timezone)
+        
         if (visit.getScheduledFor() != null) {
             LocalDateTime ldt = visit.getScheduledFor().atZone(ZoneId.of(TIME_ZONE_ROME)).toLocalDateTime();
             response.setScheduledDate(ldt.format(DateTimeFormatter.ISO_LOCAL_DATE));

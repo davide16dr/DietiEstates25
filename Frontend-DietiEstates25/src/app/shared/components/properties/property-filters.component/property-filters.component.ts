@@ -53,19 +53,19 @@ export class PropertyFiltersComponent implements AfterViewInit, OnDestroy {
     elevator: this.fb.control<boolean>(false, { nonNullable: true }),
   });
 
-  // Autocomplete città
+  
   citySuggestions: PlacePrediction[] = [];
   showCitySuggestions = false;
   private citySearchSubject = new Subject<string>();
 
   constructor() {
-    // Ogni volta che initialValue cambia (incluso il primo valore),
-    // aggiorna il form automaticamente — funziona con signal inputs
+    
+    
     effect(() => {
       this.form.reset(this.initialValue());
     });
 
-    // Configura l'autocomplete per il campo città
+    
     this.citySearchSubject
       .pipe(
         debounceTime(300),
@@ -79,7 +79,7 @@ export class PropertyFiltersComponent implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    // Listener per chiudere i suggerimenti quando si clicca fuori
+    
     document.addEventListener('click', this.handleClickOutside.bind(this));
   }
 
@@ -99,7 +99,7 @@ export class PropertyFiltersComponent implements AfterViewInit, OnDestroy {
   }
 
   selectCity(prediction: PlacePrediction): void {
-    // Usa solo il nome della città (main_text)
+    
     this.form.patchValue({ city: prediction.structured_formatting.main_text });
     this.citySuggestions = [];
     this.showCitySuggestions = false;

@@ -26,16 +26,16 @@ export class WebSocketService {
   private client: Client | null = null;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
-  private reconnectDelay = 3000; // 3 secondi
+  private reconnectDelay = 3000; 
   
-  // Signal per lo stato della connessione
+  
   connected = signal<boolean>(false);
   
-  // Callbacks per diversi tipi di notifiche
+  
   private notificationCallbacks: ((notification: WebSocketNotification) => void)[] = [];
   
   constructor() {
-    // Connetti/disconnetti in base allo stato di autenticazione
+    
     effect(() => {
       const isAuth = this.authService.isAuthenticated();
       const token = this.authService.getToken();
@@ -48,9 +48,9 @@ export class WebSocketService {
     });
   }
   
-  /**
-   * Connetti al server WebSocket
-   */
+  
+
+
   private connect(token: string): void {
     if (this.client?.connected) {
       console.log('🔌 WebSocket già connesso');
@@ -59,11 +59,8 @@ export class WebSocketService {
     
     console.log('🔌 Connessione WebSocket in corso...');
     
-    // Usa l'URL dal file di ambiente
     const wsUrl = environment.apiUrl.replace('/api', '') + '/ws';
     console.log('🔌 URL WebSocket:', wsUrl);
-    
-    // Crea il client STOMP
     this.client = new Client({
       webSocketFactory: () => new SockJS(wsUrl),
       
@@ -96,14 +93,14 @@ export class WebSocketService {
         console.error('❌ Frame headers:', frame.headers);
         console.error('❌ Frame body:', frame.body);
         
-        // Controlla se l'errore è dovuto a token JWT scaduto
+        
         if (frame.body?.includes('JWT expired') || frame.body?.includes('expired')) {
           console.warn('⚠️ Token JWT scaduto rilevato da errore WebSocket');
           this.toast.warning(
             'Sessione Scaduta',
             'La tua sessione è scaduta. Effettua nuovamente il login.'
           );
-          // Logout automatico dopo 2 secondi
+          
           setTimeout(() => {
             this.authService.logout();
           }, 2000);
@@ -118,9 +115,9 @@ export class WebSocketService {
     this.client.activate();
   }
   
-  /**
-   * Disconnetti dal server WebSocket
-   */
+  
+
+
   disconnect(): void {
     if (this.client) {
       console.log('🔌 Disconnessione WebSocket...');
@@ -131,9 +128,9 @@ export class WebSocketService {
     }
   }
   
-  /**
-   * Tenta la riconnessione
-   */
+  
+
+
   private attemptReconnect(token: string): void {
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++;
@@ -145,14 +142,14 @@ export class WebSocketService {
     } else {
       console.error('❌ Impossibile riconnettersi al WebSocket dopo', this.maxReconnectAttempts, 'tentativi');
       
-      // Controlla se il token è scaduto
+      
       if (this.isTokenExpired(token)) {
         console.warn('⚠️ Token JWT scaduto. Effettuo logout automatico...');
         this.toast.warning(
           'Sessione Scaduta',
           'La tua sessione è scaduta. Effettua nuovamente il login.'
         );
-        // Logout automatico dopo 2 secondi
+        
         setTimeout(() => {
           this.authService.logout();
         }, 2000);
@@ -165,25 +162,25 @@ export class WebSocketService {
     }
   }
 
-  /**
-   * Verifica se il token JWT è scaduto
-   */
+  
+
+
   private isTokenExpired(token: string): boolean {
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
-      const expirationTime = payload.exp * 1000; // Converti in millisecondi
+      const expirationTime = payload.exp * 1000; 
       return Date.now() >= expirationTime;
     } catch (error) {
       console.error('❌ Errore parsing token JWT:', error);
-      return true; // Se non riesco a parsare, considero il token scaduto
+      return true; 
     }
   }
   
-  /**
-   * Iscriviti alle notifiche dell'utente corrente
-   */
+  
+
+
   private subscribeToNotifications(): void {
-    // Ottieni l'utente corrente dall'Observable
+    
     this.authService.currentUser$.subscribe(user => {
       if (!user?.userId || !this.client) {
         console.log('⚠️ Impossibile sottoscrivere: user=', user, 'client=', !!this.client);
@@ -192,7 +189,7 @@ export class WebSocketService {
       
       console.log('👤 Sottoscrizione notifiche per utente:', user.userId, 'ruolo:', user.role);
       
-      // Subscribe al topic delle notifiche personali
+      
       const topic = `/topic/notifications/${user.userId}`;
       
       this.client.subscribe(topic, (message: IMessage) => {
@@ -202,10 +199,10 @@ export class WebSocketService {
           console.log('📬 Tipo notifica:', notification.type);
           console.log('📬 Numero callbacks registrate:', this.notificationCallbacks.length);
           
-          // Mostra il toast
+          
           this.showNotificationToast(notification);
           
-          // Chiama le callback registrate
+          
           console.log('📬 Invio notifica a', this.notificationCallbacks.length, 'callbacks...');
           this.notificationCallbacks.forEach((callback, index) => {
             console.log(`📬 Esecuzione callback ${index + 1}/${this.notificationCallbacks.length}`);
@@ -219,7 +216,7 @@ export class WebSocketService {
       
       console.log('📡 Iscritto al topic:', topic);
       
-      // Subscribe anche alle offerte
+      
       const offersTopic = `/topic/offers/${user.userId}`;
       this.client.subscribe(offersTopic, (message: IMessage) => {
         try {
@@ -242,7 +239,7 @@ export class WebSocketService {
       
       console.log('📡 Iscritto al topic offerte:', offersTopic);
       
-      // Subscribe anche alle visite
+      
       const visitsTopic = `/topic/visits/${user.userId}`;
       this.client.subscribe(visitsTopic, (message: IMessage) => {
         try {
@@ -267,9 +264,9 @@ export class WebSocketService {
     });
   }
   
-  /**
-   * Mostra un toast per la notifica ricevuta
-   */
+  
+
+
   private showNotificationToast(notification: WebSocketNotification): void {
     const type = this.getToastType(notification.type);
     
@@ -282,9 +279,9 @@ export class WebSocketService {
     }
   }
   
-  /**
-   * Determina il tipo di toast in base al tipo di notifica
-   */
+  
+
+
   private getToastType(notificationType: string): 'success' | 'info' | 'warning' {
     const type = notificationType.toLowerCase();
     
@@ -297,16 +294,16 @@ export class WebSocketService {
     }
   }
   
-  /**
-   * Registra una callback per ricevere le notifiche
-   */
+  
+
+
   onNotification(callback: (notification: WebSocketNotification) => void): void {
     this.notificationCallbacks.push(callback);
   }
   
-  /**
-   * Rimuovi una callback
-   */
+  
+
+
   removeNotificationCallback(callback: (notification: WebSocketNotification) => void): void {
     const index = this.notificationCallbacks.indexOf(callback);
     if (index > -1) {

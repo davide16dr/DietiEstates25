@@ -26,7 +26,7 @@ export type ViewMode = 'grid' | 'list' | 'map';
     ViewToggleComponent,
     PropertyFiltersComponent,
     PropertyCardComponent,
-    PropertyMapComponent //  AGGIUNTO
+    PropertyMapComponent 
   ],
   templateUrl: './properties-page.component.html',
   styleUrls: ['./properties-page.component.scss'],
@@ -39,22 +39,22 @@ export class PropertiesPageComponent implements OnInit, OnDestroy {
   private phoneMq: MediaQueryList | null = null;
   private phoneMqListener: ((e: MediaQueryListEvent) => void) | null = null;
   
-  // Segnale per gli annunci caricati dal backend
+  
   listings = signal<PropertyCard[]>([]);
   
-  // Segnale per lo stato di caricamento
+  
   loading = signal<boolean>(true);
 
-  // Paginazione
+  
   readonly itemsPerPage = 6;
   currentPage = signal<number>(1);
 
-  // Segnale per mostrare/nascondere il modal di salvataggio
+  
   showSaveModal = signal<boolean>(false);
   searchName = signal<string>('');
   savingSearch = signal<boolean>(false);
 
-  // Pannello filtri su mobile
+  
   showFilters = signal<boolean>(false);
   toggleFilters() { this.showFilters.update(v => !v); }
 
@@ -83,7 +83,7 @@ export class PropertiesPageComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.initPhoneViewModeGuard();
 
-    // Leggi i query parameters dall'URL
+    
     this.route.queryParams.subscribe(params => {
       const search = params['search'];
       const mode = params['type'];
@@ -93,7 +93,7 @@ export class PropertiesPageComponent implements OnInit, OnDestroy {
       const bedrooms = params['bedrooms'] ? Number(params['bedrooms']) : null;
 
       if (search || mode || priceMin || priceMax || propertyType || bedrooms) {
-        // Aggiorna i filtri con i parametri ricevuti
+        
         this.filtersValue.update(current => ({
           ...current,
           city: search || current.city,
@@ -105,7 +105,7 @@ export class PropertiesPageComponent implements OnInit, OnDestroy {
         }));
       }
       
-      // Carica gli annunci dal backend
+      
       this.loadListings();
     });
   }
@@ -124,7 +124,7 @@ export class PropertiesPageComponent implements OnInit, OnDestroy {
     this.phoneMq = window.matchMedia(`(max-width: ${this.phoneMaxWidthPx}px)`);
 
     const apply = (isPhone: boolean) => {
-      // Su telefono: niente vista "griglia/4" => forziamo la verticale
+      
       if (isPhone && this.viewMode() === 'grid') {
         this.viewMode.set('list');
       }
@@ -147,7 +147,7 @@ export class PropertiesPageComponent implements OnInit, OnDestroy {
         console.log('📥 Risposta dal backend:', response);
         console.log('📊 Numero risultati dal backend:', response.length);
         
-        // Log dettagliato di ogni immobile
+        
         response.forEach((listing, index) => {
           console.log(`  [${index}] ${listing.title}`);
           console.log(`      Città: "${listing.city}"`);
@@ -156,7 +156,7 @@ export class PropertiesPageComponent implements OnInit, OnDestroy {
           console.log(`      Status: ${listing.status}`);
         });
         
-        // Converto i dati del backend nel formato del frontend
+        
         const properties = response.map(listing => this.mapToPropertyCard(listing));
         this.listings.set(properties);
         this.loading.set(false);
@@ -184,23 +184,23 @@ export class PropertiesPageComponent implements OnInit, OnDestroy {
         : `${listing.price.toLocaleString('it-IT')} €/mese`,
       title: listing.title,
       address: listing.address,
-      propertyType: listing.propertyType, // AGGIUNTO: tipo di proprietà dal backend
+      propertyType: listing.propertyType, 
       rooms: listing.rooms,
       area: listing.area,
       floor: listing.floor,
       energy: listing.energyClass as any,
       city: listing.city,
-      mapX: 50, // Non più necessario con coordinate reali
+      mapX: 50, 
       mapY: 50,
-      lat: listing.latitude ?? 0, // Default 0 se non disponibile
-      lng: listing.longitude ?? 0, // Default 0 se non disponibile
+      lat: listing.latitude ?? 0, 
+      lng: listing.longitude ?? 0, 
       imageUrl: listing.imageUrls && listing.imageUrls.length > 0 
         ? listing.imageUrls[0] 
-        : undefined, // ✅ AGGIUNTO: prima immagine dell'annuncio
+        : undefined, 
     };
   }
 
-  // Rimuovo i dati mockati - ora uso il segnale listings che contiene i dati dal backend
+  
   filtered = computed(() => {
     const f = this.filtersValue();
     const city = f.city.trim().toLowerCase();
@@ -211,13 +211,13 @@ export class PropertiesPageComponent implements OnInit, OnDestroy {
     });
 
     const result = this.listings().filter((p) => {
-      // Filtro per modalità (Vendita/Affitto)
+      
       if (f.mode && p.mode !== f.mode) {
         console.log(`❌ ${p.title}: mode mismatch - expected ${f.mode}, got ${p.mode}`);
         return false;
       }
 
-      // Filtro per tipo di proprietà - CONFRONTO 1 a 1
+      
       if (f.type !== 'Tutti') {
         if (p.propertyType !== f.type) {
           console.log(`❌ ${p.title}: propertyType mismatch - expected ${f.type}, got ${p.propertyType}`);
@@ -252,19 +252,19 @@ export class PropertiesPageComponent implements OnInit, OnDestroy {
     return result;
   });
 
-  // Calcola il numero totale di pagine
+  
   totalPages = computed(() => {
     return Math.ceil(this.filtered().length / this.itemsPerPage);
   });
 
-  // Annunci paginati per la pagina corrente
+  
   paginatedListings = computed(() => {
     const start = (this.currentPage() - 1) * this.itemsPerPage;
     const end = start + this.itemsPerPage;
     return this.filtered().slice(start, end);
   });
 
-  // Array delle pagine per il template
+  
   pages = computed(() => {
     const total = this.totalPages();
     return Array.from({ length: total }, (_, i) => i + 1);
@@ -307,18 +307,18 @@ export class PropertiesPageComponent implements OnInit, OnDestroy {
       label: this.mapLabelFromPrice(p.priceLabel),
       lat: p.lat,
       lng: p.lng,
-      // ✅ AGGIUNTO: Dati per l'anteprima del listing
+      
       title: p.title,
       address: `${p.address}, ${p.city}`,
       imageUrl: p.imageUrl,
       rooms: p.rooms,
       area: p.area,
-      dealType: p.mode === 'Vendita' ? 'SALE' : 'RENT' // ✅ Conversione corretta
+      dealType: p.mode === 'Vendita' ? 'SALE' : 'RENT' 
     }))
   );
 
   onChangeView(mode: ViewMode) {
-    // Su telefono: permettiamo solo Verticale o Mappa
+    
     if (this.phoneMq?.matches && mode === 'grid') {
       this.viewMode.set('list');
       return;
@@ -328,17 +328,17 @@ export class PropertiesPageComponent implements OnInit, OnDestroy {
 
   onFiltersSearch(value: PropertyFiltersValue) {
     this.filtersValue.set(value);
-    this.currentPage.set(1); // Reset alla prima pagina
-    this.loadListings(); // Ricarica gli annunci con i nuovi filtri
+    this.currentPage.set(1); 
+    this.loadListings(); 
   }
 
   onFiltersReset(value: PropertyFiltersValue) {
     this.filtersValue.set(value);
-    this.currentPage.set(1); // Reset alla prima pagina
-    this.loadListings(); // Ricarica gli annunci dopo il reset
+    this.currentPage.set(1); 
+    this.loadListings(); 
   }
 
-  // Metodi per la paginazione
+  
   goToPage(page: number) {
     if (page >= 1 && page <= this.totalPages()) {
       this.currentPage.set(page);
@@ -366,7 +366,7 @@ export class PropertiesPageComponent implements OnInit, OnDestroy {
   }
 
   openSaveSearchModal() {
-    // Verifica che l'utente sia autenticato
+    
     if (!this.authService.isAuthenticated()) {
       this.toast.warning('Accesso richiesto', 'Devi effettuare il login per salvare una ricerca');
       return;
@@ -391,7 +391,7 @@ export class PropertiesPageComponent implements OnInit, OnDestroy {
 
     this.savingSearch.set(true);
     
-    // Converti i filtri attuali in un oggetto Map per il backend
+    
     const filters = this.filtersValue();
     const filtersMap: { [key: string]: any } = {};
     

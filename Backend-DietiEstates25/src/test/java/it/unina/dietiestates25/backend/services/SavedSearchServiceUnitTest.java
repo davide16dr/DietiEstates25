@@ -82,28 +82,28 @@ class SavedSearchServiceUnitTest {
 
     static Stream<Arguments> updateSavedSearchUpdateCases() {
         return Stream.of(
-                // name blank + filters empty => unchanged
+                
                 Arguments.of(
                         "   ",
                         Map.of(),
                         "Nome originale",
                         Map.of("city", "Roma")
                 ),
-                // name non blank + filters non empty => both updated
+                
                 Arguments.of(
                         "Nuovo nome",
                         Map.of("city", "Napoli", "minPrice", 100000),
                         "Nuovo nome",
                         Map.of("city", "Napoli", "minPrice", 100000)
                 ),
-                // name non blank + filters empty => only name updated
+                
                 Arguments.of(
                         "Solo nome",
                         Map.of(),
                         "Solo nome",
                         Map.of("city", "Roma")
                 ),
-                // name blank + filters non empty => only filters updated
+                
                 Arguments.of(
                         "   ",
                         Map.of("city", "Milano"),

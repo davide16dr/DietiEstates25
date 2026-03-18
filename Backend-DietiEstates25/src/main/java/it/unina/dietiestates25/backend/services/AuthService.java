@@ -25,7 +25,7 @@ import it.unina.dietiestates25.backend.security.JwtService;
 @Service
 public class AuthService {
 
-    private static final long RESET_TOKEN_VALIDITY_SECONDS = 3600; // 1 ora
+    private static final long RESET_TOKEN_VALIDITY_SECONDS = 3600; 
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     private final AuthenticationManager authenticationManager;
@@ -50,19 +50,19 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest req) {
-        // Normalizza l'email a minuscolo
+        
         String normalizedEmail = req.getEmail().toLowerCase().trim();
         
-        // autentica con Spring Security
+        
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(normalizedEmail, req.getPassword())
         );
 
-        // carica utente
+        
         User u = userRepository.findByEmail(normalizedEmail)
                 .orElseThrow(() -> new BadCredentialsException("Bad credentials"));
 
-        // genera JWT
+        
         String token = jwtService.generateToken(u.getEmail(), Map.of(
                 "userId", u.getId().toString(),
                 "role", u.getRole().name()
@@ -73,15 +73,15 @@ public class AuthService {
 
     @Transactional
     public AuthResponse register(RegisterRequest req) {
-        // Normalizza l'email a minuscolo
+        
         String normalizedEmail = req.getEmail().toLowerCase().trim();
         
-        // Verifica se l'email esiste già
+        
         if (userRepository.existsByEmail(normalizedEmail)) {
             throw new IllegalArgumentException("Email already registered");
         }
 
-        // Crea nuovo utente
+        
         User user = new User();
         user.setId(UUID.randomUUID());
         user.setEmail(normalizedEmail);
@@ -92,10 +92,10 @@ public class AuthService {
         user.setRole(req.getRole());
         user.setActive(true);
 
-        // Salva nel database
+        
         user = userRepository.save(user);
 
-        // Genera JWT per login automatico dopo registrazione
+        
         String token = jwtService.generateToken(user.getEmail(), Map.of(
                 "userId", user.getId().toString(),
                 "role", user.getRole().name()
@@ -104,23 +104,23 @@ public class AuthService {
         return new AuthResponse(token, user.getId(), user.getEmail(), user.getRole().name(), user.getFirstName(), user.getLastName());
     }
 
-    /**
-     * Genera un token di reset e invia l'email. Per sicurezza risponde sempre con successo
-     * anche se l'email non esiste (per evitare user enumeration).
-     */
+    
+
+
+
     @Transactional
     public void requestPasswordReset(String email) {
         String normalizedEmail = email.toLowerCase().trim();
         Optional<User> userOpt = userRepository.findByEmail(normalizedEmail);
 
         if (userOpt.isEmpty()) {
-            // Non rivelare se l'email esiste o no
+            
             return;
         }
 
         User user = userOpt.get();
 
-        // Genera un token sicuro (48 byte → 64 caratteri Base64 URL-safe)
+        
         byte[] randomBytes = new byte[48];
         SECURE_RANDOM.nextBytes(randomBytes);
         String token = Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
@@ -133,9 +133,9 @@ public class AuthService {
         emailService.sendPasswordResetEmail(user.getEmail(), user.getFirstName(), resetLink);
     }
 
-    /**
-     * Verifica il token e aggiorna la password.
-     */
+    
+
+
     @Transactional
     public void resetPassword(String token, String newPassword) {
         User user = userRepository.findByResetToken(token)

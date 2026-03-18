@@ -11,7 +11,7 @@ public class LoginRequest {
     private String password;
 
     public LoginRequest() {
-        // Required by Jackson for request deserialization.
+        
     }
 
     public String getEmail() { return email; }

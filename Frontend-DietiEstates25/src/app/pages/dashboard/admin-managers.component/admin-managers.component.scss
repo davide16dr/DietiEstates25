@@ -2,7 +2,7 @@
   padding: 0;
 }
 
-// Header
+
 .header {
   display: flex;
   align-items: center;
@@ -51,7 +51,7 @@
   }
 }
 
-// Search Section
+
 .search-section {
   margin-bottom: 24px;
   display: flex;
@@ -61,7 +61,7 @@
 
 .search-box {
   position: relative;
-  flex: 1; // ✅ Occupa tutto lo spazio disponibile
+  flex: 1; 
 
   .search-icon {
     position: absolute;
@@ -96,7 +96,7 @@
   }
 }
 
-// ✅ Stile per il dropdown di filtro
+
 .filter-select {
   padding: 14px 16px;
   border: 1px solid #e5e7eb;
@@ -121,7 +121,7 @@
   }
 }
 
-// Managers List
+
 .managers-list {
   display: grid;
   gap: 16px;
@@ -254,7 +254,7 @@
   }
 }
 
-// Empty State
+
 .empty-state {
   padding: 60px 20px;
   text-align: center;
@@ -280,7 +280,7 @@
   }
 }
 
-// Stats Section
+
 .stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -333,7 +333,7 @@
   line-height: 1;
 }
 
-// Loading State
+
 .loading-state {
   display: flex;
   flex-direction: column;
@@ -364,7 +364,7 @@
   to { transform: rotate(360deg); }
 }
 
-// Error State
+
 .error-state {
   display: flex;
   flex-direction: column;
@@ -385,7 +385,7 @@
   }
 }
 
-// Responsive
+
 @media (max-width: 968px) {
   .header {
     flex-direction: column;

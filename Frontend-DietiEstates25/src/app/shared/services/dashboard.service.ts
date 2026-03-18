@@ -5,11 +5,11 @@ import { catchError, timeout } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 
 export interface Notification {
-  id: string;  // UUID dal backend
+  id: string;  
   type: 'NEW_MATCHING_LISTING' | 'PRICE_CHANGED' | 'LISTING_UPDATED' | 'LISTING_REMOVED' | 'VISIT_STATUS_CHANGED' | 'OFFER_STATUS_CHANGED';
   title: string;
-  body: string;  // Il backend usa 'body' invece di 'message'
-  read: boolean; // Il backend usa 'read' invece di 'isRead'
+  body: string;  
+  read: boolean; 
   createdAt: string;
   listingId?: string;
   listingTitle?: string;
@@ -98,7 +98,7 @@ export class DashboardService {
   private http = inject(HttpClient);
   private apiUrl = environment.apiUrl;
 
-  // Signal condiviso per il contatore notifiche non lette (usato dalla sidebar)
+  
   unreadNotificationsCount = signal<number>(0);
 
   refreshUnreadCount(): void {
@@ -190,7 +190,7 @@ export class DashboardService {
     return this.http.post<SavedSearch>(`${this.apiUrl}/client/saved-searches`, search);
   }
 
-  // ============ STATISTICS ============
+  
 
   getClientStats(): Observable<ClientStats> {
     return this.http.get<ClientStats>(`${this.apiUrl}/dashboard/client/stats`).pipe(
@@ -206,7 +206,7 @@ export class DashboardService {
     );
   }
 
-  // ============ AGENT VISITS ============
+  
 
   getAgentVisits(): Observable<Visit[]> {
     return this.http.get<Visit[]>(`${this.apiUrl}/agent/visits`).pipe(
@@ -215,7 +215,7 @@ export class DashboardService {
     );
   }
 
-  // ============ CREATE VISIT ============
+  
 
   createVisit(propertyId: string, date: string, time?: string, notes?: string): Observable<Visit> {
     let scheduledFor: string;
@@ -223,9 +223,9 @@ export class DashboardService {
     if (time) {
       scheduledFor = new Date(`${date}T${time}:00`).toISOString();
     } else {
-      // Default: 10:00 AM on the selected date, using local timezone offset
+      
       const localDate = new Date(`${date}T10:00:00`);
-      // If the resulting time is in the past, push to end of day to avoid backend rejection
+      
       if (localDate <= new Date()) {
         const tomorrow = new Date(localDate);
         tomorrow.setDate(tomorrow.getDate() + 1);
@@ -267,7 +267,7 @@ export class DashboardService {
     return this.http.patch<void>(`${this.apiUrl}/agent/visits/${id}/cancel`, { reason });
   }
 
-  // ============ NOTIFICATION PREFERENCES ============
+  
 
   getNotificationPreferences(): Observable<NotificationPreferences> {
     return this.http.get<NotificationPreferences>(`${this.apiUrl}/notifications/preferences`).pipe(

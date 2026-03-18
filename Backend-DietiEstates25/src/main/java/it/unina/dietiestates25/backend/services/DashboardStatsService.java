@@ -50,7 +50,7 @@ public class DashboardStatsService {
                 .filter(v -> v.getStatus() == VisitStatus.DONE)
                 .count();
         
-        // Count today's visits
+        
         LocalDate today = LocalDate.now();
         Instant startOfDay = today.atStartOfDay(ZoneId.systemDefault()).toInstant();
         Instant endOfDay = today.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant();
@@ -63,7 +63,7 @@ public class DashboardStatsService {
         
         long totalProperties = listingRepository.findAllByAgent_Id(agentId).size();
         
-        // Count pending offers for agent's properties
+        
         List<Listing> agentListings = listingRepository.findAllByAgent_Id(agentId);
         long pendingOffers = agentListings.stream()
                 .flatMap(listing -> offerRepository.findAllByListing_Id(listing.getId()).stream())

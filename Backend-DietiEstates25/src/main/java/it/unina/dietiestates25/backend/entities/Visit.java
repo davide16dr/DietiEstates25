@@ -45,7 +45,7 @@ public class Visit extends Auditable {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "agent_id")
-    private User agent; // ON DELETE SET NULL
+    private User agent; 
 
     @Column(name = "requested_at", nullable = false)
     private Instant requestedAt;
@@ -60,7 +60,7 @@ public class Visit extends Auditable {
     @Column(columnDefinition = "text")
     private String note;
 
-    // Costruttore vuoto richiesto da JPA.
+    
     public Visit() {
     }
 

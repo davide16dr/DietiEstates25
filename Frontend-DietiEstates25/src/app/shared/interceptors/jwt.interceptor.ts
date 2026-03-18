@@ -12,7 +12,7 @@ export class JwtInterceptor implements HttpInterceptor {
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     const token = this.auth.getToken();
 
-    // Non attaccare il token alle chiamate di login/register
+    
     const isAuthEndpoint = req.url.includes('/auth/');
 
     if (token && !isAuthEndpoint) {
