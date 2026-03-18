@@ -1,16 +1,18 @@
 version: 1
-frontend:
-  phases:
-    preBuild:
-      commands:
-        - cd Frontend-DietiEstates25 && npm ci
-    build:
-      commands:
-        - cd Frontend-DietiEstates25 && npm run build -- --configuration=production
-  artifacts:
-    baseDirectory: Frontend-DietiEstates25/dist/Frontend-DietiEstates25/browser
-    files:
-      - '**/*'
-  cache:
-    paths:
-      - Frontend-DietiEstates25/node_modules/**/*
+applications:
+  - appRoot: Frontend-DietiEstates25
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - npm ci
+        build:
+          commands:
+            - npm run build -- --configuration=production
+      artifacts:
+        baseDirectory: dist/Frontend-DietiEstates25/browser
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - node_modules/**/*
