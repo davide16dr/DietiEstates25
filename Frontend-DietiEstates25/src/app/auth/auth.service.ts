@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface LoginRequest {
   email: string;
@@ -34,8 +35,8 @@ export interface AuthResponse {
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private http = inject(HttpClient);
-  private readonly API = 'http://localhost:8080/auth'; // URL diretto per puntare al backend sulla porta 8080
-  private readonly USER_API = 'http://localhost:8080/api/users';
+  private readonly API = `${environment.apiUrl.replace('/api', '')}/auth`;
+  private readonly USER_API = `${environment.apiUrl}/users`;
 
   private currentUserSubject = new BehaviorSubject<AuthResponse | null>(null);
   currentUser$ = this.currentUserSubject.asObservable();

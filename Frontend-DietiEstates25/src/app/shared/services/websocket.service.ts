@@ -3,6 +3,7 @@ import { Client, IMessage } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { AuthService } from '../../auth/auth.service';
 import { ToastService } from './toast.service';
+import { environment } from '../../../environments/environment';
 
 export interface WebSocketNotification {
   id: string;
@@ -58,9 +59,13 @@ export class WebSocketService {
     
     console.log('🔌 Connessione WebSocket in corso...');
     
+    // Usa l'URL dal file di ambiente
+    const wsUrl = environment.apiUrl.replace('/api', '') + '/ws';
+    console.log('🔌 URL WebSocket:', wsUrl);
+    
     // Crea il client STOMP
     this.client = new Client({
-      webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
+      webSocketFactory: () => new SockJS(wsUrl),
       
       connectHeaders: {
         Authorization: `Bearer ${token}`

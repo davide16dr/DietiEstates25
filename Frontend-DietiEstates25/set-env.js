@@ -10,7 +10,7 @@ const indexHtmlPath = './src/index.html';
 const envConfigFile = `export const environment = {
   production: false,
   googleMapsApiKey: '${process.env.GOOGLE_MAPS_API_KEY}',
-  apiUrl: 'http://localhost:8080/api',
+  apiUrl: '${process.env.API_URL}',
   
   // OAuth Configuration
   oauth: {

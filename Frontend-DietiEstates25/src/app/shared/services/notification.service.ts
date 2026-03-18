@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { ToastService } from './toast.service';
 import { AuthService } from '../../auth/auth.service';
 import { WebSocketService } from './websocket.service';
+import { environment } from '../../../environments/environment';
 
 export interface Notification {
   id: string;
@@ -25,7 +26,7 @@ export class NotificationService {
   private authService = inject(AuthService);
   private websocketService = inject(WebSocketService);
   
-  private apiUrl = 'http://localhost:8080/api/notifications';
+  private apiUrl = `${environment.apiUrl}/notifications`;
   
   // Signal per le notifiche
   notifications = signal<Notification[]>([]);

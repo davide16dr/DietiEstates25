@@ -2,12 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { SavedSearch, SavedSearchDTO } from '../models/SavedSearch';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SavedSearchService {
-  private readonly API = 'http://localhost:8080/api/saved-searches';
+  private readonly API = `${environment.apiUrl}/saved-searches`;
 
   constructor(private http: HttpClient) {}
 

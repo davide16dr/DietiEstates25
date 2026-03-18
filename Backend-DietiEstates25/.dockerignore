@@ -1,0 +1,47 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDEs
+.idea
+.vscode
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Build artifacts
+target
+*.class
+*.jar
+*.war
+
+# Node (se presente)
+node_modules
+npm-debug.log
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Uploads (non necessari in produzione)
+uploads
+
+# Maven
+.m2
+mvn.log
+
+# Test reports
+coverage
+*.coverage
+

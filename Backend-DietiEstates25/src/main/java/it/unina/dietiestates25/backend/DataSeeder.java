@@ -54,6 +54,16 @@ public class DataSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+        try {
+            runSeeding();
+        } catch (Exception e) {
+            // Se le tabelle non esistono ancora, skip il seeding
+            // Hibernate le creerà al prossimo avvio
+            System.out.println("⚠️ Seeding saltato (tabelle non ancora create): " + e.getMessage());
+        }
+    }
+
+    private void runSeeding() {
         // ========== CREAZIONE UTENTI DI TEST (sempre eseguita) ==========
         
         // Crea o ottieni l'agenzia PRIMA di creare gli utenti

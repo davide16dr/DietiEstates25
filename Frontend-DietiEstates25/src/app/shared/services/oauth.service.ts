@@ -16,7 +16,7 @@ export class OAuthService {
   private http = inject(HttpClient);
   private authService = inject(AuthService);
 
-  private readonly BACKEND_URL = 'http://localhost:8080/auth/oauth';
+  private readonly BACKEND_URL = `${environment.apiUrl.replace('/api', '')}/auth/oauth`;
 
   // ✅ CORRETTO: Legge da environment.ts invece di (window as any).__env
   private readonly GOOGLE_CLIENT_ID  = environment.oauth?.google?.clientId ?? '';

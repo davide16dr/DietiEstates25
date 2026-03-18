@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { PropertyFiltersValue } from '../models/Property';
+import { environment } from '../../../environments/environment';
 
 export interface ListingResponse {
   id: string;
@@ -50,7 +51,7 @@ export interface ListingFilterRequest {
   providedIn: 'root'
 })
 export class ListingService {
-  private readonly API = 'http://localhost:8080/api/listings';
+  private readonly API = `${environment.apiUrl}/listings`;
 
   constructor(private http: HttpClient) {}
 

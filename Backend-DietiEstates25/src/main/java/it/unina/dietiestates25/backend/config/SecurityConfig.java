@@ -52,7 +52,14 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:4200"));
+        // Permetti sia localhost che gli ambienti su AWS
+        configuration.setAllowedOrigins(List.of(
+            "http://localhost:4200",
+            "http://localhost:3000",
+            "https://d1k0s1b2zzl0qx.cloudfront.net",
+            "https://dietiestates25-amplify.web.app",
+            "http://dietiestates25-2-env.eba-kzrqphfm.eu-south-1.elasticbeanstalk.com"
+        ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With"));
         configuration.setAllowCredentials(true);
@@ -86,8 +93,8 @@ public class SecurityConfig {
                     "/v3/api-docs/**",
                     "/swagger-ui/**",
                     "/swagger-ui.html",
-                    "/ws/**",  // 🔌 Permetti connessioni WebSocket
-                    "/uploads/**"  // 📸 Permetti accesso pubblico alle immagini
+                    "/ws/**",
+                    "/uploads/**"
                 ).permitAll()
                 // Endpoint pubblici solo GET per listings
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/listings", "/api/listings/search", API_LISTINGS_WILDCARD).permitAll()

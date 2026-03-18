@@ -1,0 +1,23 @@
+{
+  "AWSEBDockerrunVersion": "1",
+  "Image": {
+    "Name": "dietiestates25-backend:latest",
+    "Update": "true"
+  },
+  "Ports": [
+    {
+      "ContainerPort": 8080,
+      "HostPort": 80
+    }
+  ],
+  "Environment": {
+    "JAVA_OPTS": "-Xmx512m -Xms256m -XX:+UseG1GC",
+    "SERVER_PORT": "8080",
+    "SPRING_PROFILES_ACTIVE": "production",
+    "DB_URL": "jdbc:postgresql://database-1.c9ucuikq0yr1.eu-south-1.rds.amazonaws.com:5432/postgres",
+    "DB_USERNAME": "dietiestatesDM",
+    "AWS_REGION": "eu-south-1",
+    "AWS_SECRETS_MANAGER_ENABLED": "false"
+  },
+  "Logging": "/var/log/eb-docker.log"
+}

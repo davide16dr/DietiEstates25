@@ -1,12 +1,12 @@
 {
   "/auth": {
-    "target": "http://localhost:8080",
+    "target": "http://dietiestates25-2-env.eba-kzrqphfm.eu-south-1.elasticbeanstalk.com",
     "secure": false,
     "logLevel": "debug",
     "changeOrigin": true
   },
   "/api": {
-    "target": "http://localhost:8080",
+    "target": "http://dietiestates25-2-env.eba-kzrqphfm.eu-south-1.elasticbeanstalk.com",
     "secure": false,
     "logLevel": "debug",
     "changeOrigin": true

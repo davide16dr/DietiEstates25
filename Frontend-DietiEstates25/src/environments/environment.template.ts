@@ -4,7 +4,7 @@
 export const environment = {
   production: false,
   googleMapsApiKey: 'YOUR_GOOGLE_MAPS_API_KEY_HERE',
-  apiUrl: 'http://localhost:8080/api',
+  apiUrl: 'http://dietiestates25-2-env.eba-kzrqphfm.eu-south-1.elasticbeanstalk.com/api',
   
   // OAuth Configuration
   oauth: {

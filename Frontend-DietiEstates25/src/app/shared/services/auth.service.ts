@@ -1,6 +1,7 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface LoginRequest {
   email: string;
@@ -40,7 +41,7 @@ export interface AuthResponse {
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private http = inject(HttpClient);
-  private readonly API = 'http://localhost:8080/auth';
+  private readonly API = `${environment.apiUrl.replace('/api', '')}/auth`;
 
   // Uso signals invece di BehaviorSubject
   private currentUserSignal = signal<AuthResponse | null>(null);
@@ -177,7 +178,7 @@ export class AuthService {
   }
 
   changePassword(userId: string, data: { oldPassword: string; newPassword: string }): Observable<any> {
-    return this.http.put(`http://localhost:8080/api/users/${userId}/password`, data);
+    return this.http.put(`${environment.apiUrl}/users/${userId}/password`, data);
   }
 
   forgotPassword(email: string): Observable<{ message: string }> {
