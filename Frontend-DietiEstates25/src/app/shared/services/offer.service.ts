@@ -111,10 +111,11 @@ export class OfferService {
 
 
   acceptCounterOffer(offerId: string): Observable<void> {
-    return this.http.patch<void>(`${this.apiUrl}/client/offers/${offerId}/accept-counter`, { accepted: true }).pipe(
+    console.log('✅ acceptCounterOffer - ID:', offerId);
+    return this.http.patch<void>(`${this.apiUrl}/client/offers/${offerId}/accept-counter`, null).pipe(
       timeout(5000),
       catchError((error) => {
-        console.error('Error accepting counter offer:', error);
+        console.error('❌ Error accepting counter offer:', error);
         throw error;
       })
     );
@@ -141,10 +142,11 @@ export class OfferService {
 
 
   withdrawOffer(offerId: string): Observable<void> {
-    return this.http.patch<void>(`${this.apiUrl}/client/offers/${offerId}/withdraw`, { withdrawn: true }).pipe(
+    console.log('🔙 withdrawOffer - ID:', offerId);
+    return this.http.patch<void>(`${this.apiUrl}/client/offers/${offerId}/withdraw`, null).pipe(
       timeout(5000),
       catchError((error) => {
-        console.error('Error withdrawing offer:', error);
+        console.error('❌ Error withdrawing offer:', error);
         throw error;
       })
     );
@@ -183,10 +185,13 @@ export class OfferService {
 
 
   acceptOffer(offerId: string): Observable<void> {
-    return this.http.patch<void>(`${this.apiUrl}/agent/offers/${offerId}/accept`, { accepted: true }).pipe(
+    console.log('✅ acceptOffer - ID:', offerId);
+    return this.http.patch<void>(`${this.apiUrl}/agent/offers/${offerId}/accept`, null).pipe(
       timeout(5000),
       catchError((error) => {
-        console.error('Error accepting offer:', error);
+        console.error('❌ Error accepting offer:', error);
+        console.error('   Status:', error.status);
+        console.error('   StatusText:', error.statusText);
         throw error;
       })
     );
@@ -197,12 +202,19 @@ export class OfferService {
 
   rejectOffer(offerId: string, reason?: string): Observable<void> {
     const body = {
-      reason: reason || 'Offerta non idonea' // Invia sempre un reason valido
+      reason: reason || 'Offerta non idonea'
     };
+    console.log('🔴 rejectOffer - ID:', offerId);
+    console.log('📋 Body:', JSON.stringify(body));
+    console.log('🌐 URL:', `${this.apiUrl}/agent/offers/${offerId}/reject`);
+    
     return this.http.patch<void>(`${this.apiUrl}/agent/offers/${offerId}/reject`, body).pipe(
       timeout(5000),
       catchError((error) => {
-        console.error('Error rejecting offer:', error);
+        console.error('❌ Error rejecting offer:', error);
+        console.error('   Status:', error.status);
+        console.error('   StatusText:', error.statusText);
+        console.error('   Message:', error.message);
         throw error;
       })
     );
