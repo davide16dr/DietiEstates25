@@ -187,7 +187,6 @@
 					<artifactId>maven-surefire-plugin</artifactId>
 					<version>3.5.4</version>
 					<configuration>
-						<jvm>/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home/bin/java</jvm>
 						<argLine>${jacoco.agent.argLine} -Dfile.encoding=UTF-8</argLine>
 					</configuration>
 				</plugin>
