@@ -29,13 +29,13 @@ public class EmailService {
         this.mailSender = mailSender;
     }
 
-    /**
-     * Invia un'email di conferma registrazione aziendale con password provvisoria
-     */
+    
+
+
     public void sendBusinessRegistrationConfirmation(String toEmail, String companyName, 
                                                       String firstName, String lastName, 
                                                       String temporaryPassword) {
-        // Se l'invio email è disabilitato, mostra il messaggio in console
+        
         if (!emailEnabled) {
             log.info(DEV_DISABLED_PREFIX);
             log.info(LOG_TO_PREFIX, toEmail);
@@ -64,14 +64,14 @@ public class EmailService {
         }
     }
 
-    /**
-     * Invia un'email di benvenuto a un nuovo agente con le credenziali di accesso
-     */
+    
+
+
     public void sendAgentCreationConfirmation(String toEmail, String agencyName,
                                                String firstName, String lastName,
                                                String temporaryPassword,
                                                String createdByName) {
-        // Se l'invio email è disabilitato, mostra il messaggio in console
+        
         if (!emailEnabled) {
             log.info(DEV_DISABLED_PREFIX);
             log.info(LOG_TO_PREFIX, toEmail);
@@ -100,14 +100,14 @@ public class EmailService {
         }
     }
 
-    /**
-     * Invia un'email di benvenuto a un nuovo gestore con le credenziali di accesso
-     */
+    
+
+
     public void sendManagerCreationConfirmation(String toEmail, String agencyName,
                                                  String firstName, String lastName,
                                                  String temporaryPassword,
                                                  String createdByName) {
-        // Se l'invio email è disabilitato, mostra il messaggio in console
+        
         if (!emailEnabled) {
             log.info(DEV_DISABLED_PREFIX);
             log.info(LOG_TO_PREFIX, toEmail);
@@ -136,9 +136,9 @@ public class EmailService {
         }
     }
 
-    /**
-     * Invia un'email con il link per il reset della password
-     */
+    
+
+
     public void sendPasswordResetEmail(String toEmail, String firstName, String resetLink) {
         if (!emailEnabled) {
             log.info(DEV_DISABLED_PREFIX);

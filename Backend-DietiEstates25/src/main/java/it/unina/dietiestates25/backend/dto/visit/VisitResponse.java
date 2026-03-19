@@ -19,12 +19,12 @@ public class VisitResponse {
     private String status;
     private String note;
     
-    // Formatted fields for frontend
+    
     private String scheduledDate;
     private String scheduledTime;
     private String listingId;
 
-    // Costruttore vuoto richiesto da Jackson per la deserializzazione.
+    
     public VisitResponse() {
     }
 

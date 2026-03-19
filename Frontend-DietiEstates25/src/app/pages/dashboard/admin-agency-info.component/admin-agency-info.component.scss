@@ -2,7 +2,7 @@
   padding: 0;
 }
 
-// Header
+
 .header {
   margin-bottom: 32px;
 
@@ -21,7 +21,7 @@
   }
 }
 
-// Info Card
+
 .info-card {
   background: #fff;
   border: 1px solid #e5e7eb;
@@ -64,7 +64,7 @@
   padding: 32px 24px;
 }
 
-// Form Grid - Layout a 2 colonne
+
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -125,7 +125,7 @@
   }
 }
 
-// Form Actions
+
 .form-actions {
   display: flex;
   justify-content: flex-end;
@@ -158,7 +158,7 @@
   }
 }
 
-// Responsive
+
 @media (max-width: 768px) {
   .info-card {
     max-width: 100%;
@@ -179,7 +179,7 @@
   }
 }
 
-// Toast Notification - Moderno e Animato 🎨
+
 .toast-notification {
   position: fixed;
   top: 24px;
@@ -272,7 +272,7 @@
   }
 }
 
-// Animazioni
+
 @keyframes slideInRight {
   from {
     opacity: 0;
@@ -295,7 +295,7 @@
   }
 }
 
-// Toast responsive
+
 @media (max-width: 480px) {
   .toast-notification {
     left: 16px;

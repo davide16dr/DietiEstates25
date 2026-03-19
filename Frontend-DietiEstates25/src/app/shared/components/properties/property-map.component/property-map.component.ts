@@ -8,7 +8,7 @@ export interface MapMarkerData {
   label: string;
   lat: number;
   lng: number;
-  // ✅ AGGIUNTO: Dati per l'anteprima
+  
   title?: string;
   address?: string;
   imageUrl?: string;
@@ -35,10 +35,10 @@ export class PropertyMapComponent {
   center = signal<google.maps.LatLngLiteral>({ lat: 45.4642, lng: 9.19 });
   zoom = signal(6);
   
-  // ✅ Signal per verificare se Google Maps è caricato
+  
   isGoogleMapsLoaded = signal(false);
   
-  // ✅ Signal per tenere traccia del marker selezionato
+  
   selectedMarker = signal<MapMarkerData | null>(null);
 
   mapOptions: google.maps.MapOptions = {
@@ -49,9 +49,9 @@ export class PropertyMapComponent {
     clickableIcons: false,
   };
 
-  // ✅ AGGIUNTO: Effect per centrare automaticamente la mappa quando cambiano i marker
+  
   constructor() {
-    // ✅ Carica Google Maps dinamicamente usando il servizio
+    
     this.mapsLoader.load().then(() => {
       this.isGoogleMapsLoaded.set(true);
     }).catch(error => {
@@ -61,15 +61,15 @@ export class PropertyMapComponent {
     effect(() => {
       const markers = this.markers();
       if (markers.length === 1) {
-        // Se c'è un solo marker, centra la mappa su di esso
+        
         this.center.set({ lat: markers[0].lat, lng: markers[0].lng });
-        this.zoom.set(5); // ✅ Zoom minimo - mostra tutta la regione e zone limitrofe
+        this.zoom.set(5); 
       } else if (markers.length > 1) {
-        // Se ci sono più marker, calcola il centro medio
+        
         const avgLat = markers.reduce((sum, m) => sum + m.lat, 0) / markers.length;
         const avgLng = markers.reduce((sum, m) => sum + m.lng, 0) / markers.length;
         this.center.set({ lat: avgLat, lng: avgLng });
-        this.zoom.set(8); // ✅ Zoom ridotto per più marker
+        this.zoom.set(8); 
       }
     });
   }
@@ -98,13 +98,13 @@ export class PropertyMapComponent {
     this.fitToMarkers(map);
   }
 
-  // ✅ Metodo per aprire l'InfoWindow quando clicchi su un marker
+  
   openInfoWindow(marker: MapMarkerData, mapMarker: MapMarker) {
     this.selectedMarker.set(marker);
     this.infoWindow.open(mapMarker);
   }
 
-  // ✅ Metodo per navigare alla pagina di dettaglio
+  
   openPropertyDetail() {
     const marker = this.selectedMarker();
     console.log('openPropertyDetail chiamato', marker);

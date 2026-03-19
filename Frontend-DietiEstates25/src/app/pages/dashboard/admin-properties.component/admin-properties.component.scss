@@ -2,7 +2,7 @@
   padding: 0;
 }
 
-// Header
+
 .header {
   margin-bottom: 32px;
 
@@ -21,7 +21,7 @@
   }
 }
 
-// Stats
+
 .stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -74,7 +74,7 @@
   font-weight: 600;
 }
 
-// Filters
+
 .filters {
   display: flex;
   gap: 16px;
@@ -137,7 +137,7 @@
   }
 }
 
-// Properties Grid
+
 .properties-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
@@ -319,7 +319,7 @@
   }
 }
 
-// Empty State
+
 .empty-state {
   grid-column: 1 / -1;
   padding: 60px 20px;
@@ -346,7 +346,7 @@
   }
 }
 
-// Loading State
+
 .loading-state {
   grid-column: 1 / -1;
   padding: 60px 20px;
@@ -379,7 +379,7 @@
   }
 }
 
-// Error Alert
+
 .error-alert {
   display: flex;
   align-items: center;
@@ -399,7 +399,7 @@
   }
 }
 
-// Responsive
+
 @media (max-width: 768px) {
   .filters {
     flex-direction: column;

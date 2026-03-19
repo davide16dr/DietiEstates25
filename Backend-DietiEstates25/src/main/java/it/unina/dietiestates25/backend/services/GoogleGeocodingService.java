@@ -23,9 +23,9 @@ public class GoogleGeocodingService {
         this.restTemplate = new RestTemplate();
     }
 
-    /**
-     * Converte un indirizzo in coordinate geografiche (lat, lng)
-     */
+    
+
+
     public GeocodingResult geocodeAddress(String address) {
         if (address == null || address.trim().isEmpty()) {
             log.warn("Indirizzo vuoto fornito al geocoding");
@@ -63,7 +63,7 @@ public class GoogleGeocodingService {
                 return null;
             }
 
-            // Prendi il primo risultato (il più rilevante)
+            
             Map<String, Object> firstResult = results.get(0);
             Map<String, Object> geometry = (Map<String, Object>) firstResult.get("geometry");
             Map<String, Object> location = (Map<String, Object>) geometry.get("location");
@@ -82,10 +82,10 @@ public class GoogleGeocodingService {
         }
     }
 
-    /**
-     * Trova immobili nelle vicinanze di un indirizzo specifico
-     * Restituisce le coordinate per poi filtrare nel database
-     */
+    
+
+
+
     public BoundsResult getBoundsForAddress(String address, double radiusKm) {
         GeocodingResult geocoding = geocodeAddress(address);
         
@@ -93,9 +93,9 @@ public class GoogleGeocodingService {
             return null;
         }
 
-        // Calcola i bounds (rettangolo) basato sul raggio in km
-        // 1 grado di latitudine ≈ 111 km
-        // 1 grado di longitudine ≈ 111 km * cos(latitudine)
+        
+        
+        
         
         double latDelta = radiusKm / 111.0;
         double lngDelta = radiusKm / (111.0 * Math.cos(Math.toRadians(geocoding.latitude())));
@@ -119,11 +119,11 @@ public class GoogleGeocodingService {
         );
     }
 
-    /**
-     * Calcola la distanza tra due coordinate (in km) usando la formula di Haversine
-     */
+    
+
+
     public double calculateDistance(double lat1, double lng1, double lat2, double lng2) {
-        final double R = 6371; // Raggio della Terra in km
+        final double R = 6371; 
 
         double latDistance = Math.toRadians(lat2 - lat1);
         double lngDistance = Math.toRadians(lng2 - lng1);
@@ -134,17 +134,17 @@ public class GoogleGeocodingService {
         
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         
-        return R * c; // Distanza in km
+        return R * c; 
     }
 
-    // Record per il risultato del geocoding
+    
     public record GeocodingResult(
         double latitude,
         double longitude,
         String formattedAddress
     ) {}
 
-    // Record per i bounds di ricerca
+    
     public record BoundsResult(
         double centerLat,
         double centerLng,

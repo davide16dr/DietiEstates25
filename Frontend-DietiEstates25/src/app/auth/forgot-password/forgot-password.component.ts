@@ -39,7 +39,7 @@ export class ForgotPasswordComponent {
       .pipe(finalize(() => this.isSubmitting.set(false)))
       .subscribe({
         next: () => this.submitted.set(true),
-        error: () => this.submitted.set(true), // non rivelare se l'email esiste
+        error: () => this.submitted.set(true), 
       });
   }
 }

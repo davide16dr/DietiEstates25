@@ -49,7 +49,7 @@ public class NotificationPreferences {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
-    // Costruttore vuoto richiesto da JPA.
+    
     public NotificationPreferences() {
     }
 

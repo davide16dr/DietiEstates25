@@ -10,8 +10,8 @@ import { AuthService } from '../../../auth/auth.service';
 import { MakeOfferModalComponent, MakeOfferPayload } from '../make-offer-modal.component/make-offer-modal.component';
 import { BookVisitModalComponent, BookVisitPayload } from '../book-visit-modal.component/book-visit-modal.component';
 import { ImageLightboxComponent } from '../../../shared/components/image-lightbox.component/image-lightbox.component';
-import { PropertyMapComponent, MapMarkerData } from '../../../shared/components/properties/property-map.component/property-map.component'; // ✅ AGGIUNTO
-import { environment } from '../../../../environments/environment'; // ✅ AGGIUNTO: Import environment
+import { PropertyMapComponent, MapMarkerData } from '../../../shared/components/properties/property-map.component/property-map.component'; 
+import { environment } from '../../../../environments/environment'; 
 
 type DealType = 'Vendita' | 'Affitto';
 type Availability = 'Disponibile' | 'Non disponibile';
@@ -35,7 +35,7 @@ type PropertyDetail = {
   rentPerMonth?: number; 
 
   rooms: number;
-  bathrooms?: number;  // ✅ AGGIUNTO campo bagni
+  bathrooms?: number;  
   areaMq: number;
   floorLabel: string;    
   energyClass: string;   
@@ -54,7 +54,7 @@ type PropertyDetail = {
 
   images: string[];
   
-  // ✅ AGGIUNTO: Coordinate geografiche per la mappa
+  
   latitude?: number;
   longitude?: number;
 };
@@ -62,7 +62,7 @@ type PropertyDetail = {
 @Component({
   selector: 'app-property-detail-page',
   standalone: true,
-  imports: [CommonModule, RouterModule, MakeOfferModalComponent, BookVisitModalComponent, ImageLightboxComponent, PropertyMapComponent], // ✅ AGGIUNTO PropertyMapComponent
+  imports: [CommonModule, RouterModule, MakeOfferModalComponent, BookVisitModalComponent, ImageLightboxComponent, PropertyMapComponent], 
   templateUrl: './property-detail.page.html',
   styleUrls: ['./property-detail.page.scss'],
 })
@@ -70,13 +70,13 @@ export class PropertyDetailPage implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private location = inject(Location);
-  private sanitizer = inject(DomSanitizer); // ✅ AGGIUNTO: DomSanitizer per URL sicuri
+  private sanitizer = inject(DomSanitizer); 
   private listingService = inject(ListingService);
   private offerService = inject(OfferService);
   private dashboardService = inject(DashboardService);
   private toast = inject(ToastService);
   private authService = inject(AuthService);
-  private cdr = inject(ChangeDetectorRef); // ✅ AGGIUNTO: ChangeDetectorRef
+  private cdr = inject(ChangeDetectorRef); 
 
   get isAuthenticated(): boolean {
     return this.authService.isAuthenticated();
@@ -88,10 +88,10 @@ export class PropertyDetailPage implements OnInit {
   submittingOffer = signal(false);
   submittingVisit = signal(false);
   
-  // Gestione carosello immagini
+  
   currentImageIndex = signal(0);
 
-  // TODO: da sostituire
+  
   private mock: PropertyDetail = {
     id: '1',
     dealType: 'Vendita',
@@ -123,21 +123,21 @@ export class PropertyDetailPage implements OnInit {
 
   property = signal<PropertyDetail>(this.mock);
 
-  // Computed per immagine corrente
+  
   currentImage = computed(() => {
     const images = this.property().images;
     const index = this.currentImageIndex();
     return images && images.length > 0 ? images[index] : null;
   });
 
-  // Computed per contatore immagini
+  
   imageCounter = computed(() => {
     const images = this.property().images;
     const index = this.currentImageIndex();
     return images && images.length > 0 ? `${index + 1} / ${images.length}` : '';
   });
 
-  // Naviga alla prossima immagine
+  
   nextImage(): void {
     const images = this.property().images;
     if (images && images.length > 0) {
@@ -146,7 +146,7 @@ export class PropertyDetailPage implements OnInit {
     }
   }
 
-  // Naviga all'immagine precedente
+  
   previousImage(): void {
     const images = this.property().images;
     if (images && images.length > 0) {
@@ -156,7 +156,7 @@ export class PropertyDetailPage implements OnInit {
     }
   }
 
-  // Vai a un'immagine specifica
+  
   goToImage(index: number): void {
     this.currentImageIndex.set(index);
   }
@@ -175,7 +175,7 @@ export class PropertyDetailPage implements OnInit {
         price: l.price ?? 0,
         rentPerMonth: l.type === 'RENT' ? l.price : undefined,
         rooms: l.rooms ?? 0,
-        bathrooms: l.bathrooms,  // ✅ AGGIUNTO mapping bagni
+        bathrooms: l.bathrooms,  
         areaMq: l.area ?? 0,
         floorLabel: l.floor != null ? `Piano ${l.floor}` : '—',
         energyClass: l.energyClass ?? '-',
@@ -190,7 +190,7 @@ export class PropertyDetailPage implements OnInit {
           initials: this.getInitials(l.agentName)
         },
         images: Array.isArray(l.imageUrls) && l.imageUrls.length ? l.imageUrls : [],
-        // ✅ AGGIUNTO: Coordinate geografiche
+        
         latitude: l.latitude,
         longitude: l.longitude
       };
@@ -203,12 +203,12 @@ export class PropertyDetailPage implements OnInit {
     const id = this.propertyId();
     if (!id) return;
 
-    // Richiesta tramite service
+    
     this.listingService.getById(id).subscribe({
       next: (l: any) => {
         if (!l) return;
         
-        // ✅ DEBUG: Log delle coordinate ricevute dal backend
+        
         console.log('🗺️ === DEBUG COORDINATE MAPPA ===');
         console.log('📍 Immobile:', l.title);
         console.log('📍 Indirizzo:', l.address, l.city);
@@ -219,12 +219,12 @@ export class PropertyDetailPage implements OnInit {
         
         const dto = this.mapListingToPropertyDetail(l);
         
-        // ✅ Usa setTimeout per evitare ExpressionChangedAfterItHasBeenCheckedError
+        
         setTimeout(() => {
           this.property.set(dto);
         }, 0);
         
-        // ✅ DEBUG: Log del marker che verrà mostrato
+        
         console.log('🎯 Marker sulla mappa:', {
           lat: dto.latitude,
           lng: dto.longitude,
@@ -248,7 +248,7 @@ export class PropertyDetailPage implements OnInit {
       price: l.price ?? 0,
       rentPerMonth: l.type === 'RENT' ? l.price : undefined,
       rooms: l.rooms ?? 0,
-      bathrooms: l.bathrooms,  // ✅ AGGIUNTO mapping bagni
+      bathrooms: l.bathrooms,  
       areaMq: l.area ?? 0,
       floorLabel: l.floor != null ? `Piano ${l.floor}` : '—',
       energyClass: l.energyClass ?? '-',
@@ -263,7 +263,7 @@ export class PropertyDetailPage implements OnInit {
         initials: this.getInitials(l.agentName)
       },
       images: Array.isArray(l.imageUrls) && l.imageUrls.length ? l.imageUrls : [],
-      // ✅ AGGIUNTO: Coordinate geografiche
+      
       latitude: l.latitude,
       longitude: l.longitude
     };
@@ -367,7 +367,7 @@ export class PropertyDetailPage implements OnInit {
 
   onOfferSubmitted(payload: MakeOfferPayload): void {
     const property = this.property();
-    const propertyId = property.id; // Non convertiamo più in numero, manteniamo come stringa UUID
+    const propertyId = property.id; 
 
     if (!propertyId) {
       this.toast.error('ID non valido', 'ID proprietà non valido');
@@ -377,12 +377,12 @@ export class PropertyDetailPage implements OnInit {
     this.submittingOffer.set(true);
 
     const offerRequest: OfferRequest = {
-      propertyId: propertyId, // Invia come stringa UUID
+      propertyId: propertyId, 
       amount: payload.amount,
       message: payload.notes
     };
 
-    // DEBUG: Log per vedere cosa stiamo inviando
+    
     console.log('🔍 Sending offer request:', offerRequest);
     console.log('Property ID:', propertyId);
     console.log('Amount:', payload.amount);
@@ -407,7 +407,7 @@ export class PropertyDetailPage implements OnInit {
         console.error('Error details:', error.error);
         console.error('Status:', error.status);
         
-        // Handle specific error cases
+        
         if (error.status === 409) {
           this.toast.warning('Offerta già inviata', 'Hai già inviato un\'offerta per questa proprietà.');
         } else if (error.status === 400) {
@@ -431,14 +431,14 @@ export class PropertyDetailPage implements OnInit {
     return value.toLocaleString('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
   }
 
-  // ✅ Computed per verificare se ci sono coordinate valide
+  
   hasValidCoordinates = computed(() => {
     const p = this.property();
     return p.latitude != null && p.longitude != null && 
            p.latitude !== 0 && p.longitude !== 0;
   });
 
-  // ✅ Computed per i marker della mappa (per PropertyMapComponent)
+  
   mapMarkers = computed((): MapMarkerData[] => {
     const p = this.property();
     if (!this.hasValidCoordinates()) return [];
@@ -448,39 +448,39 @@ export class PropertyDetailPage implements OnInit {
       label: this.priceLabel(),
       lat: p.latitude!,
       lng: p.longitude!,
-      // ✅ AGGIUNTO: Dati per l'anteprima del listing
+      
       title: p.title,
       address: `${p.address}, ${p.city}`,
       imageUrl: p.images && p.images.length > 0 ? p.images[0] : undefined,
       rooms: p.rooms,
       area: p.areaMq,
-      dealType: p.dealType === 'Vendita' ? 'SALE' : 'RENT' // ✅ Conversione corretta
+      dealType: p.dealType === 'Vendita' ? 'SALE' : 'RENT' 
     }];
   });
 
-  // ✅ Metodo per aprire Google Maps in una nuova scheda
+  
   openInGoogleMaps(): void {
     const p = this.property();
     if (this.hasValidCoordinates()) {
       const url = `https://www.google.com/maps/search/?api=1&query=${p.latitude},${p.longitude}`;
       window.open(url, '_blank');
     } else {
-      // Fallback: cerca per indirizzo
+      
       const query = encodeURIComponent(`${p.address}, ${p.city}, Italia`);
       const url = `https://www.google.com/maps/search/?api=1&query=${query}`;
       window.open(url, '_blank');
     }
   }
 
-  // ✅ Computed per l'URL della mappa embed (sicuro)
+  
   mapEmbedUrl = computed((): SafeResourceUrl => {
     const p = this.property();
     if (this.hasValidCoordinates()) {
-      // Usa le coordinate per centrare la mappa con zoom ridotto
+      
       const url = `https://www.google.com/maps/embed/v1/place?key=${environment.googleMapsApiKey}&q=${p.latitude},${p.longitude}&zoom=5&language=it`;
       return this.sanitizer.bypassSecurityTrustResourceUrl(url);
     } else {
-      // Fallback: cerca per indirizzo con zoom ridotto
+      
       const query = encodeURIComponent(`${p.address}, ${p.city}, Italia`);
       const url = `https://www.google.com/maps/embed/v1/place?key=${environment.googleMapsApiKey}&q=${query}&zoom=5&language=it`;
       return this.sanitizer.bypassSecurityTrustResourceUrl(url);

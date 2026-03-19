@@ -23,7 +23,7 @@ export class HomepageComponent implements AfterViewInit, OnDestroy {
   searchQuery = signal('');
   contractType = signal<'sale' | 'rent' | null>(null);
 
-  // Autocomplete per ricerca immediata
+  
   searchSuggestions: PlacePrediction[] = [];
   showSearchSuggestions = false;
   private searchSubject = new Subject<string>();
@@ -43,10 +43,10 @@ export class HomepageComponent implements AfterViewInit, OnDestroy {
   ];
 
   constructor() {
-    // Configura l'autocomplete immediato per la barra di ricerca
+    
     this.searchSubject
       .pipe(
-        debounceTime(200), // Risposta più rapida per la homepage
+        debounceTime(200), 
         distinctUntilChanged(),
         switchMap(input => this.googlePlacesService.getAddressSuggestions(input))
       )
@@ -57,7 +57,7 @@ export class HomepageComponent implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    // Listener per chiudere i suggerimenti quando si clicca fuori
+    
     document.addEventListener('click', this.handleClickOutside.bind(this));
   }
 
@@ -79,12 +79,12 @@ export class HomepageComponent implements AfterViewInit, OnDestroy {
   }
 
   selectSuggestion(prediction: PlacePrediction): void {
-    // ✅ USA SOLO IL NOME DELLA CITTÀ (main_text) invece della descrizione completa
+    
     this.searchQuery.set(prediction.structured_formatting.main_text);
     this.searchSuggestions = [];
     this.showSearchSuggestions = false;
     
-    // Esegui automaticamente la ricerca
+    
     this.onSearch();
   }
 
@@ -98,7 +98,7 @@ export class HomepageComponent implements AfterViewInit, OnDestroy {
   }
 
   selectType(type: 'sale' | 'rent'): void {
-    // Toggle: se già selezionato, deseleziona
+    
     this.contractType.set(this.contractType() === type ? null : type);
   }
 

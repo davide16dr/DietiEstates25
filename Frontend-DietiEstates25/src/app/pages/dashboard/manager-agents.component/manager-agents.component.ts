@@ -33,12 +33,12 @@ export class ManagerAgentsComponent implements OnInit {
   searchQuery = signal('');
   filterStatus = signal<string>('tutti');
   
-  // Stato reattivo
+  
   agents = signal<Agent[]>([]);
   isLoading = signal(true);
   error = signal<string | null>(null);
   
-  // Modal state
+  
   showEditModal = signal(false);
   showAddModal = signal(false);
   selectedAgent = signal<Agent | null>(null);
@@ -51,12 +51,12 @@ export class ManagerAgentsComponent implements OnInit {
     this.isLoading.set(true);
     this.error.set(null);
 
-    // ✅ Usa il nuovo endpoint che include le statistiche
+    
     this.userService.getAgentsWithStats().subscribe({
       next: (users: User[]) => {
         console.log('📋 Agenti con statistiche ricevuti (Manager):', users);
 
-        // Mappa gli utenti del backend in Agent per il frontend
+        
         const mappedAgents: Agent[] = users.map(user => ({
           id: user.id,
           name: `${user.firstName} ${user.lastName}`,
@@ -84,12 +84,12 @@ export class ManagerAgentsComponent implements OnInit {
   get filteredAgents(): Agent[] {
     let filtered = this.agents();
 
-    // Filtro per stato
+    
     if (this.filterStatus() !== 'tutti') {
       filtered = filtered.filter(a => a.status === this.filterStatus());
     }
 
-    // Filtro per ricerca
+    
     const query = this.searchQuery().toLowerCase();
     if (query) {
       filtered = filtered.filter(a => 
@@ -123,7 +123,7 @@ export class ManagerAgentsComponent implements OnInit {
     this.filterStatus.set(select.value);
   }
 
-  // Add Agent Modal methods
+  
   openAddModal(): void {
     this.showAddModal.set(true);
   }
@@ -133,13 +133,13 @@ export class ManagerAgentsComponent implements OnInit {
   }
 
   addNewAgent(newAgent: NewAgent): void {
-    // Prepara i dati per il backend
+    
     const agentData = {
       name: newAgent.name,
       email: newAgent.email,
       phone: newAgent.phone,
       status: newAgent.status,
-      password: 'Password123!' // Password default
+      password: 'Password123!' 
     };
 
     console.log('➕ Creazione nuovo agente:', agentData);
@@ -148,7 +148,7 @@ export class ManagerAgentsComponent implements OnInit {
       next: (createdAgent) => {
         console.log('✅ Agente creato con successo:', createdAgent);
         this.closeAddModal();
-        // Ricarica la lista per mostrare il nuovo agente
+        
         this.loadAgents();
       },
       error: (err: any) => {
@@ -173,10 +173,10 @@ export class ManagerAgentsComponent implements OnInit {
   }
 
   saveAgent(updatedAgent: AgentEdit): void {
-    // Prepara i dati da inviare al backend
+    
     const updateData = {
-      firstName: updatedAgent.name.split(' ')[0], // Prende il primo nome
-      lastName: updatedAgent.name.split(' ').slice(1).join(' '), // Prende il cognome
+      firstName: updatedAgent.name.split(' ')[0], 
+      lastName: updatedAgent.name.split(' ').slice(1).join(' '), 
       phoneE164: updatedAgent.phone,
       active: updatedAgent.status === 'attivo'
     };
@@ -187,7 +187,7 @@ export class ManagerAgentsComponent implements OnInit {
       next: (updatedUser) => {
         console.log('✅ Agente aggiornato con successo:', updatedUser);
         this.closeEditModal();
-        // Ricarica la lista per mostrare i dati aggiornati
+        
         this.loadAgents();
       },
       error: (err: any) => {
@@ -203,7 +203,7 @@ export class ManagerAgentsComponent implements OnInit {
     this.userService.toggleUserStatus(agent.id).subscribe({
       next: (updatedUser) => {
         console.log('✅ Status agente aggiornato:', updatedUser);
-        // Ricarica la lista per mostrare i dati aggiornati
+        
         this.loadAgents();
       },
       error: (err: any) => {

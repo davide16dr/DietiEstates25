@@ -8,28 +8,28 @@ export interface ListingResponse {
   id: string;
   title: string;
   description: string;
-  type: string; // "SALE" o "RENT"
+  type: string; 
   status: string;
   price: number;
   currency: string;
   agentName?: string;
   
-  // Dati della proprietà (struttura piatta come nel backend)
+  
   address: string;
   city: string;
   propertyType: string;
   rooms: number;
-  bathrooms?: number;  // ✅ AGGIUNTO campo bagni
+  bathrooms?: number;  
   area: number;
   floor: number;
   energyClass: string;
   hasElevator: boolean;
   
-  // Coordinate per la mappa
+  
   latitude?: number;
   longitude?: number;
   
-  // Immagini
+  
   imageUrls?: string[];
 }
 
@@ -56,12 +56,12 @@ export class ListingService {
   constructor(private http: HttpClient) {}
 
   searchListings(filters: PropertyFiltersValue): Observable<ListingResponse[]> {
-    // Converto i filtri Angular nel formato del backend
+    
     const request: ListingFilterRequest = {
       type: filters.mode ? (filters.mode === 'Vendita' ? 'SALE' : 'RENT') : undefined,
       status: 'ACTIVE',
       city: filters.city || undefined,
-      propertyType: filters.type !== 'Tutti' ? filters.type : undefined, // AGGIUNTO: passa il tipo di proprietà
+      propertyType: filters.type !== 'Tutti' ? filters.type : undefined, 
       priceMin: filters.priceMin ?? undefined,
       priceMax: filters.priceMax ?? undefined,
       roomsMin: filters.roomsMin !== 'Qualsiasi' ? filters.roomsMin : undefined,
@@ -71,13 +71,13 @@ export class ListingService {
       elevator: filters.elevator || undefined
     };
 
-    // Uso GET con query parameters
+    
     let params = new HttpParams();
     
     if (request.type) params = params.set('type', request.type);
     if (request.status) params = params.set('status', request.status);
     if (request.city) params = params.set('city', request.city);
-    if (request.propertyType) params = params.set('propertyType', request.propertyType); // AGGIUNTO
+    if (request.propertyType) params = params.set('propertyType', request.propertyType); 
     if (request.priceMin !== undefined) params = params.set('priceMin', request.priceMin.toString());
     if (request.priceMax !== undefined) params = params.set('priceMax', request.priceMax.toString());
     if (request.roomsMin !== undefined) params = params.set('roomsMin', request.roomsMin.toString());
@@ -97,22 +97,22 @@ export class ListingService {
     return this.http.get<ListingResponse[]>(`${this.API}/agent/my-listings`);
   }
 
-  /**
-   * Recupera tutti gli immobili dell'agenzia (per i manager)
-   */
+  
+
+
   getAllAgencyListings(): Observable<ListingResponse[]> {
     return this.http.get<ListingResponse[]>(`${this.API}/agency/all`);
   }
 
   createListing(propertyData: any): Observable<ListingResponse> {
-    // Crea FormData per inviare file multipart
+    
     const formData = new FormData();
     
-    // Aggiungi i dati JSON come stringhe
+    
     formData.append('property', JSON.stringify(propertyData.property));
     formData.append('listing', JSON.stringify(propertyData.listing));
     
-    // Aggiungi le immagini se presenti
+    
     if (propertyData.images && propertyData.images.length > 0) {
       propertyData.images.forEach((file: File) => {
         formData.append('images', file, file.name);
@@ -125,10 +125,10 @@ export class ListingService {
   updateListing(id: string, propertyData: any): Observable<ListingResponse> {
     console.log('🔄 [ListingService] updateListing chiamato con:', propertyData);
     
-    // SEMPRE usa FormData per l'aggiornamento
+    
     const formData = new FormData();
     
-    // Aggiungi i dati JSON come stringhe
+    
     if (propertyData.property) {
       formData.append('property', JSON.stringify(propertyData.property));
     }
@@ -136,12 +136,12 @@ export class ListingService {
       formData.append('listing', JSON.stringify(propertyData.listing));
     }
     
-    // Aggiungi le URLs delle immagini esistenti da mantenere
+    
     if (propertyData.existingImageUrls && propertyData.existingImageUrls.length > 0) {
       formData.append('existingImageUrls', JSON.stringify(propertyData.existingImageUrls));
     }
     
-    // Aggiungi le nuove immagini da caricare
+    
     if (propertyData.images && propertyData.images.length > 0) {
       propertyData.images.forEach((file: File) => {
         formData.append('images', file, file.name);

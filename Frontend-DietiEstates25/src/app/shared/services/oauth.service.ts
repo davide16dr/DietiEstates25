@@ -3,11 +3,11 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, from, throwError } from 'rxjs';
 import { tap, switchMap } from 'rxjs/operators';
 import { AuthService, AuthResponse } from './auth.service';
-import { environment } from '../../../environments/environment'; // ✅ AGGIUNTO
+import { environment } from '../../../environments/environment'; 
 
 export type OAuthProvider = 'google' | 'github' | 'facebook';
 
-// Dichiarazioni per le API globali iniettate via script
+
 declare const google: any;
 declare const FB: any;
 
@@ -18,14 +18,14 @@ export class OAuthService {
 
   private readonly BACKEND_URL = `${environment.apiUrl}/auth/oauth`;
 
-  // ✅ CORRETTO: Legge da environment.ts invece di (window as any).__env
+  
   private readonly GOOGLE_CLIENT_ID  = environment.oauth?.google?.clientId ?? '';
   private readonly GITHUB_CLIENT_ID  = environment.oauth?.github?.clientId ?? '';
   private readonly FACEBOOK_APP_ID   = environment.oauth?.facebook?.appId ?? '';
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // ENTRY POINT
-  // ─────────────────────────────────────────────────────────────────────────
+  
+  
+  
 
   login(provider: OAuthProvider): Observable<AuthResponse> {
     switch (provider) {
@@ -35,9 +35,9 @@ export class OAuthService {
     }
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // GOOGLE – usa Google Identity Services (One Tap / popup)
-  // ─────────────────────────────────────────────────────────────────────────
+  
+  
+  
 
   private loginWithGoogle(): Observable<AuthResponse> {
     const clientId = this.GOOGLE_CLIENT_ID;
@@ -71,18 +71,18 @@ export class OAuthService {
 
       google.accounts.id.prompt((notification: any) => {
         if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-          // Fallback: apri il popup
+          
           google.accounts.oauth2.initTokenClient({
             client_id: clientId,
             scope: 'openid email profile',
             callback: (tokenResponse: any) => {
               if (tokenResponse?.access_token) {
-                // Scambia access_token con id_token tramite tokeninfo
+                
                 fetch(`https://oauth2.googleapis.com/tokeninfo?access_token=${tokenResponse.access_token}`)
                   .then(r => r.json())
                   .then(info => {
                     if (info.email) {
-                      // Costruisci un id_token dal token client OAuth2
+                      
                       resolve(tokenResponse.id_token ?? tokenResponse.access_token);
                     } else {
                       reject(new Error('Token Google non valido'));
@@ -99,9 +99,9 @@ export class OAuthService {
     });
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // GITHUB – apre un popup OAuth, attende il codice dalla callback page
-  // ─────────────────────────────────────────────────────────────────────────
+  
+  
+  
 
   private loginWithGithub(): Observable<AuthResponse> {
     const clientId = this.GITHUB_CLIENT_ID;
@@ -152,7 +152,7 @@ export class OAuthService {
 
       window.addEventListener('message', handler);
 
-      // Timeout dopo 5 minuti
+      
       setTimeout(() => {
         window.removeEventListener('message', handler);
         if (!popup.closed) popup.close();
@@ -161,9 +161,9 @@ export class OAuthService {
     });
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // FACEBOOK – usa Facebook JS SDK
-  // ─────────────────────────────────────────────────────────────────────────
+  
+  
+  
 
   private loginWithFacebook(): Observable<AuthResponse> {
     const appId = this.FACEBOOK_APP_ID;
@@ -195,16 +195,16 @@ export class OAuthService {
     });
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // CHIAMA IL BACKEND
-  // ─────────────────────────────────────────────────────────────────────────
+  
+  
+  
 
   private sendToBackend(provider: OAuthProvider, token: string): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(this.BACKEND_URL, { provider, token }).pipe(
       tap((res) => {
         localStorage.setItem('token', res.accessToken);
         localStorage.setItem('currentUser', JSON.stringify(res));
-        // Aggiorna il signal di AuthService (accesso diretto tramite metodo pubblico)
+        
         this.authService.setUserFromOAuth(res);
       })
     );

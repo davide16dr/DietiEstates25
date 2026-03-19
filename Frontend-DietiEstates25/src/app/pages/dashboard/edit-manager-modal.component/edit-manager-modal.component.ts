@@ -22,7 +22,7 @@ export class EditManagerModalComponent implements OnInit {
   close = output<void>();
   save = output<ManagerEdit>();
 
-  // Form signals
+  
   editName = signal('');
   editEmail = signal('');
   editPhone = signal('');

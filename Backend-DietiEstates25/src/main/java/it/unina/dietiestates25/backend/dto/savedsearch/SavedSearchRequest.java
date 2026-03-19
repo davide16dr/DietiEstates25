@@ -7,7 +7,7 @@ public class SavedSearchRequest {
     private Map<String, Object> filters;
 
     public SavedSearchRequest() {
-        // Required by Jackson for request deserialization.
+        
     }
 
     public String getName() { return name; }

@@ -16,10 +16,10 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-/**
- * Protegge /auth/login da attacchi brute-force:
- * max 10 tentativi per IP in una finestra di 15 minuti.
- */
+
+
+
+
 @Component
 @Order(1)
 public class RateLimitFilter extends OncePerRequestFilter {
@@ -27,7 +27,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private static final Logger log = LoggerFactory.getLogger(RateLimitFilter.class);
 
     private static final int  MAX_ATTEMPTS = 10;
-    private static final long WINDOW_MS    = 15 * 60 * 1000L; // 15 minuti
+    private static final long WINDOW_MS    = 15 * 60 * 1000L; 
 
     private final ConcurrentHashMap<String, Deque<Long>> loginAttempts = new ConcurrentHashMap<>();
 

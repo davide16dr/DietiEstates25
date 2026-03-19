@@ -18,12 +18,12 @@ export class ChangePasswordModalComponent {
   close = output<void>();
   save = output<PasswordChangeData>();
 
-  // Form signals
+  
   oldPassword = signal('');
   newPassword = signal('');
   confirmPassword = signal('');
   
-  // UI state
+  
   showOldPassword = signal(false);
   showNewPassword = signal(false);
   showConfirmPassword = signal(false);
@@ -34,10 +34,10 @@ export class ChangePasswordModalComponent {
   }
 
   onSave(): void {
-    // Reset error
+    
     this.errorMessage.set('');
     
-    // Validazioni
+    
     if (!this.oldPassword()) {
       this.errorMessage.set('Inserisci la password attuale');
       return;

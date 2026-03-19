@@ -43,7 +43,7 @@ class ListingControllerSecurityTest {
     @MockBean
     ListingService listingService;
 
-    // Needed to instantiate JwtAuthFilter
+    
     @MockBean
     JwtService jwtService;
 

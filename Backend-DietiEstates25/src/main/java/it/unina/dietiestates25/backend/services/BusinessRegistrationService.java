@@ -39,27 +39,27 @@ public class BusinessRegistrationService {
         this.userService = userService;
     }
 
-    /**
-     * Registra una nuova agenzia e crea l'utente manager associato
-     * Invia un'email di conferma con password provvisoria
-     */
+    
+
+
+
     @Transactional
     public void registerBusiness(RegisterBusinessRequest request) throws Exception {
-        // Normalizza l'email a minuscolo
+        
         String normalizedEmail = request.getEmail().toLowerCase().trim();
         
-        // Verifica che l'email non sia già registrata
+        
         if (userRepository.findByEmail(normalizedEmail).isPresent()) {
             throw new IllegalArgumentException("Email già registrata nel sistema");
         }
 
-        // Verifica che la Partita IVA non sia già registrata
+        
         Optional<Agency> existingAgency = agencyRepository.findByVatNumber(request.getVatNumber());
         if (existingAgency.isPresent()) {
             throw new IllegalArgumentException("Partita IVA già registrata nel sistema");
         }
 
-        // Crea la nuova agenzia
+        
         Agency agency = new Agency();
         agency.setName(request.getCompanyName());
         agency.setVatNumber(request.getVatNumber());
@@ -71,12 +71,12 @@ public class BusinessRegistrationService {
         Agency savedAgency = agencyRepository.save(agency);
         log.info("Agenzia creata con successo: {}", savedAgency.getId());
 
-        // Genera una password provvisoria sicura
+        
         String temporaryPassword = PasswordGenerator.generateTemporaryPassword();
 
-        // Crea l'utente manager associato all'agenzia
+        
         User manager = new User();
-        manager.setRole(UserRole.ADMIN);  // Primo manager è ADMIN dell'agenzia
+        manager.setRole(UserRole.ADMIN);  
         manager.setFirstName(request.getFirstName());
         manager.setLastName(request.getLastName());
         manager.setEmail(normalizedEmail);
@@ -88,10 +88,10 @@ public class BusinessRegistrationService {
         User savedManager = userRepository.save(manager);
         log.info("Manager creato con successo: {}", savedManager.getId());
 
-        // Aggiungi automaticamente alla tabella agency_memberships
+        
         userService.addAgencyMembershipIfNeeded(savedManager);
 
-        // Invia l'email di conferma registrazione
+        
         try {
             emailService.sendBusinessRegistrationConfirmation(
                 normalizedEmail,
@@ -103,7 +103,7 @@ public class BusinessRegistrationService {
             log.info("Email di conferma inviata a: {}", normalizedEmail);
         } catch (Exception e) {
             log.error("Errore durante l'invio dell'email: {}", e.getMessage());
-            // Non lanciamo un'eccezione qui perché la registrazione è già completata
+            
         }
     }
 }

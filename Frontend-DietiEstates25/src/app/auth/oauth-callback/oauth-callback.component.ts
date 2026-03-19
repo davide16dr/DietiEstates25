@@ -1,12 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-/**
- * Pagina di callback OAuth per GitHub.
- * GitHub reindirizza qui con ?code=XXX&state=YYY.
- * Questo componente legge i parametri dall'URL, li invia alla finestra
- * padre tramite postMessage e chiude il popup.
- */
+
+
+
+
+
+
 @Component({
   selector: 'app-oauth-callback',
   standalone: true,
@@ -35,7 +35,7 @@ export class OAuthCallbackComponent implements OnInit {
       );
       window.close();
     } else {
-      // Se non c'è opener (navigazione diretta), reindirizza alla login
+      
       window.location.href = '/auth/login';
     }
   }

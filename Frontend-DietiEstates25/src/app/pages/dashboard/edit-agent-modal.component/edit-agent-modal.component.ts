@@ -7,7 +7,7 @@ export interface AgentEdit {
   name: string;
   email: string;
   phone: string;
-  status: 'attivo' | 'inattivo'; // ✅ Semplificato: solo due stati
+  status: 'attivo' | 'inattivo'; 
 }
 
 @Component({
@@ -22,14 +22,14 @@ export class EditAgentModalComponent implements OnInit {
   close = output<void>();
   save = output<AgentEdit>();
 
-  // Form signals
+  
   editName = signal('');
   editEmail = signal('');
   editPhone = signal('');
-  editStatus = signal<'attivo' | 'inattivo'>('attivo'); // ✅ Semplificato
+  editStatus = signal<'attivo' | 'inattivo'>('attivo'); 
 
   ngOnInit(): void {
-    // Inizializza i valori del form con i dati dell'agente
+    
     const agentData = this.agent();
     this.editName.set(agentData.name);
     this.editEmail.set(agentData.email);

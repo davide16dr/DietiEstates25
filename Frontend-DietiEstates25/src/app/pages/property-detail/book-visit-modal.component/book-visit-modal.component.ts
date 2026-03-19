@@ -28,10 +28,10 @@ export class BookVisitModalComponent {
   closed = output<void>();
   submitted = output<BookVisitPayload>();
 
-  // Get today's date in YYYY-MM-DD format
+  
   minDate = new Date().toISOString().split('T')[0];
 
-  // Time slots every 5 minutes from 9:00 to 19:00
+  
   timeSlots = signal<string[]>(this.generateTimeSlots());
   availableTimeSlots = signal<string[]>([]);
   unavailableSlots = signal<string[]>([]);
@@ -52,15 +52,15 @@ export class BookVisitModalComponent {
     if (d && !this.form.controls.date.value) this.form.controls.date.setValue(d);
     if (t && !this.form.controls.time.value) this.form.controls.time.setValue(t);
     
-    // Update canSubmit signal when form validity changes
+    
     this.form.statusChanges.subscribe(() => {
       this.canSubmit.set(this.form.valid);
     });
     
-    // Initial check
+    
     this.canSubmit.set(this.form.valid);
     
-    // Check availability when date changes
+    
     this.form.controls.date.valueChanges.subscribe(date => {
       if (date) {
         this.checkAvailability(date);
@@ -72,7 +72,7 @@ export class BookVisitModalComponent {
     const slots: string[] = [];
     for (let hour = 9; hour <= 19; hour++) {
       for (let minute = 0; minute < 60; minute += 5) {
-        // Stop at 19:00
+        
         if (hour === 19 && minute > 0) break;
         
         const h = hour.toString().padStart(2, '0');
@@ -96,7 +96,7 @@ export class BookVisitModalComponent {
         this.availableTimeSlots.set(available);
         this.checkingAvailability.set(false);
         
-        // Se l'orario selezionato non è più disponibile, resettalo
+        
         const currentTime = this.form.controls.time.value;
         if (currentTime && unavailable.includes(currentTime)) {
           this.form.controls.time.setValue('');
@@ -105,7 +105,7 @@ export class BookVisitModalComponent {
       error: (err) => {
         console.error('Errore controllo disponibilità:', err);
         this.checkingAvailability.set(false);
-        // In caso di errore, mostra tutti gli slot
+        
         this.availableTimeSlots.set(this.timeSlots());
         this.unavailableSlots.set([]);
       }
@@ -134,7 +134,7 @@ export class BookVisitModalComponent {
     const time = this.form.controls.time.value?.trim();
     const notes = this.form.controls.notes.value?.trim();
 
-    // Verifica che l'orario sia disponibile
+    
     if (time && !this.isTimeSlotAvailable(time)) {
       alert('L\'orario selezionato non è più disponibile. Scegli un altro orario.');
       return;

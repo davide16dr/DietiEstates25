@@ -8,7 +8,7 @@ public class CreateListingRequest {
     private ListingRequest listing;
 
     public CreateListingRequest() {
-        // Required by Jackson for request deserialization.
+        
     }
 
     public CreateListingRequest(PropertyRequest property, ListingRequest listing) {
@@ -55,7 +55,7 @@ public class CreateListingRequest {
         private String description;
 
         public PropertyRequest() {
-            // Required by Jackson for request deserialization.
+            
         }
 
         public String getCity() { return city; }
@@ -102,7 +102,7 @@ public class CreateListingRequest {
         private String currency;
 
         public ListingRequest() {
-            // Required by Jackson for request deserialization.
+            
         }
 
         public String getTitle() { return title; }

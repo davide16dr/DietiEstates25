@@ -82,7 +82,7 @@
     .profile-role{ font-size: 12px; }
   }
   
-  /* MENU: può scrollare se necessario */
+  
   .menu{
     display:flex;
     flex-direction:column;
@@ -141,7 +141,7 @@
   .menu-item.active .chev{ color:#d1fae5; }
   .menu-item.active .ico{ opacity:1; }
   
-  /* Footer: sempre visibile in basso */
+  
   .sidebar-footer{
     flex: 0 0 auto;
     margin-top: auto;

@@ -76,7 +76,7 @@ $shadow-soft: 0 18px 40px rgba(15, 31, 53, 0.12);
   gap: 0.6rem;
 }
 
-// ── Autocomplete Search con Google Places API ──────────────────────────
+
 .search-input-wrapper {
   flex: 1;
   position: relative;
@@ -427,7 +427,7 @@ background-color: #dcfce7;
     padding-top: 2.4rem;
   }
 
-  // ── Search bar mobile: card con campi ben definiti ──
+  
   .search-bar {
     border-radius: 20px;
     flex-direction: column;
@@ -449,7 +449,7 @@ background-color: #dcfce7;
     padding: 0.65rem 1rem;
   }
 
-  // Segmented control: sfondo grigio, chip attivo bianco
+  
   .search-filters {
     display: flex;
     gap: 0;
@@ -478,7 +478,7 @@ background-color: #dcfce7;
     }
   }
 
-  // Bottone Cerca: full-width, facile da premere col pollice
+  
   .btn.primary {
     width: 100%;
     padding: 0.85rem;

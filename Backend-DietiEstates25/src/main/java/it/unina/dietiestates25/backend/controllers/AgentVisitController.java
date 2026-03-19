@@ -31,9 +31,9 @@ public class AgentVisitController {
         this.visitService = visitService;
     }
 
-    /**
-     * Get all visits for the current agent
-     */
+    
+
+
     @GetMapping
     public ResponseEntity<List<VisitResponse>> getMyVisits(
             @AuthenticationPrincipal UserPrincipal principal) {
@@ -41,9 +41,9 @@ public class AgentVisitController {
         return ResponseEntity.ok(visits);
     }
 
-    /**
-     * Get occupied time slots for the current agent on a specific date
-     */
+    
+
+
     @GetMapping("/occupied-slots")
     public ResponseEntity<List<String>> getOccupiedTimeSlots(
             @AuthenticationPrincipal UserPrincipal principal,
@@ -56,9 +56,9 @@ public class AgentVisitController {
         }
     }
 
-    /**
-     * Confirm a visit
-     */
+    
+
+
     @PatchMapping("/{id}/confirm")
     public ResponseEntity<Void> confirmVisit(
             @AuthenticationPrincipal UserPrincipal principal,
@@ -78,9 +78,9 @@ public class AgentVisitController {
         }
     }
 
-    /**
-     * Mark a visit as completed
-     */
+    
+
+
     @PatchMapping("/{id}/complete")
     public ResponseEntity<Void> completeVisit(
             @AuthenticationPrincipal UserPrincipal principal,
@@ -100,9 +100,9 @@ public class AgentVisitController {
         }
     }
 
-    /**
-     * Reject a visit (only for REQUESTED visits)
-     */
+    
+
+
     @PatchMapping("/{id}/reject")
     public ResponseEntity<Void> rejectVisit(
             @AuthenticationPrincipal UserPrincipal principal,
@@ -124,9 +124,9 @@ public class AgentVisitController {
         }
     }
 
-    /**
-     * Cancel a confirmed visit (only for CONFIRMED visits)
-     */
+    
+
+
     @PatchMapping("/{id}/cancel")
     public ResponseEntity<Void> cancelVisit(
             @AuthenticationPrincipal UserPrincipal principal,

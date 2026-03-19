@@ -42,7 +42,7 @@ export class AuthService {
   currentUser$ = this.currentUserSubject.asObservable();
 
   constructor() {
-    // Ripristina utente dal localStorage se esiste
+    
     const stored = localStorage.getItem('currentUser');
     if (stored) {
       try {

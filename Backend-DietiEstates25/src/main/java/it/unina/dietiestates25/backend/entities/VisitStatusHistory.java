@@ -38,7 +38,7 @@ public class VisitStatusHistory {
     @Column(columnDefinition = "text")
     private String note;
 
-    // Costruttore vuoto richiesto da JPA.
+    
     public VisitStatusHistory() {
     }
 

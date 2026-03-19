@@ -30,9 +30,9 @@ public class ImageStorageService {
 
     private Path rootLocation;
 
-    /**
-     * Inizializza la directory di upload se non esiste
-     */
+    
+
+
     public void init() {
         try {
             rootLocation = Paths.get(uploadDir).toAbsolutePath().normalize();
@@ -43,19 +43,19 @@ public class ImageStorageService {
         }
     }
 
-    /**
-     * Salva un'immagine su disco e restituisce il path relativo
-     */
+    
+
+
     public String storeImage(MultipartFile file, UUID listingId) {
         if (rootLocation == null) {
             init();
         }
 
-        // Validazione file
+        
         validateImage(file);
 
         try {
-            // Nome file univoco: listingId_timestamp_randomUUID.ext
+            
             String originalFilename = file.getOriginalFilename();
             String extension = getFileExtension(originalFilename);
             String filename = listingId + "_" + System.currentTimeMillis() + "_" + UUID.randomUUID() + "." + extension;
@@ -81,9 +81,9 @@ public class ImageStorageService {
         }
     }
 
-    /**
-     * Salva multiple immagini e restituisce la lista dei path
-     */
+    
+
+
     public List<String> storeImages(List<MultipartFile> files, UUID listingId) {
         if (files.size() > maxImagesPerListing) {
             throw new IllegalArgumentException("Massimo " + maxImagesPerListing + " immagini per annuncio");
@@ -94,9 +94,9 @@ public class ImageStorageService {
                 .toList();
     }
 
-    /**
-     * Elimina un'immagine dal disco
-     */
+    
+
+
     public void deleteImage(String relativePath) {
         try {
             Path filePath = rootLocation.resolve(relativePath).normalize();
@@ -111,9 +111,9 @@ public class ImageStorageService {
         }
     }
 
-    /**
-     * Elimina tutte le immagini di un listing
-     */
+    
+
+
     public void deleteListingImages(UUID listingId) {
         try {
             Path listingDir = rootLocation.resolve(listingId.toString());
@@ -135,40 +135,40 @@ public class ImageStorageService {
         }
     }
 
-    /**
-     * Valida formato e dimensione dell'immagine
-     */
+    
+
+
     private void validateImage(MultipartFile file) {
-        // Verifica che il file non sia vuoto
+        
         if (file.isEmpty()) {
             throw new IllegalArgumentException("File vuoto");
         }
 
-        // Verifica estensione
+        
         String filename = file.getOriginalFilename();
         if (filename == null || !isValidExtension(filename)) {
             throw new IllegalArgumentException("Formato file non supportato. Formati consentiti: " + allowedExtensions);
         }
 
-        // Verifica content type
+        
         String contentType = file.getContentType();
         if (contentType == null || !contentType.startsWith("image/")) {
             throw new IllegalArgumentException("Il file deve essere un'immagine");
         }
     }
 
-    /**
-     * Verifica se l'estensione è valida
-     */
+    
+
+
     private boolean isValidExtension(String filename) {
         String extension = getFileExtension(filename).toLowerCase();
         List<String> allowed = Arrays.asList(allowedExtensions.toLowerCase().split(","));
         return allowed.contains(extension);
     }
 
-    /**
-     * Estrae l'estensione dal nome file
-     */
+    
+
+
     private String getFileExtension(String filename) {
         if (filename == null || !filename.contains(".")) {
             return "";
@@ -176,9 +176,9 @@ public class ImageStorageService {
         return filename.substring(filename.lastIndexOf(".") + 1);
     }
 
-    /**
-     * Ottiene il path assoluto di un'immagine
-     */
+    
+
+
     public Path getImagePath(String relativePath) {
         if (rootLocation == null) {
             init();

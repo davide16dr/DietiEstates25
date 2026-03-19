@@ -35,7 +35,7 @@ class AuthControllerWebMvcTest {
         @MockBean
         BusinessRegistrationService businessRegistrationService;
 
-    // Needed to instantiate JwtAuthFilter
+    
     @MockBean
     JwtService jwtService;
 

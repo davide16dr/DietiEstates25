@@ -55,14 +55,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails details = userDetailsService.loadUserByUsername(username);
             if (jwtService.isTokenValid(token, details.getUsername())) {
-                // Estrai i ruoli dai claims del token
+                
                 var claims = jwtService.extractAllClaims(token);
                 var roles = (String) claims.get("role");
 
-                // Crea le authorities basate sui ruoli
+                
                 var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + roles));
 
-                // Imposta l'autenticazione con i ruoli
+                
                 var authToken = new UsernamePasswordAuthenticationToken(
                         details, null, authorities
                 );

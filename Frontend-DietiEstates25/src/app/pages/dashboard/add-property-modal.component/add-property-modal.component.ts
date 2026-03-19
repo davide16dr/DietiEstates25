@@ -4,7 +4,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators, NonNullableFor
 import { GooglePlacesService, PlacePrediction } from '../../../shared/services/google-places.service';
 import { Subject, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
 
-// Interfaccia tipizzata per il form Property
+
 interface PropertyFormValue {
   city: string;
   address: string;
@@ -30,45 +30,45 @@ interface PropertyFormValue {
   styleUrl: './add-property-modal.component.scss',
 })
 export class AddPropertyModalComponent implements AfterViewInit, OnDestroy {
-  // Modern Angular 21: output() invece di @Output()
+  
   close = output<void>();
   save = output<any>();
 
-  // Modern Angular 21: inject() invece di constructor DI
+  
   private fb = inject(NonNullableFormBuilder);
   private googlePlacesService = inject(GooglePlacesService);
 
   @ViewChild('cityInput') cityInput!: ElementRef<HTMLInputElement>;
   @ViewChild('addressInput') addressInput!: ElementRef<HTMLInputElement>;
 
-  // Autocomplete per città
+  
   citySuggestions = signal<PlacePrediction[]>([]);
   showCitySuggestions = signal(false);
   private citySearchSubject = new Subject<string>();
 
-  // Autocomplete per indirizzo
+  
   addressSuggestions = signal<PlacePrediction[]>([]);
   showAddressSuggestions = signal(false);
   private addressSearchSubject = new Subject<string>();
 
-  // Coordinate geografiche
+  
   propertyCoordinates = signal<{ lat: number; lng: number } | null>(null);
   cityCoordinates = signal<{ lat: number; lng: number } | null>(null);
 
-  // Modern Angular 21: signal() per stato reattivo
+  
   selectedImages = signal<File[]>([]);
   imagePreviews = signal<string[]>([]);
   isDragging = signal(false);
   uploadError = signal<string | null>(null);
 
-  // Costanti per validazione
+  
   private readonly MAX_IMAGES = 10;
-  private readonly MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+  private readonly MAX_FILE_SIZE = 5 * 1024 * 1024; 
   private readonly ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
-  // Form tipizzato con FormGroup<T>
+  
   propertyForm = this.fb.group({
-    // PROPERTY FIELDS
+    
     city: this.fb.control('', [Validators.required]),
     address: this.fb.control('', [Validators.required]),
     property_type: this.fb.control('Appartamento', [Validators.required]),
@@ -80,7 +80,7 @@ export class AddPropertyModalComponent implements AfterViewInit, OnDestroy {
     energy_class: this.fb.control('D'),
     description: this.fb.control('', [Validators.required, Validators.minLength(20)]),
     
-    // LISTING FIELDS
+    
     title: this.fb.control('', [Validators.required, Validators.minLength(5), Validators.maxLength(160)]),
     listing_type: this.fb.control('SALE', [Validators.required]),
     price_amount: this.fb.control(0, [Validators.required, Validators.min(1)]),
@@ -88,7 +88,7 @@ export class AddPropertyModalComponent implements AfterViewInit, OnDestroy {
   });
 
   constructor() {
-    // Configura l'autocomplete per il campo città (solo città italiane)
+    
     this.citySearchSubject
       .pipe(
         debounceTime(300),
@@ -100,27 +100,27 @@ export class AddPropertyModalComponent implements AfterViewInit, OnDestroy {
         this.showCitySuggestions.set(suggestions.length > 0);
       });
 
-    // Configura l'autocomplete per il campo indirizzo (indirizzi completi)
+    
     this.addressSearchSubject
       .pipe(
         debounceTime(300),
         distinctUntilChanged(),
         switchMap(input => {
-          // ✅ INTELLIGENTE: Usa il nome della città per filtrare i risultati
+          
           const city = this.propertyForm.get('city')?.value?.trim();
           const coords = this.cityCoordinates();
           
           if (city && city.length > 0 && coords) {
-            // Città già compilata CON coordinate: cerca indirizzi SOLO in quella città
+            
             console.log('🔍 Ricerca indirizzo in città:', city, coords);
             return this.googlePlacesService.getAddressSuggestionsNearLocation(input, coords.lat, coords.lng, city);
           } else if (city && city.length > 0) {
-            // Città compilata ma senza coordinate: usa il nome città nella query
+            
             const fullQuery = `${input}, ${city}, Italia`;
             console.log('🔍 Ricerca indirizzo CON città nella query:', fullQuery);
             return this.googlePlacesService.getAddressSuggestions(fullQuery);
           } else {
-            // Città vuota: cerca indirizzi generici in tutta Italia
+            
             console.log('🔍 Ricerca indirizzo SENZA città:', input);
             return this.googlePlacesService.getAddressSuggestions(input);
           }
@@ -133,7 +133,7 @@ export class AddPropertyModalComponent implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    // Listener per chiudere i suggerimenti quando si clicca fuori
+    
     document.addEventListener('click', this.handleClickOutside.bind(this));
   }
 
@@ -143,7 +143,7 @@ export class AddPropertyModalComponent implements AfterViewInit, OnDestroy {
     this.addressSearchSubject.complete();
   }
 
-  // ===== AUTOCOMPLETE HANDLERS =====
+  
 
   onCityInput(event: Event): void {
     const input = (event.target as HTMLInputElement).value;
@@ -156,12 +156,12 @@ export class AddPropertyModalComponent implements AfterViewInit, OnDestroy {
   }
 
   selectCity(prediction: PlacePrediction): void {
-    // Usa solo il nome della città (main_text)
+    
     this.propertyForm.patchValue({ city: prediction.structured_formatting.main_text });
     this.citySuggestions.set([]);
     this.showCitySuggestions.set(false);
 
-    // ✅ IMPORTANTE: Ottieni e salva le coordinate della città per bias geografico
+    
     this.googlePlacesService.geocodePlaceId(prediction.place_id).subscribe(result => {
       if (result) {
         this.cityCoordinates.set({ lat: result.latitude, lng: result.longitude });
@@ -183,22 +183,22 @@ export class AddPropertyModalComponent implements AfterViewInit, OnDestroy {
   selectAddress(prediction: PlacePrediction): void {
     console.log('🔍 Selezione indirizzo:', prediction.description);
     
-    // Controlla se il campo città è già compilato
+    
     const currentCity = this.propertyForm.get('city')?.value?.trim();
     const isCityAlreadySet = currentCity && currentCity.length > 0;
     
-    // Usa il geocoding per ottenere i dati strutturati correttamente
+    
     this.googlePlacesService.geocodePlaceId(prediction.place_id).subscribe(result => {
       if (result) {
         console.log('📍 Risultato geocoding:', result);
         
-        // ✅ Estrai SOLO la via e il numero civico
+        
         const fullAddress = result.address;
         const addressParts = fullAddress.split(',').map(p => p.trim());
         
-        let streetAddress = addressParts[0]; // Es: "Via Provinciale Montagna Spaccata"
+        let streetAddress = addressParts[0]; 
         
-        // Se c'è una seconda parte che sembra un numero civico, aggiungila
+        
         if (addressParts.length > 1) {
           const possibleNumber = addressParts[1].trim();
           if (/^\d+[a-zA-Z]?$/.test(possibleNumber)) {
@@ -211,15 +211,15 @@ export class AddPropertyModalComponent implements AfterViewInit, OnDestroy {
         console.log('📍 Indirizzo estratto:', streetAddress);
         console.log('📍 Città estratta:', cityFromAddress);
         
-        // ✅ LOGICA INTELLIGENTE:
+        
         if (isCityAlreadySet) {
-          // Città già presente: aggiorna SOLO l'indirizzo
+          
           console.log('✅ Città già presente, aggiorno solo indirizzo');
           this.propertyForm.patchValue({ 
             address: streetAddress
           });
         } else {
-          // Città vuota: autocompila ENTRAMBI i campi
+          
           console.log('✅ Città vuota, autocompilo città + indirizzo');
           this.propertyForm.patchValue({ 
             address: streetAddress,
@@ -227,7 +227,7 @@ export class AddPropertyModalComponent implements AfterViewInit, OnDestroy {
           });
         }
         
-        // Salva le coordinate
+        
         this.propertyCoordinates.set({ lat: result.latitude, lng: result.longitude });
         console.log('📍 Coordinate immobile:', result.latitude, result.longitude);
       }
@@ -240,7 +240,7 @@ export class AddPropertyModalComponent implements AfterViewInit, OnDestroy {
   private handleClickOutside(event: MouseEvent): void {
     const target = event.target as HTMLElement;
     
-    // Chiudi suggerimenti città se si clicca fuori
+    
     if (this.cityInput && !this.cityInput.nativeElement.contains(target)) {
       const clickedCitySuggestion = target.closest('.city-suggestions');
       if (!clickedCitySuggestion) {
@@ -248,7 +248,7 @@ export class AddPropertyModalComponent implements AfterViewInit, OnDestroy {
       }
     }
 
-    // Chiudi suggerimenti indirizzo se si clicca fuori
+    
     if (this.addressInput && !this.addressInput.nativeElement.contains(target)) {
       const clickedAddressSuggestion = target.closest('.address-suggestions');
       if (!clickedAddressSuggestion) {
@@ -257,7 +257,7 @@ export class AddPropertyModalComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  // ===== GESTIONE IMMAGINI =====
+  
   
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -291,7 +291,7 @@ export class AddPropertyModalComponent implements AfterViewInit, OnDestroy {
   private addFiles(files: File[]): void {
     this.uploadError.set(null);
     
-    // Filtra solo file immagine validi
+    
     const imageFiles = files.filter(file => {
       if (!this.ALLOWED_TYPES.includes(file.type)) {
         this.uploadError.set(`Formato non supportato: ${file.name}. Usa JPG, PNG o WEBP.`);
@@ -304,29 +304,29 @@ export class AddPropertyModalComponent implements AfterViewInit, OnDestroy {
       return true;
     });
 
-    const currentImages = [...this.selectedImages()]; // Copia profonda
-    const currentPreviews = [...this.imagePreviews()]; // Copia profonda
+    const currentImages = [...this.selectedImages()]; 
+    const currentPreviews = [...this.imagePreviews()]; 
     const availableSlots = this.MAX_IMAGES - currentImages.length;
     
-    // Controlla se c'è spazio disponibile
+    
     if (availableSlots === 0) {
       this.uploadError.set(`Massimo ${this.MAX_IMAGES} immagini consentite.`);
       return;
     }
     
-    // Se ci sono più file del disponibile, mostra warning
+    
     if (imageFiles.length > availableSlots) {
       this.uploadError.set(`Puoi aggiungere solo ${availableSlots} immagini. Limite massimo: ${this.MAX_IMAGES}.`);
     }
     
-    // Aggiungi solo i file che entrano nel limite
+    
     const filesToAdd = imageFiles.slice(0, availableSlots);
     
-    // Aggiorna immediatamente le immagini
+    
     const newImages = [...currentImages, ...filesToAdd];
     this.selectedImages.set(newImages);
     
-    // Carica le preview in modo asincrono
+    
     let previewsLoaded = 0;
     const newPreviews = [...currentPreviews];
     
@@ -336,7 +336,7 @@ export class AddPropertyModalComponent implements AfterViewInit, OnDestroy {
         newPreviews.push(e.target?.result as string);
         previewsLoaded++;
         
-        // Aggiorna il signal ogni volta che una preview è pronta
+        
         this.imagePreviews.set([...newPreviews]);
         
         console.log(`Preview ${previewsLoaded}/${filesToAdd.length} caricata`);
@@ -351,47 +351,47 @@ export class AddPropertyModalComponent implements AfterViewInit, OnDestroy {
   removeImage(index: number): void {
     console.log('🗑️ Rimozione immagine index:', index);
     
-    // Ottieni copie degli array
+    
     const images = [...this.selectedImages()];
     const previews = [...this.imagePreviews()];
     
     console.log('Prima:', { images: images.length, previews: previews.length });
     
-    // Revoca l'URL blob per liberare memoria (se è un blob URL)
+    
     const previewToRemove = previews[index];
     if (previewToRemove && previewToRemove.startsWith('blob:')) {
       URL.revokeObjectURL(previewToRemove);
     }
     
-    // Rimuovi l'immagine e la preview
+    
     images.splice(index, 1);
     previews.splice(index, 1);
     
     console.log('Dopo:', { images: images.length, previews: previews.length });
     
-    // Aggiorna gli stati con nuovi array
+    
     this.selectedImages.set(images);
     this.imagePreviews.set(previews);
     this.uploadError.set(null);
     
-    // Force change detection
+    
     console.log('✅ Signal aggiornati. Verifica:', {
       selectedImages: this.selectedImages().length,
       imagePreviews: this.imagePreviews().length
     });
   }
 
-  // Numero di immagini caricate
+  
   get imageCount(): number {
     return this.selectedImages().length;
   }
 
-  // Numero di slot disponibili
+  
   get availableSlots(): number {
     return this.MAX_IMAGES - this.imageCount;
   }
 
-  // ===== FORM ACTIONS =====
+  
 
   onClose(): void {
     this.close.emit();
@@ -432,7 +432,7 @@ export class AddPropertyModalComponent implements AfterViewInit, OnDestroy {
       this.save.emit(formData);
       this.resetForm();
     } else {
-      // Marca tutti i campi come touched per mostrare gli errori
+      
       this.propertyForm.markAllAsTouched();
     }
   }
@@ -451,7 +451,7 @@ export class AddPropertyModalComponent implements AfterViewInit, OnDestroy {
     this.cityCoordinates.set(null);
   }
 
-  // ===== VALIDATION HELPERS =====
+  
 
   getErrorMessage(fieldName: keyof PropertyFormValue): string {
     const control = this.propertyForm.get(fieldName);

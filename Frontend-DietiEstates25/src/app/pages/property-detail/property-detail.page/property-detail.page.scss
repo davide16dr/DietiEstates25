@@ -124,7 +124,7 @@
   }
 }
 
-// Pulsanti navigazione carosello
+
 .carousel-btn {
   position: absolute;
   top: 50%;
@@ -164,7 +164,7 @@
   right: 18px;
 }
 
-// Contatore immagini
+
 .image-counter {
   position: absolute;
   top: 18px;
@@ -179,7 +179,7 @@
   backdrop-filter: blur(4px);
 }
 
-// Indicatori (dots)
+
 .carousel-indicators {
   position: absolute;
   bottom: 18px;
@@ -317,7 +317,7 @@
   line-height: 1.65;
 }
 
-// ✅ STILI PER LA SEZIONE MAPPA
+
 .map-header {
   display: flex;
   justify-content: space-between;
@@ -373,7 +373,7 @@
   height: 400px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   
-  // Forza l'altezza del componente mappa
+  
   app-property-map {
     display: block;
     width: 100%;

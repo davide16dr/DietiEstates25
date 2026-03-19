@@ -93,22 +93,22 @@ public class NotificationService {
         notificationRepository.deleteById(notificationId);
     }
 
-    // ============ NOTIFICATION CREATION METHODS (WITH PREFERENCES CHECK) ============
+    
 
-    /**
-     * ✅ NUOVO: Verifica se l'utente ha abilitato le notifiche di un certo tipo
-     */
+    
+
+
     private boolean shouldSendNotification(UUID userId, String notificationType) {
         it.unina.dietiestates25.backend.entities.NotificationPreferences prefs = getUserPreferences(userId);
-        if (prefs == null) return true; // Default: invia se preferenze non trovate
+        if (prefs == null) return true; 
         
-        // Se le notifiche in-app sono disabilitate, non inviare NESSUNA notifica
+        
         if (!prefs.isInappEnabled()) {
             log.debug("{}{} NON inviata a {}{}", LOG_PREFIX_SKIP, notificationType, userId, LOG_INAPP_DISABLED);
             return false;
         }
         
-        // Verifica la preferenza specifica per tipo di notifica
+        
         boolean shouldSend = switch (notificationType) {
             case TYPE_OFFER_STATUS_CHANGED, TYPE_OFFER_UPDATES -> prefs.isNotifyOfferUpdates();
             case TYPE_VISIT_STATUS_CHANGED, TYPE_VISIT_UPDATES -> prefs.isNotifyVisitUpdates();
@@ -127,7 +127,7 @@ public class NotificationService {
 
     @Transactional
     public void createOfferStatusNotification(UUID clientId, Listing listing, String status, Integer counterOfferAmount) {
-        // ✅ CONTROLLO PREFERENZE
+        
         if (!shouldSendNotification(clientId, TYPE_OFFER_UPDATES)) {
             return;
         }
@@ -153,7 +153,7 @@ public class NotificationService {
 
     @Transactional
     public void createVisitStatusNotification(UUID clientId, Listing listing, String status) {
-        // ✅ CONTROLLO PREFERENZE
+        
         if (!shouldSendNotification(clientId, TYPE_VISIT_UPDATES)) {
             return;
         }
@@ -179,7 +179,7 @@ public class NotificationService {
 
     @Transactional
     public void createPriceChangeNotification(UUID clientId, Listing listing, int oldPrice, int newPrice) {
-        // ✅ CONTROLLO PREFERENZE
+        
         if (!shouldSendNotification(clientId, TYPE_PRICE_CHANGED)) {
             return;
         }
@@ -204,7 +204,7 @@ public class NotificationService {
 
     @Transactional
     public void createNewMatchingListingNotification(UUID clientId, SavedSearch savedSearch, Listing listing) {
-        // ✅ CONTROLLO PREFERENZE
+        
         if (!shouldSendNotification(clientId, TYPE_NEW_MATCHING_LISTING)) {
             return;
         }
@@ -230,7 +230,7 @@ public class NotificationService {
 
     @Transactional
     public void createListingUpdatedNotification(UUID clientId, Listing listing) {
-        // ✅ CONTROLLO PREFERENZE
+        
         if (!shouldSendNotification(clientId, TYPE_LISTING_UPDATED)) {
             return;
         }
@@ -291,13 +291,13 @@ public class NotificationService {
         }
     }
     
-    /**
-     * Crea una notifica generica per un agente (CON CONTROLLO PREFERENZE)
-     */
+    
+
+
     @Transactional
     public void createAgentNotification(UUID agentId, Listing listing, String title, String body) {
-        // ✅ CONTROLLO PREFERENZE - Gli agenti ricevono notifiche su offerte/visite
-        // Determina il tipo basandosi sul titolo
+        
+        
         String notificationType = TYPE_FALLBACK_OFFER;
         if (title.toLowerCase().contains(KEY_VISITA)) {
             notificationType = TYPE_FALLBACK_VISIT;
@@ -321,12 +321,12 @@ public class NotificationService {
         log.debug("{}AGENT inviata a {} - tipo: {}", LOG_PREFIX_OK, agentId, notificationType);
     }
     
-    /**
-     * Verifica se un nuovo immobile corrisponde alle ricerche salvate e invia notifiche
-     */
+    
+
+
     @Transactional
     public void checkMatchingSearchesAndNotify(Listing newListing) {
-        // Recupera tutte le ricerche salvate attive
+        
         List<SavedSearch> allActiveSearches = savedSearchRepository.findAll().stream()
                 .filter(SavedSearch::isActive)
                 .toList();
@@ -350,9 +350,9 @@ public class NotificationService {
         log.debug("{}Inviate {} notifiche per nuovo immobile corrispondente", LOG_PREFIX_OK, notificationsSent);
     }
     
-    /**
-     * Verifica se un immobile corrisponde ai criteri di una ricerca salvata
-     */
+    
+
+
     private boolean listingMatchesSearch(Listing listing, SavedSearch search) {
         java.util.Map<String, Object> filters = search.getFilters();
         it.unina.dietiestates25.backend.entities.Property property = listing.getProperty();
@@ -438,9 +438,9 @@ public class NotificationService {
                 || searchEnergyClass.equalsIgnoreCase(property.getEnergyClass());
     }
     
-    /**
-     * Helper per convertire valori del filtro in Integer
-     */
+    
+
+
     private Integer getIntegerFromFilter(Object value) {
         if (value == null) return null;
         if (value instanceof Integer integer) return integer;
@@ -455,16 +455,16 @@ public class NotificationService {
         return null;
     }
     
-    // ============ NOTIFICATION PREFERENCES ============
     
-    /**
-     * Recupera le preferenze notifiche dell'utente
-     */
+    
+    
+
+
     @Transactional(readOnly = true)
     public it.unina.dietiestates25.backend.entities.NotificationPreferences getUserPreferences(UUID userId) {
         return notificationPreferencesRepository.findByUser_Id(userId)
                 .orElseGet(() -> {
-                    // Se non esistono, crea preferenze di default
+                    
                     User user = userRepository.findById(userId).orElse(null);
                     if (user == null) return null;
                     
@@ -475,9 +475,9 @@ public class NotificationService {
                 });
     }
     
-    /**
-     * Aggiorna le preferenze notifiche dell'utente
-     */
+    
+
+
     @Transactional
     public it.unina.dietiestates25.backend.entities.NotificationPreferences updateUserPreferences(
             UUID userId, 
@@ -488,7 +488,7 @@ public class NotificationService {
         
         if (existing == null) return null;
         
-        // Aggiorna i campi
+        
         existing.setEmailEnabled(updatedPrefs.isEmailEnabled());
         existing.setInappEnabled(updatedPrefs.isInappEnabled());
         existing.setNotifyNewMatching(updatedPrefs.isNotifyNewMatching());

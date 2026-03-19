@@ -48,7 +48,7 @@ public class Offer extends Auditable {
     @Column(nullable = false)
     private OfferStatus status = OfferStatus.SUBMITTED;
 
-    // Costruttore vuoto richiesto da JPA.
+    
     public Offer() {
     }
 

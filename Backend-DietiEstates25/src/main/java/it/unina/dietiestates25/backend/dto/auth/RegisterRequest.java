@@ -30,7 +30,7 @@ public class RegisterRequest {
     @NotNull(message = "Role is required")
     private UserRole role;
 
-    // Costruttori
+    
     public RegisterRequest() {}
 
     public RegisterRequest(String email, String password, String firstName, String lastName, String phoneE164, UserRole role) {
@@ -42,7 +42,7 @@ public class RegisterRequest {
         this.role = role;
     }
 
-    // Getters e Setters
+    
     public String getEmail() {
         return email;
     }

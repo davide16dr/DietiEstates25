@@ -28,12 +28,12 @@ export class NotificationService {
   
   private apiUrl = `${environment.apiUrl}/notifications`;
   
-  // Signal per le notifiche
+  
   notifications = signal<Notification[]>([]);
   unreadCount = signal<number>(0);
   
   constructor() {
-    // 🔌 Carica le notifiche iniziali quando l'utente è autenticato
+    
     effect(() => {
       const isAuth = this.authService.isAuthenticated();
       if (isAuth) {
@@ -44,17 +44,17 @@ export class NotificationService {
       }
     }, { allowSignalWrites: true });
     
-    // 🔌 Registra callback per ricevere notifiche via WebSocket in tempo reale
+    
     this.websocketService.onNotification((notification) => {
       console.log('📬 Notifica WebSocket ricevuta nel NotificationService:', notification);
-      // Ricarica le notifiche per aggiornare la lista
+      
       this.loadNotifications();
     });
   }
   
-  /**
-   * Carica le notifiche dal server (chiamata solo all'inizio)
-   */
+  
+
+
   loadNotifications(): void {
     this.http.get<Notification[]>(this.apiUrl).subscribe({
       next: (notifications) => {
@@ -68,9 +68,9 @@ export class NotificationService {
     });
   }
   
-  /**
-   * Segna una notifica come letta
-   */
+  
+
+
   markAsRead(notificationId: string): void {
     this.http.put(`${this.apiUrl}/${notificationId}/read`, {}).subscribe({
       next: () => {
@@ -82,9 +82,9 @@ export class NotificationService {
     });
   }
   
-  /**
-   * Segna tutte le notifiche come lette
-   */
+  
+
+
   markAllAsRead(): void {
     this.http.put(`${this.apiUrl}/read-all`, {}).subscribe({
       next: () => {
@@ -96,9 +96,9 @@ export class NotificationService {
     });
   }
   
-  /**
-   * Elimina una notifica
-   */
+  
+
+
   deleteNotification(notificationId: string): void {
     this.http.delete(`${this.apiUrl}/${notificationId}`).subscribe({
       next: () => {

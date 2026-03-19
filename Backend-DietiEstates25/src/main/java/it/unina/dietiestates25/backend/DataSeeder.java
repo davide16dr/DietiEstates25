@@ -57,16 +57,12 @@ public class DataSeeder implements CommandLineRunner {
         try {
             runSeeding();
         } catch (Exception e) {
-            // Se le tabelle non esistono ancora, skip il seeding
-            // Hibernate le creerà al prossimo avvio
             System.out.println("⚠️ Seeding saltato (tabelle non ancora create): " + e.getMessage());
         }
     }
 
     private void runSeeding() {
-        // ========== CREAZIONE UTENTI DI TEST (sempre eseguita) ==========
-        
-        // Crea o ottieni l'agenzia PRIMA di creare gli utenti
+
         Agency agency = null;
         if (agencyRepository.count() == 0) {
             agency = new Agency();
@@ -84,7 +80,7 @@ public class DataSeeder implements CommandLineRunner {
             System.out.println("🏢 Agenzia esistente: " + agency.getName());
         }
 
-        // Garantisce sede coerente anche su database già esistente.
+        
         agency.setName("Agenzia Immobiliare Napoli Centro");
         agency.setAddress("Via Toledo 256");
         agency.setCity("Napoli");
@@ -92,7 +88,7 @@ public class DataSeeder implements CommandLineRunner {
         
         createTestUsers(agency);
 
-        // Evita di inserire dati se già esistono più di 15 annunci
+        
         if (listingRepository.count() >= 15) {
             enforceNapoliMajorityOnExistingData();
             System.out.println("✅ Database già popolato con abbastanza dati, skip seeding properties");
@@ -101,9 +97,9 @@ public class DataSeeder implements CommandLineRunner {
 
         System.out.println("🌱 Inizio popolamento database con proprietà di test...");
 
-        // ✅ USA LA STESSA AGENZIA già creata sopra (non crearne una nuova!)
+        
 
-        // Proprietà 1 - Appartamento in vendita
+        
         Property prop1 = createProperty(agency, "Napoli", "Via Monte Napoleone 15", 
             45.4689, 9.1963, "Appartamento", 4, 2, 120, 3, true, "A",
             "Elegante appartamento nel cuore di Napoli");
@@ -116,7 +112,7 @@ public class DataSeeder implements CommandLineRunner {
         
         createImage(listing1, "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800", 0);
 
-        // Proprietà 2 - Attico in vendita
+        
         Property prop2 = createProperty(agency, "Napoli", "Piazza Duomo 1",
             45.4642, 9.1900, "Attico", 5, 3, 180, 8, true, "A",
             "Attico di lusso con terrazzo panoramico");
@@ -129,7 +125,7 @@ public class DataSeeder implements CommandLineRunner {
         
         createImage(listing2, "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800", 0);
 
-        // Proprietà 3 - Bilocale in affitto
+        
         Property prop3 = createProperty(agency, "Napoli", "Alzaia Naviglio Grande 42",
             45.4484, 9.1732, "Bilocale", 2, 1, 55, 2, false, "C",
             "Bilocale moderno zona Navigli");
@@ -142,7 +138,7 @@ public class DataSeeder implements CommandLineRunner {
         
         createImage(listing3, "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800", 0);
 
-        // Proprietà 4 - Trilocale in vendita
+        
         Property prop4 = createProperty(agency, "Napoli", "Corso Buenos Aires 10",
             45.4783, 9.2058, "Trilocale", 3, 1, 98, 4, true, "A",
             "Trilocale ristrutturato zona Buenos Aires");
@@ -155,7 +151,7 @@ public class DataSeeder implements CommandLineRunner {
         
         createImage(listing4, "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800", 0);
 
-        // Proprietà 5 - Loft in vendita
+        
         Property prop5 = createProperty(agency, "Napoli", "Via Tortona 30",
             45.4509, 9.1654, "Loft", 3, 2, 140, 1, false, "A",
             "Loft di design in zona Tortona");
@@ -168,7 +164,7 @@ public class DataSeeder implements CommandLineRunner {
         
         createImage(listing5, "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800", 0);
 
-        // Proprietà 6 - Monolocale in affitto
+        
         Property prop6 = createProperty(agency, "Napoli", "Viale Sabotino 5",
             45.4512, 9.2019, "Monolocale", 1, 1, 35, 1, false, "B",
             "Monolocale zona Porta Romana");
@@ -181,7 +177,7 @@ public class DataSeeder implements CommandLineRunner {
         
         createImage(listing6, "https://images.unsplash.com/photo-1502672260066-6bc35f0f1edb?w=800", 0);
 
-        // Proprietà 7 - Villa con giardino in vendita
+        
         Property prop7 = createProperty(agency, "Napoli", "Via Inganni 85",
             45.4621, 9.1182, "Villa", 6, 3, 250, 0, false, "B",
             "Villa indipendente con giardino");
@@ -194,7 +190,7 @@ public class DataSeeder implements CommandLineRunner {
         
         createImage(listing7, "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800", 0);
 
-        // Proprietà 8 - Appartamento in affitto zona Centrale
+        
         Property prop8 = createProperty(agency, "Napoli", "Via Vittor Pisani 12",
             45.4847, 9.2023, "Appartamento", 3, 1, 85, 5, true, "C",
             "Appartamento zona Stazione Centrale");
@@ -207,7 +203,7 @@ public class DataSeeder implements CommandLineRunner {
         
         createImage(listing8, "https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=800", 0);
 
-        // Proprietà 9 - Penthouse in vendita
+        
         Property prop9 = createProperty(agency, "Napoli", "Corso Sempione 45",
             45.4773, 9.1672, "Penthouse", 4, 2, 160, 10, true, "A",
             "Penthouse esclusivo zona Arco della Pace");
@@ -220,7 +216,7 @@ public class DataSeeder implements CommandLineRunner {
         
         createImage(listing9, "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800", 0);
 
-        // Proprietà 10 - Bilocale in vendita Isola
+        
         Property prop10 = createProperty(agency, "Napoli", "Via Confalonieri 8",
             45.4868, 9.1876, "Bilocale", 2, 1, 60, 3, true, "B",
             "Bilocale moderno zona Isola");
@@ -233,7 +229,7 @@ public class DataSeeder implements CommandLineRunner {
         
         createImage(listing10, "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=800", 0);
 
-        // Proprietà 11 - Trilocale in affitto City Life
+        
         Property prop11 = createProperty(agency, "Napoli", "Piazza Tre Torri 2",
             45.4703, 9.1524, "Trilocale", 3, 2, 95, 12, true, "A",
             "Trilocale moderno City Life");
@@ -246,7 +242,7 @@ public class DataSeeder implements CommandLineRunner {
         
         createImage(listing11, "https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=800", 0);
 
-        // Proprietà 12 - Rustico in vendita
+        
         Property prop12 = createProperty(agency, "Napoli", "Via Ripamonti 200",
             45.4289, 9.2089, "Rustico", 4, 2, 180, 0, false, "D",
             "Rustico ristrutturato con corte");
@@ -259,7 +255,7 @@ public class DataSeeder implements CommandLineRunner {
         
         createImage(listing12, "https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=800", 0);
 
-        // Proprietà 13 - Studio in affitto Brera
+        
         Property prop13 = createProperty(agency, "Napoli", "Via Fiori Chiari 5",
             45.4715, 9.1856, "Studio", 1, 1, 40, 2, false, "C",
             "Studio nel cuore di Brera");
@@ -272,7 +268,7 @@ public class DataSeeder implements CommandLineRunner {
         
         createImage(listing13, "https://images.unsplash.com/photo-1600573472550-8090b5e0745e?w=800", 0);
 
-        // Proprietà 14 - Quadrilocale in vendita
+        
         Property prop14 = createProperty(agency, "Napoli", "Viale Papiniano 42",
             45.4589, 9.1678, "Quadrilocale", 4, 2, 130, 6, true, "B",
             "Quadrilocale signorile zona Sant'Agostino");
@@ -285,7 +281,7 @@ public class DataSeeder implements CommandLineRunner {
         
         createImage(listing14, "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?w=800", 0);
 
-        // Proprietà 15 - Appartamento in affitto Città Studi
+        
         Property prop15 = createProperty(agency, "Napoli", "Via Celoria 18",
             45.4756, 9.2278, "Appartamento", 2, 1, 50, 1, false, "D",
             "Appartamento zona Città Studi");
@@ -298,7 +294,7 @@ public class DataSeeder implements CommandLineRunner {
         
         createImage(listing15, "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=800", 0);
 
-        // Proprietà 16 - Appartamento di design gestito da Sofia Verde
+        
         Property prop16 = createProperty(agency, "Napoli", "Via Brera 28",
             45.4721, 9.1868, "Appartamento", 3, 2, 110, 2, false, "A+",
             "Appartamento di design nel cuore di Brera");
@@ -308,7 +304,7 @@ public class DataSeeder implements CommandLineRunner {
             "Appartamento di Design Brera",
             "Esclusivo appartamento di 110 mq nel prestigioso quartiere Brera. Completamente ristrutturato con finiture di lusso. 3 locali, 2 bagni, cucina open space designer, pavimenti in rovere. Classe energetica A+.");
         
-        // Associa l'annuncio all'agente Sofia Verde
+        
         User agenteSofia = userRepository.findByEmail("agente2@dietiestates.it").orElse(null);
         if (agenteSofia != null) {
             listing16.setAgent(agenteSofia);
@@ -323,7 +319,7 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private void createTestUsers(Agency agency) {
-        // Crea Admin se non esiste
+        
         if (!userRepository.existsByEmail("admin@dietiestates.it")) {
             User admin = new User();
             admin.setId(UUID.randomUUID());
@@ -337,7 +333,7 @@ public class DataSeeder implements CommandLineRunner {
             System.out.println("👤 Admin creato: admin@dietiestates.it / Admin123!");
         }
 
-        // Crea Agente se non esiste
+        
         if (!userRepository.existsByEmail("agente@dietiestates.it")) {
             User agent = new User();
             agent.setId(UUID.randomUUID());
@@ -350,11 +346,11 @@ public class DataSeeder implements CommandLineRunner {
             agent.setPhoneE164("+393331234567");
             agent.setAgencyId(agency.getId());
             agent = userRepository.save(agent);
-            // ✅ Aggiungi automaticamente alla tabella agency_memberships
+            
             userService.addAgencyMembershipIfNeeded(agent);
             System.out.println("👤 Agente creato: agente@dietiestates.it / Agente123! (Agenzia: " + agency.getName() + ")");
         } else {
-            // Aggiorna agente esistente se non ha agenzia
+            
             User agent = userRepository.findByEmail("agente@dietiestates.it").orElse(null);
             if (agent != null && agent.getAgencyId() == null) {
                 agent.setAgencyId(agency.getId());
@@ -364,7 +360,7 @@ public class DataSeeder implements CommandLineRunner {
             }
         }
 
-        // Crea secondo Agente se non esiste
+        
         if (!userRepository.existsByEmail("agente2@dietiestates.it")) {
             User agent2 = new User();
             agent2.setId(UUID.randomUUID());
@@ -377,11 +373,11 @@ public class DataSeeder implements CommandLineRunner {
             agent2.setPhoneE164("+393339876543");
             agent2.setAgencyId(agency.getId());
             agent2 = userRepository.save(agent2);
-            // ✅ Aggiungi automaticamente alla tabella agency_memberships
+            
             userService.addAgencyMembershipIfNeeded(agent2);
             System.out.println("👤 Secondo Agente creato: agente2@dietiestates.it / Agente2123! (Agenzia: " + agency.getName() + ")");
         } else {
-            // Aggiorna agente esistente se non ha agenzia
+            
             User agent2 = userRepository.findByEmail("agente2@dietiestates.it").orElse(null);
             if (agent2 != null && agent2.getAgencyId() == null) {
                 agent2.setAgencyId(agency.getId());
@@ -391,7 +387,7 @@ public class DataSeeder implements CommandLineRunner {
             }
         }
 
-        // Crea Cliente se non esiste
+        
         if (!userRepository.existsByEmail("cliente@dietiestates.it")) {
             User client = new User();
             client.setId(UUID.randomUUID());
@@ -406,7 +402,7 @@ public class DataSeeder implements CommandLineRunner {
             System.out.println("👤 Cliente creato: cliente@dietiestates.it / Cliente123!");
         }
 
-        // Crea Gestore se non esiste
+        
         if (!userRepository.existsByEmail("gestore@dietiestates.it")) {
             User gestore = new User();
             gestore.setId(UUID.randomUUID());
@@ -419,11 +415,11 @@ public class DataSeeder implements CommandLineRunner {
             gestore.setPhoneE164("+393338765432");
             gestore.setAgencyId(agency.getId());
             gestore = userRepository.save(gestore);
-            // ✅ Aggiungi automaticamente alla tabella agency_memberships
+            
             userService.addAgencyMembershipIfNeeded(gestore);
             System.out.println("👤 Gestore creato: gestore@dietiestates.it / Gestore123! (Agenzia: " + agency.getName() + ")");
         } else {
-            // Aggiorna gestore esistente se non ha agenzia
+            
             User gestore = userRepository.findByEmail("gestore@dietiestates.it").orElse(null);
             if (gestore != null && gestore.getAgencyId() == null) {
                 gestore.setAgencyId(agency.getId());

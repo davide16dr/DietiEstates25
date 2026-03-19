@@ -36,11 +36,11 @@ public class Notification {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "listing_id")
-    private Listing listing; // ON DELETE SET NULL
+    private Listing listing; 
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "saved_search_id")
-    private SavedSearch savedSearch; // ON DELETE SET NULL
+    private SavedSearch savedSearch; 
 
     @Column(nullable = false, length = 160)
     private String title;
@@ -55,7 +55,7 @@ public class Notification {
     private Instant createdAt;
 
     public Notification() {
-        // Required by JPA.
+        
     }
 
     @PrePersist

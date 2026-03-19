@@ -311,7 +311,7 @@
     color: #b91c1c;
   }
 
-  /* Strength bar */
+  
   .strength-bar {
     display: flex;
     align-items: center;
@@ -343,7 +343,7 @@
     &.strong { color: #16a34a; }
   }
 
-  /* Password rules */
+  
   .pass-rules {
     list-style: none;
     padding: 0;
@@ -361,7 +361,7 @@
     }
   }
 
-  /* Step indicator */
+  
   .step-indicator {
     margin-bottom: 1.2rem;
   }
@@ -406,7 +406,7 @@
     margin: 0;
   }
 
-  /* Step 2 action row */
+  
   .step2-actions {
     display: flex;
     gap: 0.7rem;

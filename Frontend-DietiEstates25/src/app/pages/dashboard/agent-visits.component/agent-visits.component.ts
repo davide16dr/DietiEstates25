@@ -22,11 +22,11 @@ export class AgentVisitsComponent implements OnInit, OnDestroy {
   visits = signal<Visit[]>([]);
   activeFilter = signal<FilterType>('all');
 
-  // Callback per le notifiche WebSocket
+  
   private notificationCallback = (notification: any) => {
     console.log('📅 Agent ricevuto notifica visita:', notification);
     
-    // Ricarica le visite quando arriva una nuova notifica
+    
     if (notification.type?.includes('VISIT') || notification.type?.includes('NEW_VISIT_REQUEST')) {
       console.log('🔄 Ricarico le visite...');
       this.loadVisits();
@@ -68,13 +68,13 @@ export class AgentVisitsComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.loadVisits();
     
-    // Registra il callback per le notifiche WebSocket
+    
     console.log('📡 Registrazione callback per notifiche visite agent');
     this.websocketService.onNotification(this.notificationCallback);
   }
 
   ngOnDestroy(): void {
-    // Rimuovi il callback quando il componente viene distrutto
+    
     console.log('🔌 Rimozione callback notifiche visite agent');
     this.websocketService.removeNotificationCallback(this.notificationCallback);
   }
@@ -158,7 +158,7 @@ export class AgentVisitsComponent implements OnInit, OnDestroy {
   rejectVisit(visitId: string): void {
     this.dashboardService.rejectVisit(visitId, undefined).subscribe({
       next: () => {
-        this.loadVisits(); // Ricarica la lista
+        this.loadVisits(); 
         this.toast.success('Visita Rifiutata', 'La richiesta di visita è stata rifiutata');
       },
       error: (err) => {
@@ -171,7 +171,7 @@ export class AgentVisitsComponent implements OnInit, OnDestroy {
   cancelVisit(visitId: string): void {
     this.dashboardService.cancelVisitByAgent(visitId, undefined).subscribe({
       next: () => {
-        this.loadVisits(); // Ricarica la lista
+        this.loadVisits(); 
         this.toast.success('Visita Annullata', 'La visita confermata è stata annullata');
       },
       error: (err) => {

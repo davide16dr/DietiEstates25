@@ -2,7 +2,7 @@
   padding: 0;
 }
 
-// Header
+
 .header {
   display: flex;
   justify-content: space-between;
@@ -49,7 +49,7 @@
   }
 }
 
-// Stats
+
 .stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -102,7 +102,7 @@
   font-weight: 600;
 }
 
-// Filters
+
 .filters {
   display: flex;
   gap: 16px;
@@ -165,7 +165,7 @@
   }
 }
 
-// Agents List
+
 .agents-list {
   display: grid;
   gap: 16px;
@@ -334,7 +334,7 @@
   }
 }
 
-// Empty State
+
 .empty-state {
   padding: 60px 20px;
   text-align: center;
@@ -360,7 +360,7 @@
   }
 }
 
-// Responsive
+
 @media (max-width: 968px) {
   .stats {
     grid-template-columns: 1fr;

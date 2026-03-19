@@ -22,14 +22,14 @@ export class MyVisitsComponent implements OnInit, OnDestroy {
   loading = signal(true);
   visits = signal<Visit[]>([]);
 
-  // Callback per le notifiche WebSocket - DEVE essere una arrow function per mantenere il contesto 'this'
+  
   private notificationCallback = (notification: WebSocketNotification) => {
     console.log('📅 [MyVisits] Notifica WebSocket ricevuta:', notification);
     console.log('📅 [MyVisits] Tipo:', notification.type);
     console.log('📅 [MyVisits] Titolo:', notification.title);
     console.log('📅 [MyVisits] Body:', notification.body);
     
-    // ✅ Ricarica le visite per TUTTI i tipi di notifiche relative alle visite
+    
     const visitNotificationTypes = [
       'VISIT_CONFIRMED',
       'VISIT_REJECTED', 
@@ -76,10 +76,10 @@ export class MyVisitsComponent implements OnInit, OnDestroy {
     console.log('🎯 [MyVisits] Componente inizializzato');
     console.log('🎯 [MyVisits] WebSocket connesso?', this.websocketService.connected());
     
-    // Carica le visite iniziali
+    
     this.loadVisits();
     
-    // Registra il callback per le notifiche WebSocket
+    
     console.log('📡 [MyVisits] Registrazione callback per notifiche visite cliente');
     this.websocketService.onNotification(this.notificationCallback);
     console.log('✅ [MyVisits] Callback registrato con successo');
@@ -87,7 +87,7 @@ export class MyVisitsComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     console.log('🔌 [MyVisits] Componente distrutto - rimuovo callback');
-    // Rimuovi il callback quando il componente viene distrutto
+    
     this.websocketService.removeNotificationCallback(this.notificationCallback);
     console.log('✅ [MyVisits] Callback rimosso');
   }

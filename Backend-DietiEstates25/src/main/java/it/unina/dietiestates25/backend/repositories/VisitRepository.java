@@ -30,21 +30,21 @@ public interface VisitRepository extends JpaRepository<Visit, UUID> {
         Instant endDate
     );
 
-    // Verifica se esiste già una visita per un listing in un determinato orario con stati specifici
+    
     boolean existsByListing_IdAndScheduledForAndStatusIn(
         UUID listingId, 
         Instant scheduledFor, 
         List<VisitStatus> statuses
     );
 
-    // Verifica se un cliente ha già una visita nello stesso orario con stati specifici
+    
     boolean existsByClient_IdAndScheduledForAndStatusIn(
         UUID clientId, 
         Instant scheduledFor, 
         List<VisitStatus> statuses
     );
 
-    // ✅ NUOVO: Verifica se un cliente ha visite in conflitto in un range di tempo
+    
     @Query("SELECT CASE WHEN COUNT(v) > 0 THEN true ELSE false END FROM Visit v " +
            "WHERE v.client.id = :clientId " +
            "AND v.scheduledFor BETWEEN :startTime AND :endTime " +
@@ -56,7 +56,7 @@ public interface VisitRepository extends JpaRepository<Visit, UUID> {
         @Param("statuses") List<VisitStatus> statuses
     );
 
-    // ✅ NUOVO: Verifica se un agente ha visite in conflitto in un range di tempo
+    
     @Query("SELECT CASE WHEN COUNT(v) > 0 THEN true ELSE false END FROM Visit v " +
            "WHERE v.listing.agent.id = :agentId " +
            "AND v.scheduledFor BETWEEN :startTime AND :endTime " +

@@ -10,9 +10,9 @@ import org.springframework.core.env.MapPropertySource;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Carica le variabili dal file .env e le rende disponibili a Spring Boot
- */
+
+
+
 @Slf4j
 public class DotenvConfig implements ApplicationContextInitializer<ConfigurableApplicationContext> {
 

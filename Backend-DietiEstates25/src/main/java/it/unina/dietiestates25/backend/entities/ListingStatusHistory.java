@@ -38,7 +38,7 @@ public class ListingStatusHistory {
     @Column(columnDefinition = "text")
     private String reason;
 
-    // Costruttore vuoto richiesto da JPA.
+    
     public ListingStatusHistory() {
     }
 

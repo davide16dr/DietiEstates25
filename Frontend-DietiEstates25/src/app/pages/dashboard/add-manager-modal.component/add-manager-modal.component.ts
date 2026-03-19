@@ -20,7 +20,7 @@ export class AddManagerModalComponent {
   close = output<void>();
   save = output<NewManager>();
 
-  // Form signals
+  
   name = signal('');
   email = signal('');
   phone = signal('');

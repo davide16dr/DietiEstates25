@@ -52,7 +52,7 @@ export class ImageLightboxComponent {
   }
 
   onBackdropClick(event: MouseEvent) {
-    // Chiudi solo se clicchi sullo sfondo, non sull'immagine
+    
     if (event.target === event.currentTarget) {
       this.close();
     }

@@ -10,7 +10,7 @@ public class ForgotPasswordRequest {
     private String email;
 
     public ForgotPasswordRequest() {
-        // Required by Jackson for request deserialization.
+        
     }
 
     public String getEmail() { return email; }

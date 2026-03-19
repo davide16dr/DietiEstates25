@@ -113,7 +113,7 @@ export class PropertyDetailsModalComponent implements OnInit {
     const raw = (value ?? '').trim();
     if (!raw) return '';
 
-    // Esempio: CASA_INDIPENDENTE -> Casa indipendente
+    
     const cleaned = raw
       .replace(/_/g, ' ')
       .replace(/\s+/g, ' ')

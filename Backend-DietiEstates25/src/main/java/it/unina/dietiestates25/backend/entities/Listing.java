@@ -38,7 +38,7 @@ public class Listing extends Auditable {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "agent_id")
-    private User agent; // ON DELETE SET NULL
+    private User agent; 
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)
@@ -64,7 +64,7 @@ public class Listing extends Auditable {
     @OrderBy("sortOrder ASC")
     private List<ListingImage> images = new ArrayList<>();
 
-    // Costruttore vuoto richiesto da JPA.
+    
     public Listing() {
     }
 
