@@ -67,11 +67,18 @@ public class ListingController {
 
         var principal = authentication.getPrincipal();
         java.util.UUID userId = null;
+        it.unina.dietiestates25.backend.entities.enums.UserRole userRole = null;
 
         if (principal instanceof UserPrincipal userPrincipal) {
             userId = userPrincipal.getId();
+            userRole = userPrincipal.getUser().getRole();
         } else {
             return ResponseEntity.status(400).build();
+        }
+
+        // Only ADMIN can view all agency listings
+        if (userRole != it.unina.dietiestates25.backend.entities.enums.UserRole.ADMIN) {
+            return ResponseEntity.status(403).build();
         }
 
         try {
@@ -159,11 +166,19 @@ public class ListingController {
         
         var principal = authentication.getPrincipal();
         java.util.UUID agentId = null;
+        it.unina.dietiestates25.backend.entities.enums.UserRole userRole = null;
         
         if (principal instanceof UserPrincipal userPrincipal) {
             agentId = userPrincipal.getId();
+            userRole = userPrincipal.getUser().getRole();
         } else {
             return ResponseEntity.status(400).build();
+        }
+
+        // Only AGENT and AGENCY_MANAGER can create listings
+        if (userRole != it.unina.dietiestates25.backend.entities.enums.UserRole.AGENT &&
+            userRole != it.unina.dietiestates25.backend.entities.enums.UserRole.AGENCY_MANAGER) {
+            return ResponseEntity.status(403).build();
         }
         
         try {
@@ -210,11 +225,19 @@ public class ListingController {
         
         var principal = authentication.getPrincipal();
         java.util.UUID userId = null;
+        it.unina.dietiestates25.backend.entities.enums.UserRole userRole = null;
         
         if (principal instanceof UserPrincipal userPrincipal) {
             userId = userPrincipal.getId();
+            userRole = userPrincipal.getUser().getRole();
         } else {
             return ResponseEntity.status(400).build();
+        }
+
+        // Only AGENT and AGENCY_MANAGER can update listings
+        if (userRole != it.unina.dietiestates25.backend.entities.enums.UserRole.AGENT &&
+            userRole != it.unina.dietiestates25.backend.entities.enums.UserRole.AGENCY_MANAGER) {
+            return ResponseEntity.status(403).build();
         }
         
         try {
