@@ -3,6 +3,7 @@ package it.unina.dietiestates25.backend.config;
 import java.util.Arrays;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -33,6 +34,9 @@ public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
     private final RateLimitFilter rateLimitFilter;
+    
+    @Value("${spring.web.cors.allowed-origins}")
+    private String allowedOrigins;
 
     public SecurityConfig(JwtAuthFilter jwtAuthFilter, RateLimitFilter rateLimitFilter) {
         this.jwtAuthFilter = jwtAuthFilter;
@@ -52,14 +56,9 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Permetti sia localhost che gli ambienti su AWS
-        configuration.setAllowedOrigins(List.of(
-            "http://localhost:4200",
-            "http://localhost:3000",
-            "https://d1k0s1b2zzl0qx.cloudfront.net",
-            "https://dietiestates25-amplify.web.app",
-            "http://dietiestates25-2-env.eba-kzrqphfm.eu-south-1.elasticbeanstalk.com"
-        ));
+        // Leggi i domini autorizzati dalla configurazione o da variabile d'ambiente
+        List<String> origins = Arrays.asList(allowedOrigins.split(","));
+        configuration.setAllowedOrigins(origins);
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With"));
         configuration.setAllowCredentials(true);
@@ -96,15 +95,11 @@ public class SecurityConfig {
                     "/ws/**",
                     "/uploads/**"
                 ).permitAll()
-                // Endpoint pubblici solo GET per listings
-                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/listings", "/api/listings/search", API_LISTINGS_WILDCARD).permitAll()
-                // Endpoint privati per agenti
-                .requestMatchers("/api/listings/agent/**").hasRole(ROLE_AGENT)
-                // Endpoint privati per manager e admin
-                .requestMatchers("/api/listings/agency/**").hasAnyRole(ROLE_AGENCY_MANAGER, "ADMIN")
-                // PUT/DELETE su listings richiedono AGENT o MANAGER
-                .requestMatchers(org.springframework.http.HttpMethod.PUT, API_LISTINGS_WILDCARD).hasAnyRole(ROLE_AGENT, ROLE_AGENCY_MANAGER)
-                .requestMatchers(org.springframework.http.HttpMethod.DELETE, API_LISTINGS_WILDCARD).hasAnyRole(ROLE_AGENT, ROLE_AGENCY_MANAGER)
+                // Endpoint pubblici GET - listings search
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/listings/search").permitAll()
+                // Endpoint pubblici solo GET per listings (ID specifico)
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/listings", "/api/listings/{id}").permitAll()
+                // TUTTI gli altri endpoint richiedono autenticazione
                 .anyRequest().authenticated()
             )
             .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)

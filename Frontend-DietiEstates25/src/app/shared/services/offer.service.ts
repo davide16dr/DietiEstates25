@@ -111,7 +111,7 @@ export class OfferService {
    * Client: Accept a counter offer from agent
    */
   acceptCounterOffer(offerId: string): Observable<void> {
-    return this.http.patch<void>(`${this.apiUrl}/client/offers/${offerId}/accept-counter`, {}).pipe(
+    return this.http.patch<void>(`${this.apiUrl}/client/offers/${offerId}/accept-counter`, { accepted: true }).pipe(
       timeout(5000),
       catchError((error) => {
         console.error('Error accepting counter offer:', error);
@@ -124,10 +124,11 @@ export class OfferService {
    * Client: Submit a counter to agent's counter offer
    */
   submitCounterToCounter(offerId: string, amount: number, message?: string): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/client/offers/${offerId}/counter`, { 
-      amount, 
-      message 
-    }).pipe(
+    const body: any = {
+      amount,
+      message: message || 'Controproposta del cliente' // Invia sempre un message valido
+    };
+    return this.http.post<void>(`${this.apiUrl}/client/offers/${offerId}/counter`, body).pipe(
       timeout(5000),
       catchError((error) => {
         console.error('Error submitting counter offer:', error);
@@ -140,7 +141,7 @@ export class OfferService {
    * Client: Withdraw an offer
    */
   withdrawOffer(offerId: string): Observable<void> {
-    return this.http.patch<void>(`${this.apiUrl}/client/offers/${offerId}/withdraw`, {}).pipe(
+    return this.http.patch<void>(`${this.apiUrl}/client/offers/${offerId}/withdraw`, { withdrawn: true }).pipe(
       timeout(5000),
       catchError((error) => {
         console.error('Error withdrawing offer:', error);
@@ -182,7 +183,7 @@ export class OfferService {
    * Agent: Accept an offer
    */
   acceptOffer(offerId: string): Observable<void> {
-    return this.http.patch<void>(`${this.apiUrl}/agent/offers/${offerId}/accept`, {}).pipe(
+    return this.http.patch<void>(`${this.apiUrl}/agent/offers/${offerId}/accept`, { accepted: true }).pipe(
       timeout(5000),
       catchError((error) => {
         console.error('Error accepting offer:', error);
@@ -195,9 +196,10 @@ export class OfferService {
    * Agent: Reject an offer
    */
   rejectOffer(offerId: string, reason?: string): Observable<void> {
-    return this.http.patch<void>(`${this.apiUrl}/agent/offers/${offerId}/reject`, { 
-      reason 
-    }).pipe(
+    const body = {
+      reason: reason || 'Offerta non idonea' // Invia sempre un reason valido
+    };
+    return this.http.patch<void>(`${this.apiUrl}/agent/offers/${offerId}/reject`, body).pipe(
       timeout(5000),
       catchError((error) => {
         console.error('Error rejecting offer:', error);
@@ -210,10 +212,11 @@ export class OfferService {
    * Agent: Make a counter offer
    */
   makeCounterOffer(offerId: string, amount: number, message?: string): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/agent/offers/${offerId}/counter`, { 
-      amount, 
-      message 
-    }).pipe(
+    const body: any = {
+      amount,
+      message: message || 'Controproposta dell\'agente' // Invia sempre un message valido
+    };
+    return this.http.post<void>(`${this.apiUrl}/agent/offers/${offerId}/counter`, body).pipe(
       timeout(5000),
       catchError((error) => {
         console.error('Error making counter offer:', error);

@@ -6,7 +6,8 @@ WORKDIR /app
 COPY . .
 
 RUN apk add --no-cache maven && \
-    mvn clean package -DskipTests -q && \
+    rm -rf ~/.m2/repository && \
+    mvn clean install -DskipTests -q --batch-mode && \
     ls -lh target/*.jar
 
 # Runtime

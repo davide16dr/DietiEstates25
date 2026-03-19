@@ -41,7 +41,7 @@ export interface AuthResponse {
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private http = inject(HttpClient);
-  private readonly API = `${environment.apiUrl.replace('/api', '')}/auth`;
+  private readonly API = `${environment.apiUrl}/auth`;
 
   // Uso signals invece di BehaviorSubject
   private currentUserSignal = signal<AuthResponse | null>(null);

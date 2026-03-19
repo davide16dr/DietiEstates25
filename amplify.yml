@@ -6,6 +6,8 @@ applications:
         preBuild:
           commands:
             - npm ci
+            # Load environment variables from .env.production for production builds
+            - if [ -f .env.production ]; then export $(cat .env.production | xargs); fi
         build:
           commands:
             - npm run build -- --configuration=production

@@ -17,7 +17,8 @@
     "DB_URL": "jdbc:postgresql://database-1.c9ucuikq0yr1.eu-south-1.rds.amazonaws.com:5432/postgres",
     "DB_USERNAME": "dietiestatesDM",
     "AWS_REGION": "eu-south-1",
-    "AWS_SECRETS_MANAGER_ENABLED": "false"
+    "AWS_SECRETS_MANAGER_ENABLED": "false",
+    "CORS_ORIGINS": "http://localhost:4200,http://localhost:3000,https://d1cjp7s4vnposu.cloudfront.net,https://main.d310t5yetzwpg1.amplifyapp.com,https://dietiestates25-amplify.web.app,https://dietiestates25-2-env.eba-kzrqphfm.eu-south-1.elasticbeanstalk.com"
   },
   "Logging": "/var/log/eb-docker.log"
 }

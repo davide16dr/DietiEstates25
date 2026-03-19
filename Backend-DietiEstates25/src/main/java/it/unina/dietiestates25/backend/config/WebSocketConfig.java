@@ -32,7 +32,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         // Registra l'endpoint WebSocket "/ws"
         // I client si connetteranno a ws://localhost:8080/ws
         registry.addEndpoint("/ws")
-                .setAllowedOriginPatterns("http://localhost:4200", "http://localhost:*")
+                .setAllowedOriginPatterns("http://localhost:4200", "http://localhost:*", "https://main.d310t5yetzwpg1.amplifyapp.com","https://d1cjp7s4vnposu.cloudfront.net", "https://dietiestates25-amplify.web.app")
                 .withSockJS(); // Fallback per browser che non supportano WebSocket
     }
 }
